@@ -1,0 +1,9 @@
+[package]
+name = "IDNHRust"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+enigo = "0.2.1"
+gl = "0.14.0"
+sdl2 = { version = "0.37.0", features = ["bundled", "unsafe_textures"] }
