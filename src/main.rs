@@ -1,7 +1,7 @@
 extern crate sdl2;
 extern crate gl;
 
-use sdl2::{video::GLProfile, image::LoadSurface};
+use sdl2::{image::LoadSurface, video::GLProfile};
 use std::ffi::CString;
 use gl::types::*;
 
@@ -57,7 +57,7 @@ fn link_program(vs: GLuint, fs: GLuint) -> GLuint {
     program
 }
 
-fn load_texture(path: &str) -> GLuint {
+fn load_texture(path: &str) -> (GLuint, (u32, u32)) {
     let surface = sdl2::surface::Surface::from_file(path).unwrap();
     let mut texture: GLuint = 0;
     
@@ -93,7 +93,7 @@ fn load_texture(path: &str) -> GLuint {
         gl::GenerateMipmap(gl::TEXTURE_2D);
     }
 
-    texture
+    (texture, surface.size())
 }
 
 
@@ -101,21 +101,21 @@ fn load_texture(path: &str) -> GLuint {
 
 struct Square {
     position: (f32, f32),    // (x, y)
-    size: f32,               // side length of the square
-    color: (u8, u8, u8),     // RGB color as (R, G, B)
+    size: (u32, u32),               // side length of the square
     vao: GLuint,             // Vertex Array Object for the square
-    texture: Option<GLuint>, // Texture
+    texture: Option<(GLuint, (u32, u32))>, // Texture
 }
 
 impl Square {
-    fn new(size: f32, color: (u8, u8, u8), texture_path: Option<&str>) -> Square {
-        let vertices: [f32; 18] = [
-            -0.5,  0.5, 0.0, // Top-left
-            -0.5, -0.5, 0.0, // Bottom-left
-             0.5, -0.5, 0.0, // Bottom-right
-            -0.5,  0.5, 0.0, // Top-left
-             0.5, -0.5, 0.0, // Bottom-right
-             0.5,  0.5, 0.0, // Top-right
+    fn new(size: (u32, u32), texture_path: Option<&str>) -> Square {
+        let vertices: [f32; 30] = [
+            // Positions          // Texture Coords
+            -0.5,  -0.5, 0.0,      0.0, 1.0,  // Top-left
+            -0.5, 0.5, 0.0,      0.0, 0.0,  // Bottom-left
+            0.5, 0.5, 0.0,      1.0, 0.0,  // Bottom-right
+            -0.5, -0.5, 0.0,      0.0, 1.0,  // Top-left
+            0.5, 0.5, 0.0,      1.0, 0.0,  // Bottom-right
+            0.5, -0.5, 0.0,         1.0, 1.0
         ];
 
         // Create a VAO and VBO for the square
@@ -124,9 +124,8 @@ impl Square {
         unsafe {
             gl::GenVertexArrays(1, &mut vao);
             gl::GenBuffers(1, &mut vbo);
-
+        
             gl::BindVertexArray(vao);
-
             gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
             gl::BufferData(
                 gl::ARRAY_BUFFER,
@@ -134,20 +133,41 @@ impl Square {
                 vertices.as_ptr() as *const GLvoid,
                 gl::STATIC_DRAW,
             );
-
-            gl::VertexAttribPointer(0, 3, gl::FLOAT, gl::FALSE, 3 * std::mem::size_of::<GLfloat>() as GLsizei, std::ptr::null());
+        
+            // Position attribute (location 0)
+            gl::VertexAttribPointer(0, 3, gl::FLOAT, gl::FALSE, 5 * std::mem::size_of::<GLfloat>() as GLsizei, std::ptr::null());
             gl::EnableVertexAttribArray(0);
+        
+            // Texture Coord attribute (location 1)
+            gl::VertexAttribPointer(
+                1,
+                2,
+                gl::FLOAT,
+                gl::FALSE,
+                5 * std::mem::size_of::<GLfloat>() as GLsizei,
+                (3 * std::mem::size_of::<GLfloat>()) as *const GLvoid,
+            );
+            gl::EnableVertexAttribArray(1);
         }
         
         // Load texture if a path is provided
         let texture = texture_path.map(|path| load_texture(path));
 
-        Square {
-            position: (0.0, 0.0),
-            size,
-            color,
-            vao,
-            texture,
+        if texture.is_some() {
+            let size = (texture.unwrap().1.0, texture.unwrap().1.1);
+            Square {
+                position: (0.0, 0.0),
+                size,
+                vao,
+                texture,
+            }
+        } else {
+            Square {
+                position: (0.0, 0.0),
+                size,
+                vao,
+                texture,
+            }
         }
     }
 
@@ -155,31 +175,26 @@ impl Square {
         self.position = (x, y);
     }
 
-    fn render(&self, shader_program: GLuint) {
+    fn render(&self, shader_program: GLuint, aspect_ratio: f32, screen_width: u32, screen_height: u32) {
         unsafe {
             gl::UseProgram(shader_program);
 
             // Set position transformation (same as before)
             let col = CString::new("transform").unwrap();
             let transform_loc = gl::GetUniformLocation(shader_program, col.as_ptr());
+            
             let transform: [f32; 16] = [
-                self.size, 0.0,      0.0, 0.0,
-                0.0,      self.size, 0.0, 0.0,
+                self.size.0 as f32 / screen_width as f32, 0.0,      0.0, 0.0,
+                0.0,      self.size.1 as f32 / screen_height as f32, 0.0, 0.0,
                 0.0,      0.0,      1.0, 0.0,
                 self.position.0, self.position.1, 0.0, 1.0,
             ];
             gl::UniformMatrix4fv(transform_loc, 1, gl::FALSE, transform.as_ptr());
 
-            // Set the color
-            let col = CString::new("ourColor").unwrap();
-            let color_loc = gl::GetUniformLocation(shader_program, col.as_ptr());
-            let (r, g, b) = self.color;
-            gl::Uniform3f(color_loc, r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0);
-
             // Bind the texture if available
             if let Some(texture) = self.texture {
                 gl::ActiveTexture(gl::TEXTURE0);
-                gl::BindTexture(gl::TEXTURE_2D, texture);
+                gl::BindTexture(gl::TEXTURE_2D, texture.0);
             }
 
             // Render the square
@@ -197,10 +212,15 @@ fn main() {
     gl_attr.set_context_profile(GLProfile::Core);
     gl_attr.set_context_version(3, 3);
 
-    let window = video_subsystem.window("Insert Dungeon Name Here", 800, 600)
+    let window_x = 200;
+    let window_y = 200;
+    let window_width: u32 = 800;
+    let window_height: u32 = 600;
+
+    let window = video_subsystem.window("Insert Dungeon Name Here", window_width, window_height)
         .opengl()
         .resizable()
-        .borderless()
+        //.borderless()
         .build()
         .unwrap();
 
@@ -212,9 +232,15 @@ fn main() {
     let vert_shader_src = r#"
         #version 330 core
         layout (location = 0) in vec3 aPos;
+        layout (location = 1) in vec2 aTexCoord;
+
+        out vec2 TexCoord;
+
         uniform mat4 transform;
+
         void main() {
             gl_Position = transform * vec4(aPos, 1.0);
+            TexCoord = aTexCoord;
         }
     "#;
 
@@ -222,12 +248,15 @@ fn main() {
         #version 330 core
         out vec4 FragColor;
 
-        uniform vec3 ourColor;
-        uniform sampler2D ourTexture; // Texture input
+        in vec2 TexCoord;
+
+        uniform sampler2D ourTexture;
 
         void main() {
-            vec4 texColor = texture(ourTexture, gl_FragCoord.xy);
-            FragColor = texColor; // Output the texture color
+            vec4 texColor = texture(ourTexture, TexCoord);
+            if (texColor.a < 0.1)
+                discard;
+            FragColor = texColor;
         }
     "#;
 
@@ -236,11 +265,20 @@ fn main() {
     let shader_program = link_program(vert_shader, frag_shader);
 
     // Create some squares
-    let mut square1 = Square::new(0.2, (0, 200, 30), None);
+    let mut square1 = Square::new((0, 0), Some("assets/test.png"));
     square1.set_position(-0.5, -0.5);
 
-    let mut square2 = Square::new(0.3, (200, 200, 40), Some("assets/attribute_panels_concept.png"));
-    square2.set_position(0.5, 0.5);
+    let mut square2 = Square::new((0, 0), Some("assets/test5.png"));
+    square2.set_position(0.0, 0.0);
+
+    let mut square3 = Square::new((0, 0), Some("assets/test2.png"));
+    square3.set_position(0.5, -0.5);
+
+
+    unsafe {
+        gl::Enable(gl::BLEND);
+        gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+    }
 
     let mut event_pump = sdl.event_pump().unwrap();
     'running: loop {
@@ -250,14 +288,20 @@ fn main() {
             }
         }
 
+        let (window_width, window_height) = window.size();
+
         // Render
         unsafe {
             gl::ClearColor(0.1, 0.1, 0.1, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT);
+            
+            let aspect_ratio = window_width as f32 / window_height as f32;
+            gl::Viewport(0, 0, window_width.try_into().unwrap(), window_height.try_into().unwrap());
 
             // Render the squares
-            square1.render(shader_program);
-            square2.render(shader_program);
+            square1.render(shader_program, aspect_ratio, window_width, window_height);
+            square2.render(shader_program, aspect_ratio, window_width, window_height);
+            square3.render(shader_program, aspect_ratio, window_width, window_height);
         }
 
         window.gl_swap_window();
