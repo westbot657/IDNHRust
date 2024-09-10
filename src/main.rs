@@ -104,10 +104,11 @@ struct Square {
     size: (u32, u32),               // side length of the square
     vao: GLuint,             // Vertex Array Object for the square
     texture: Option<(GLuint, (u32, u32))>, // Texture
+    uv: (f32, f32, f32, f32)
 }
 
 impl Square {
-    fn new(size: (u32, u32), texture_path: Option<&str>) -> Square {
+    fn new(size: (u32, u32), texture_path: Option<&str>, uv: Option<(u32, u32, u32, u32)>) -> Square {
         let vertices: [f32; 30] = [
             // Positions          // Texture Coords
             -0.5,  -0.5, 0.0,      0.0, 1.0,  // Top-left
@@ -152,21 +153,28 @@ impl Square {
         
         // Load texture if a path is provided
         let texture = texture_path.map(|path| load_texture(path));
-
         if texture.is_some() {
             let size = (texture.unwrap().1.0, texture.unwrap().1.1);
+            let uv = uv.or(Some((0, 0, size.0, size.1))).unwrap();
+            println!("{:?}", uv);
+            let f_uv = (uv.0 as f32 / size.0 as f32, uv.1 as f32 / size.1 as f32, uv.2 as f32 / size.0 as f32, uv.3 as f32 / size.1 as f32);
+            println!("{:?}", f_uv);
             Square {
                 position: (0.0, 0.0),
                 size,
                 vao,
                 texture,
+                uv: f_uv
             }
         } else {
+            let uv = uv.or(Some((0, 0, size.0, size.1))).unwrap();
+            let f_uv = (uv.0 as f32 / size.0 as f32, uv.1 as f32 / size.1 as f32, uv.2 as f32 / size.0 as f32, uv.3 as f32 / size.1 as f32);
             Square {
                 position: (0.0, 0.0),
                 size,
                 vao,
                 texture,
+                uv: f_uv
             }
         }
     }
@@ -190,6 +198,11 @@ impl Square {
                 self.position.0, self.position.1, 0.0, 1.0,
             ];
             gl::UniformMatrix4fv(transform_loc, 1, gl::FALSE, transform.as_ptr());
+
+
+            let uv = CString::new("uv").unwrap();
+            let uv_pos = gl::GetUniformLocation(shader_program, uv.as_ptr());
+            gl::Uniform4f(uv_pos, self.uv.0, self.uv.1, self.uv.2, self.uv.3);
 
             // Bind the texture if available
             if let Some(texture) = self.texture {
@@ -251,12 +264,18 @@ fn main() {
         in vec2 TexCoord;
 
         uniform sampler2D ourTexture;
+        uniform vec4 uv;
 
         void main() {
             vec4 texColor = texture(ourTexture, TexCoord);
             if (texColor.a < 0.1)
                 discard;
-            FragColor = texColor;
+            
+            if (!(uv.x <= TexCoord.x && TexCoord.x <= uv.x + uv.z && uv.y <= TexCoord.y && TexCoord.y <= uv.y + uv.w)) {
+                discard;
+            } else {
+                FragColor = texColor;
+            }
         }
     "#;
 
@@ -265,13 +284,13 @@ fn main() {
     let shader_program = link_program(vert_shader, frag_shader);
 
     // Create some squares
-    let mut square1 = Square::new((0, 0), Some("assets/test.png"));
+    let mut square1 = Square::new((0, 0), Some("assets/test.png"), None);
     square1.set_position(-0.5, -0.5);
 
-    let mut square2 = Square::new((0, 0), Some("assets/test5.png"));
+    let mut square2 = Square::new((0, 0), Some("assets/test5.png"), Some((0, 0, 18, 18)));
     square2.set_position(0.0, 0.0);
 
-    let mut square3 = Square::new((0, 0), Some("assets/test2.png"));
+    let mut square3 = Square::new((0, 0), Some("assets/test2.png"), None);
     square3.set_position(0.5, -0.5);
 
 
