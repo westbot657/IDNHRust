@@ -8,6 +8,7 @@ mod component;
 mod rectangle;
 mod image;
 mod text;
+mod camera;
 
 use app::App;
 use shaders::Shaders;
