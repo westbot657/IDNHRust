@@ -11,22 +11,21 @@ pub struct Image {
     pub size: (u32, u32),
     pub src: String,
     pub uv: (u32, u32, u32, u32),
-    pub texture_size: (u32, u32),
     vao: u32
 }
 
 impl Image {
-    pub fn new(x: i32, y: i32, width: u32, height: u32, src: String, uv: (u32, u32, u32, u32), texture_size: (u32, u32), z_index: f32) -> Image {
-        const lower_bound: f32 = -0.5;
-        const upper_bound: f32 = 0.5;
+    pub fn new(x: i32, y: i32, width: u32, height: u32, src: String, uv: (u32, u32, u32, u32), z_index: f32) -> Image {
+        const LOWER_BOUND: f32 = -0.5;
+        const UPPER_BOUND: f32 = 0.5;
         let vertices: [f32; 30] = [
             // Positions          // Texture Coords
-            lower_bound, lower_bound, z_index,      0.0, 1.0,  // Top-left
-            lower_bound, upper_bound, z_index,      0.0, 0.0,  // Bottom-left
-            upper_bound, upper_bound, z_index,      1.0, 0.0,  // Bottom-right
-            lower_bound, lower_bound, z_index,      0.0, 1.0,  // Top-left
-            upper_bound, upper_bound, z_index,      1.0, 0.0,  // Bottom-right
-            upper_bound, lower_bound, z_index,      1.0, 1.0
+            LOWER_BOUND, LOWER_BOUND, z_index,      0.0, 1.0,  // Top-left
+            LOWER_BOUND, UPPER_BOUND, z_index,      0.0, 0.0,  // Bottom-left
+            UPPER_BOUND, UPPER_BOUND, z_index,      1.0, 0.0,  // Bottom-right
+            LOWER_BOUND, LOWER_BOUND, z_index,      0.0, 1.0,  // Top-left
+            UPPER_BOUND, UPPER_BOUND, z_index,      1.0, 0.0,  // Bottom-right
+            UPPER_BOUND, LOWER_BOUND, z_index,      1.0, 1.0
         ];
 
         // Create a VAO and VBO for the square
@@ -66,7 +65,6 @@ impl Image {
             size: (width, height),
             src,
             uv,
-            texture_size,
             vao
         }
     }
@@ -77,8 +75,8 @@ impl Image {
 
     fn render(&self, app: &App) {
         let shader_program = app.shaders.textured_program;
-        let pos = app.mapCoords(&self.position);
-        let sz = app.mapSize(&self.size);
+        let pos = app.map_coords(&self.position);
+        let sz = app.map_size(&self.size);
         unsafe {
             gl::UseProgram(shader_program);
 
@@ -94,7 +92,7 @@ impl Image {
             ];
             gl::UniformMatrix4fv(transform_loc, 1, gl::FALSE, transform.as_ptr());
 
-            let (atlas_id, mut rect) = app.tex_atlas.get_atlas_and_rect(&self.src).unwrap();
+            let (atlas_id, rect) = app.tex_atlas.get_atlas_and_rect(&self.src).unwrap();
 
             let uv_str = CString::new("uv").unwrap();
             let uv_loc = gl::GetUniformLocation(shader_program, uv_str.as_ptr());

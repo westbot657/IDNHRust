@@ -1,17 +1,14 @@
 extern crate glob;
 
-use std::{collections::HashMap, path::Path};
+use std::collections::HashMap;
 
 use gl::types::GLuint;
 use glob::glob;
 use rect_packer::{Config, Packer};
-use sdl2::{image::LoadSurface, pixels::{PixelFormat, PixelFormatEnum}, rect::Rect, surface::Surface};
+use sdl2::{image::LoadSurface, rect::Rect, surface::Surface};
 
 
-pub fn load_texture(path: &str) -> (GLuint, (u32, u32)) {
-    let surface = sdl2::surface::Surface::from_file(path).unwrap();
-    convert_tex_to_gl(&surface)
-}
+
 pub fn convert_tex_to_gl(surface: &Surface) -> (GLuint, (u32, u32)) {
     let mut texture: GLuint = 0;
     
