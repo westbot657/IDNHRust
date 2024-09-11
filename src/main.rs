@@ -32,7 +32,7 @@ fn main() {
     let window = video_subsystem.window("Insert Dungeon Name Here", window_width, window_height)
         .opengl()
         .resizable()
-        //.borderless()
+        .borderless()
         .build()
         .unwrap();
 
@@ -70,7 +70,7 @@ fn main() {
         app.window_size = (window_width, window_height);
 
         unsafe {
-            gl::ClearColor(0.1, 0.1, 0.1, 1.0);
+            gl::ClearColor(0.0, 0.0, 0.0, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
             
             gl::Viewport(0, 0, window_width.try_into().unwrap(), window_height.try_into().unwrap());

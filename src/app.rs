@@ -58,7 +58,7 @@ impl<'a> App<'a> {
     }
 
     pub fn map_coords(&self, pos: &(i32, i32)) -> (f32, f32) {
-        ((pos.0 as f32 / self.window_size.0 as f32) - 1.0, 1.0 - (pos.1 as f32 / self.window_size.1 as f32))
+        ((pos.0 as f32 * 2.0 / self.window_size.0 as f32) - 1.0, 1.0 - (pos.1 as f32 * 2.0 / self.window_size.1 as f32))
     }
 
     pub fn map_size(&self, size: &(u32, u32)) -> (f32, f32) {

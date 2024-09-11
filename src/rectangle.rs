@@ -78,10 +78,10 @@ impl Rectangle {
             let col = CString::new("transform").unwrap();
             let transform_loc = gl::GetUniformLocation(shader_program, col.as_ptr());
             let transform: [f32; 16] = [
-                sz.0,     0.0,      0.0, 0.0,
-                0.0,      sz.1,     0.0, 0.0,
+                sz.0*2.0,     0.0,      0.0, 0.0,
+                0.0,      sz.1*2.0,     0.0, 0.0,
                 0.0,      0.0,      1.0, 0.0,
-                pos.0+(sz.0/2.0), pos.1-(sz.1/2.0), 0.0, 1.0,
+                pos.0+(sz.0), pos.1-(sz.1), 0.0, 1.0,
             ];
             gl::UniformMatrix4fv(transform_loc, 1, gl::FALSE, transform.as_ptr());
 
