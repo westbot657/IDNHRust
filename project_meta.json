@@ -1,6 +1,6 @@
 {
     "_comment": "this file contains meta data for displaying on my website",
-    "description": "Re-writeen in rust for the performance boost and shader compatability.",
+    "description": "Re-written in rust for the performance boost and shader compatability.",
     "version": "",
     "languages": ["rust"]
 }
