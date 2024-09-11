@@ -17,7 +17,6 @@ use sdl2::video::GLProfile;
 
 
 fn main() {
-    // Initialize SDL2 and OpenGL as before
     let sdl = sdl2::init().unwrap();
     let video_subsystem = sdl.video().unwrap();
     let gl_attr = video_subsystem.gl_attr();
@@ -44,16 +43,6 @@ fn main() {
 
     let mut app = App::new(shader, window_width, window_height);
 
-    // Create some squares
-    // let mut square1 = Square::new((0, 0), Some("assets/test.png"), None);
-    // square1.set_position(-0.5, -0.5);
-
-    // let mut square2 = Square::new((0, 0), Some("assets/test5.png"), Some((0, 0, 18, 18)));
-    // square2.set_position(0.0, 0.0);
-
-    // let mut square3 = Square::new((0, 0), Some("assets/test2.png"), None);
-    // square3.set_position(0.5, -0.5);
-
 
     unsafe {
         gl::Enable(gl::BLEND);
@@ -79,21 +68,13 @@ fn main() {
         let (window_width, window_height) = window.size();
         app.window_size = (window_width, window_height);
 
-        // Render
         unsafe {
             gl::ClearColor(0.1, 0.1, 0.1, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
             
             gl::Viewport(0, 0, window_width.try_into().unwrap(), window_height.try_into().unwrap());
-
-            
-
-            // Render the squares
-            // square1.render(shader_program, window_width, window_height);
-            // square2.render(shader_program, window_width, window_height);
-            // square3.render(shader_program, window_width, window_height);
         }
-
+            
         app.update();
 
         window.gl_swap_window();

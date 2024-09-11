@@ -17,16 +17,14 @@ impl Rectangle {
         const LOWER_BOUND: f32 = -0.5;
         const UPPER_BOUND: f32 = 0.5;
         let vertices: [f32; 30] = [
-            // Positions          // Texture Coords
-            LOWER_BOUND, LOWER_BOUND, z_index,      0.0, 1.0,  // Top-left
-            LOWER_BOUND, UPPER_BOUND, z_index,      0.0, 0.0,  // Bottom-left
-            UPPER_BOUND, UPPER_BOUND, z_index,      1.0, 0.0,  // Bottom-right
-            LOWER_BOUND, LOWER_BOUND, z_index,      0.0, 1.0,  // Top-left
-            UPPER_BOUND, UPPER_BOUND, z_index,      1.0, 0.0,  // Bottom-right
+            LOWER_BOUND, LOWER_BOUND, z_index,      0.0, 1.0,
+            LOWER_BOUND, UPPER_BOUND, z_index,      0.0, 0.0,
+            UPPER_BOUND, UPPER_BOUND, z_index,      1.0, 0.0,
+            LOWER_BOUND, LOWER_BOUND, z_index,      0.0, 1.0,
+            UPPER_BOUND, UPPER_BOUND, z_index,      1.0, 0.0,
             UPPER_BOUND, LOWER_BOUND, z_index,      1.0, 1.0
         ];
 
-        // Create a VAO and VBO for the square
         let mut vao: GLuint = 0;
         let mut vbo: GLuint = 0;
         unsafe {
@@ -77,7 +75,6 @@ impl Rectangle {
         unsafe {
             gl::UseProgram(shader_program);
 
-            // Set position transformation (same as before)
             let col = CString::new("transform").unwrap();
             let transform_loc = gl::GetUniformLocation(shader_program, col.as_ptr());
             let transform: [f32; 16] = [
@@ -92,7 +89,6 @@ impl Rectangle {
             let color_loc = gl::GetUniformLocation(shader_program, clr.as_ptr());
             gl::Uniform4f(color_loc, self.color.0 as f32 / 255.0, self.color.1 as f32 / 255.0, self.color.2 as f32 / 255.0, self.color.3 as f32 / 255.0);
 
-            // Render the square
             gl::BindVertexArray(self.vao);
             gl::DrawArrays(gl::TRIANGLES, 0, 6);
         }

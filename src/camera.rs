@@ -17,7 +17,6 @@ impl Camera {
     }
 
     pub fn push(&mut self) {
-        // Save the current matrix on the stack
         self.stack.push((self.matrix, self.viewport));
         self.matrix = Matrix4::identity();
         self.viewport = (self.viewport.0, self.viewport.1, self.viewport.2, self.viewport.3)
@@ -25,7 +24,6 @@ impl Camera {
 
     pub fn pop(&mut self) {
         if let Some(previous_matrix) = self.stack.pop() {
-            // Restore the previous matrix
             self.matrix = previous_matrix.0;
             self.viewport = previous_matrix.1;
         }

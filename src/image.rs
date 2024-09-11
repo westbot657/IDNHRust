@@ -19,7 +19,6 @@ impl Image {
         const LOWER_BOUND: f32 = -0.5;
         const UPPER_BOUND: f32 = 0.5;
         let vertices: [f32; 30] = [
-            // Positions          // Texture Coords
             LOWER_BOUND, LOWER_BOUND, z_index,      0.0, 1.0,  // Top-left
             LOWER_BOUND, UPPER_BOUND, z_index,      0.0, 0.0,  // Bottom-left
             UPPER_BOUND, UPPER_BOUND, z_index,      1.0, 0.0,  // Bottom-right
@@ -28,7 +27,6 @@ impl Image {
             UPPER_BOUND, LOWER_BOUND, z_index,      1.0, 1.0
         ];
 
-        // Create a VAO and VBO for the square
         let mut vao: GLuint = 0;
         let mut vbo: GLuint = 0;
         unsafe {
@@ -80,7 +78,6 @@ impl Image {
         unsafe {
             gl::UseProgram(shader_program);
 
-            // Set position transformation (same as before)
             let col = CString::new("transform").unwrap();
             let transform_loc = gl::GetUniformLocation(shader_program, col.as_ptr());
             
@@ -108,17 +105,6 @@ impl Image {
             gl::ActiveTexture(gl::TEXTURE0);
             gl::BindTexture(gl::TEXTURE_2D, atlas_id);
 
-            // let uv = CString::new("uv").unwrap();
-            // let uv_pos = gl::GetUniformLocation(shader_program, uv.as_ptr());
-            // gl::Uniform4f(uv_pos, self.uv.0, self.uv.1, self.uv.2, self.uv.3);
-
-            // // Bind the texture if available
-            // if let Some(texture) = self.texture {
-            //     gl::ActiveTexture(gl::TEXTURE0);
-            //     gl::BindTexture(gl::TEXTURE_2D, texture.0);
-            // }
-
-            // Render the square
             gl::BindVertexArray(self.vao);
             gl::DrawArrays(gl::TRIANGLES, 0, 6);
         }
