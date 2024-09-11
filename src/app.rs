@@ -1,6 +1,6 @@
 use sdl2::event::Event;
 
-use crate::{camera::Camera, component::Component, image::Image, rectangle::Rectangle, shaders::Shaders, texture_atlas::{convert_tex_to_gl, TextureAtlas}};
+use crate::{camera::Camera, component::Component, image::Image, rectangle::Rectangle, shaders::Shaders, texture_atlas::{convert_tex_to_gl, TextureAtlas}, window_frame::WindowFrame};
 
 
 
@@ -33,7 +33,7 @@ impl<'a> App<'a> {
             window_size: (0, 0),
             camera: Camera::new(window_width, window_height),
             children: vec![
-
+                Box::new(WindowFrame::new("IDNH".to_string(), "icon", (window_width, window_height))),
                 Box::new(Rectangle::new(10, 10, 100, 100, (255, 127, 0, 255), 0.0)),
                 Box::new(Image::new(500, 100, 100, 100, "assets\\textures\\test2.png".to_string(), (0, 0, 128, 128), -0.1)),
                 Box::new(Image::new(120, 10, 1000, 1000, "assets\\textures\\test2.png".to_string(), (0, 0, 128, 128), 0.0)),

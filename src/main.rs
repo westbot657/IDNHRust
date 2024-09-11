@@ -9,6 +9,7 @@ mod rectangle;
 mod image;
 mod text;
 mod camera;
+mod window_frame;
 
 use app::App;
 use shaders::Shaders;
