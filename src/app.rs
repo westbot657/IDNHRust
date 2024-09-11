@@ -1,6 +1,6 @@
 use sdl2::event::Event;
 
-use crate::{component::Component, image::Image, rectangle::Rectangle, shaders::Shaders, texture_atlas::{convert_tex_to_gl, TextureAtlas}};
+use crate::{camera::Camera, component::Component, image::Image, rectangle::Rectangle, shaders::Shaders, texture_atlas::{convert_tex_to_gl, TextureAtlas}};
 
 
 
@@ -9,12 +9,13 @@ pub struct App<'a> {
     pub events: Vec<Event>,
     pub shaders: Shaders,
     pub window_size: (u32, u32),
+    pub camera: Camera,
     children: Vec<Box<dyn Component>>
 }
 
 
 impl<'a> App<'a> {
-    pub fn new(shaders: Shaders) -> App<'a> {
+    pub fn new(shaders: Shaders, window_width: u32, window_height: u32) -> App<'a> {
 
         let mut tex_atlas = TextureAtlas::new();
 
@@ -30,6 +31,7 @@ impl<'a> App<'a> {
             events: Vec::new(),
             shaders,
             window_size: (0, 0),
+            camera: Camera::new(window_width, window_height),
             children: vec![
 
                 Box::new(Rectangle::new(10, 10, 100, 100, (255, 127, 0, 255), 0.0)),

@@ -42,7 +42,7 @@ fn main() {
 
     let shader = Shaders::new();
 
-    let mut app = App::new(shader);
+    let mut app = App::new(shader, window_width, window_height);
 
     // Create some squares
     // let mut square1 = Square::new((0, 0), Some("assets/test.png"), None);
