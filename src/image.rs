@@ -1,5 +1,6 @@
 use std::ffi::CString;
 
+use cgmath::{Matrix, Matrix4};
 use gl::types::{GLfloat, GLsizei, GLsizeiptr, GLuint, GLvoid};
 
 use crate::{app::App, component::Component};
@@ -61,14 +62,18 @@ impl Image {
         Image {
             position: (x, y),
             size: (width, height),
-            src,
+            src: src.replace("/", "\\"),
             uv,
             vao
         }
     }
 
-    fn set_position(&mut self, x: i32, y: i32) {
+    pub fn set_position(&mut self, x: i32, y: i32) {
         self.position = (x, y);
+    }
+
+    pub fn set_size(&mut self, width: u32, height: u32) {
+        self.size = (width, height);
     }
 
     fn render(&self, app: &App) {
@@ -82,9 +87,9 @@ impl Image {
             let transform_loc = gl::GetUniformLocation(shader_program, col.as_ptr());
             
             let transform: [f32; 16] = [
-                sz.0*2.0,             0.0,              0.0, 0.0,
-                0.0,              sz.1*2.0,             0.0, 0.0,
-                0.0,              0.0,              1.0, 0.0,
+                sz.0*2.0,     0.0,          0.0, 0.0,
+                0.0,          sz.1*2.0,     0.0, 0.0,
+                0.0,          0.0,          1.0, 0.0,
                 pos.0+(sz.0), pos.1-(sz.1), 0.0, 1.0,
             ];
             gl::UniformMatrix4fv(transform_loc, 1, gl::FALSE, transform.as_ptr());
@@ -101,6 +106,28 @@ impl Image {
                 (self.uv.3) as f32 / 4096.0
             );
 
+            let cam_str = CString::new("camera").unwrap();
+            let cam_loc = gl::GetUniformLocation(shader_program, cam_str.as_ptr());
+
+            let view_str = CString::new("viewport").unwrap();
+            let view_loc = gl::GetUniformLocation(shader_program, view_str.as_ptr());
+            let (mat4, viewport) = app.camera.peek();
+
+            gl::UniformMatrix4fv(cam_loc, 1, gl::FALSE, mat4.as_ptr());
+            gl::Uniform4f(view_loc, 
+                viewport.0 as f32 / app.window_size.0 as f32 - 1.0,
+                1.0 - (viewport.1 as f32 / app.window_size.1 as f32) - (viewport.3 as f32 / app.window_size.1 as f32 * 2.0),
+                viewport.2 as f32 / app.window_size.0 as f32 * 2.0,
+                viewport.3 as f32 / app.window_size.1 as f32 * 2.0
+            );
+
+            // let aspect_str = CString::new("apsect_ratio").unwrap();
+            // let aspect_loc = gl::GetUniformLocation(shader_program, aspect_str.as_ptr());
+            // let aspect_ratio = app.window_size.0 as f32 / app.window_size.1 as f32;
+
+            // println!("Aspect ratio: {}", aspect_ratio);
+            // gl::Uniform1f(aspect_loc, aspect_ratio);
+
 
             gl::ActiveTexture(gl::TEXTURE0);
             gl::BindTexture(gl::TEXTURE_2D, atlas_id);
@@ -112,7 +139,7 @@ impl Image {
 }
 
 impl Component for Image {
-    fn update(&self, app: &mut crate::app::App) {
+    fn update(&mut self, app: &mut crate::app::App) {
         self.render(app);
     }
 

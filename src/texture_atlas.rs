@@ -84,7 +84,7 @@ impl<'a> TextureAtlas<'a> {
 
         for texture in glob("assets/textures/**/*.png").expect("Failed to read glob pattern") {
             let path = texture.unwrap(); // if a texture fails to load, then panic
-            println!("ATLAS: {:?}", path);
+            
 
             let surface = sdl2::surface::Surface::from_file(&path).unwrap();
 
@@ -126,10 +126,10 @@ impl<'a> TextureAtlas<'a> {
 
                 Ok((self.idx_to_gluint.get(&map_idx).unwrap().to_owned(), self.position_data.get(texture).unwrap().clone()))
             } else {
-                Err("Texture not in Atlas".to_string())
+                Err(format!("Texture '{}' not in Atlas", texture).to_string())
             }
         } else {
-            Err("Texture not in Atlas".to_string())
+            Err(format!("Texture '{}' not in Atlas", texture).to_string())
         }
     }
 

@@ -33,10 +33,14 @@ impl<'a> App<'a> {
             window_size: (0, 0),
             camera: Camera::new(window_width, window_height),
             children: vec![
-                Box::new(WindowFrame::new("IDNH".to_string(), "icon", (window_width, window_height))),
+                Box::new(WindowFrame::new(
+                    "IDNH".to_string(),
+                    Image::new(0, 0, 24, 24, "assets/textures/idnh_icon.png".to_string(), (0, 0, 32, 32), 0.91),
+                    (window_width, window_height)
+                )),
                 Box::new(Rectangle::new(10, 10, 100, 100, (255, 127, 0, 255), 0.0)),
-                Box::new(Image::new(500, 100, 100, 100, "assets\\textures\\test2.png".to_string(), (0, 0, 128, 128), -0.1)),
-                Box::new(Image::new(120, 10, 1000, 1000, "assets\\textures\\test2.png".to_string(), (0, 0, 128, 128), 0.0)),
+                Box::new(Image::new(500, 100, 100, 100, "assets/textures/idnh_logo.png".to_string(), (0, 0, 128, 128), 0.1)),
+                Box::new(Image::new(120, 10, 1000, 1000, "assets/textures/idnh_logo.png".to_string(), (0, 0, 128, 128), 0.0)),
 
             ]
         }
@@ -47,6 +51,7 @@ impl<'a> App<'a> {
     }
 
     pub fn update(&mut self) {
+
         let mut children = std::mem::take(&mut self.children);
 
         for child in &mut children {
@@ -58,11 +63,11 @@ impl<'a> App<'a> {
     }
 
     pub fn map_coords(&self, pos: &(i32, i32)) -> (f32, f32) {
-        ((pos.0 as f32 * 2.0 / self.window_size.0 as f32) - 1.0, 1.0 - (pos.1 as f32 * 2.0 / self.window_size.1 as f32))
+        ((pos.0 as f32 * 2.0 / self.window_size.1 as f32) - (self.window_size.0 as f32 / self.window_size.1 as f32), 1.0 - (pos.1 as f32 * 2.0 / self.window_size.1 as f32))
     }
 
     pub fn map_size(&self, size: &(u32, u32)) -> (f32, f32) {
-        (size.0 as f32 / self.window_size.0 as f32, size.1 as f32 / self.window_size.1 as f32)
+        (size.0 as f32 / self.window_size.1 as f32, size.1 as f32 / self.window_size.1 as f32)
     }
 
 }

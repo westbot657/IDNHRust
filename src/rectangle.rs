@@ -1,5 +1,6 @@
 use std::ffi::CString;
 
+use cgmath::Matrix;
 use gl::types::{GLfloat, GLsizei, GLsizeiptr, GLuint, GLvoid};
 
 use crate::{app::App, component::Component};
@@ -64,8 +65,12 @@ impl Rectangle {
         }
     }
 
-    fn set_position(&mut self, x: i32, y: i32) {
+    pub fn set_position(&mut self, x: i32, y: i32) {
         self.position = (x, y);
+    }
+
+    pub fn set_size(&mut self, width: u32, height: u32) {
+        self.size = (width, height);
     }
 
     fn render(&self, app: &App) {
@@ -85,6 +90,23 @@ impl Rectangle {
             ];
             gl::UniformMatrix4fv(transform_loc, 1, gl::FALSE, transform.as_ptr());
 
+
+            let cam_str = CString::new("camera").unwrap();
+            let cam_loc = gl::GetUniformLocation(shader_program, cam_str.as_ptr());
+
+            let view_str = CString::new("viewport").unwrap();
+            let view_loc = gl::GetUniformLocation(shader_program, view_str.as_ptr());
+            let (mat4, viewport) = app.camera.peek();
+
+            gl::UniformMatrix4fv(cam_loc, 1, gl::FALSE, mat4.as_ptr());
+            gl::Uniform4f(view_loc, 
+                viewport.0 as f32 / app.window_size.0 as f32 - 1.0,
+                1.0 - (viewport.1 as f32 / app.window_size.1 as f32) - (viewport.3 as f32 / app.window_size.1 as f32 * 2.0),
+                viewport.2 as f32 / app.window_size.0 as f32 * 2.0,
+                viewport.3 as f32 / app.window_size.1 as f32 * 2.0
+            );
+
+
             let clr = CString::new("color").unwrap();
             let color_loc = gl::GetUniformLocation(shader_program, clr.as_ptr());
             gl::Uniform4f(color_loc, self.color.0 as f32 / 255.0, self.color.1 as f32 / 255.0, self.color.2 as f32 / 255.0, self.color.3 as f32 / 255.0);
@@ -97,7 +119,7 @@ impl Rectangle {
 }
 
 impl Component for Rectangle {
-    fn update(&self, app: &mut crate::app::App) {
+    fn update(&mut self, app: &mut crate::app::App) {
         self.render(app);
     }
 

@@ -1,4 +1,4 @@
-use cgmath::{Matrix4, Rad, SquareMatrix, Vector3};
+use cgmath::{ortho, Angle, Matrix4, Rad, SquareMatrix, Vector3};
 
 
 pub struct Camera {
@@ -9,10 +9,32 @@ pub struct Camera {
 
 impl Camera {
     pub fn new(screen_width: u32, screen_height:u32) -> Self {
+
         Self {
             matrix: Matrix4::identity(),
             viewport: (0, 0, screen_width, screen_height),
             stack: Vec::new(),
+        }
+    }
+
+    pub fn project(&mut self, screen_width: u32, screen_height: u32) {
+        let aspect_ratio = screen_width as f32 / screen_height as f32;
+
+        // Set up an orthographic projection matrix with aspect ratio correction
+        let left = -1.0 * aspect_ratio;
+        let right = 1.0 * aspect_ratio;
+        let bottom = -1.0;
+        let top = 1.0;
+
+        // Adjust the orthographic projection to account for aspect ratio
+        let projection = ortho(left, right, bottom, top, -1.0, 1.0);
+        if self.stack.is_empty() {
+            self.matrix = projection;
+            self.viewport = (0, 0, screen_width, screen_height);
+        }
+        else {
+            self.stack[0].0 = projection;
+            self.stack[0].1 = (0, 0, screen_width, screen_height);
         }
     }
 
@@ -44,7 +66,7 @@ impl Camera {
     }
 
     pub fn set_position(&mut self, x: f32, y: f32) {
-        let translation = Matrix4::from_translation(Vector3::new(x, y, 0.0));
+        let translation = Matrix4::from_translation(Vector3::new(-x*2.0, y*2.0, 0.0));
         self.apply_transform(translation);
     }
 
@@ -53,8 +75,8 @@ impl Camera {
         self.apply_transform(scale);
     }
 
-    pub fn set_rotation(&mut self, angle: f32) {
-        let rotation = Matrix4::from_angle_z(Rad(angle));
+    pub fn set_rotation(&mut self, angle: Rad<f32>) {
+        let rotation = Matrix4::from_angle_z(angle);
         self.apply_transform(rotation);
     }
 }

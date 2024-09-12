@@ -1,9 +1,17 @@
 #version 330 core
-out vec4 FragColor;
+
+in vec2 ScreenPos;
 
 uniform vec4 color;
+uniform vec4 viewport;
+
+out vec4 FragColor;
 
 void main() {
+    if (!(viewport.x <= ScreenPos.x && ScreenPos.x <= viewport.x+viewport.z && viewport.y <= ScreenPos.y && ScreenPos.y <= viewport.y+viewport.w)) {
+        discard;
+    }
+
     if (color.a < 0.1)
         discard;
     FragColor = color;

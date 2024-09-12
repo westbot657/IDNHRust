@@ -10,8 +10,10 @@ mod image;
 mod text;
 mod camera;
 mod window_frame;
+mod macros;
 
 use app::App;
+use cgmath::{Deg, Rad};
 use shaders::Shaders;
 use sdl2::video::GLProfile;
 
@@ -45,6 +47,11 @@ fn main() {
     let mut app = App::new(shader, window_width, window_height);
 
 
+    // app.camera.viewport = (0, 0, window_width, window_height);
+    // app.camera.set_scale(100.0, 100.0);
+    // app.camera.set_position(0.0, 0.0);
+    // app.camera.set_rotation(Rad(0.0));
+
     unsafe {
         gl::Enable(gl::BLEND);
         gl::Enable(gl::DEPTH_TEST);
@@ -69,6 +76,19 @@ fn main() {
         let (window_width, window_height) = window.size();
         app.window_size = (window_width, window_height);
 
+        app.camera.project(window_width, window_height);
+
+        app.camera.push();
+
+        // app.camera.set_position(
+        //     event_pump.mouse_state().x() as f32 / window_width as f32,
+        //     event_pump.mouse_state().y() as f32 / window_height as f32
+        // );
+
+        // app.camera.set_scale(event_pump.mouse_state().y() as f32 / window_height as f32, event_pump.mouse_state().y() as f32 / window_height as f32);
+
+        // app.camera.set_rotation(Deg(event_pump.mouse_state().x() as f32).into());
+
         unsafe {
             gl::ClearColor(0.0, 0.0, 0.0, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
@@ -77,6 +97,8 @@ fn main() {
         }
             
         app.update();
+
+        app.camera.pop();
 
         window.gl_swap_window();
     }
