@@ -58,7 +58,8 @@ pub fn link_program(vs: GLuint, fs: GLuint) -> GLuint {
 
 pub struct Shaders {
     pub textured_program: u32,
-    pub colored_program: u32
+    pub colored_program: u32,
+    pub text_program: u32
 }
 
 impl Shaders {
@@ -70,9 +71,13 @@ impl Shaders {
         let vert2 = compile_shader(&fs::read_to_string("assets/shaders/color_vertex_shader.vert").unwrap(), gl::VERTEX_SHADER);
         let frag2 = compile_shader(&fs::read_to_string("assets/shaders/color_fragment_shader.frag").unwrap(), gl::FRAGMENT_SHADER);
 
+        let vert_txt = compile_shader(&fs::read_to_string("assets/shaders/text_vertex_shader.vert").unwrap(), gl::VERTEX_SHADER);
+        let frag_txt = compile_shader(&fs::read_to_string("assets/shaders/text_fragment_shader.frag").unwrap(), gl::FRAGMENT_SHADER);
+
         Shaders {
             textured_program: link_program(vert1, frag1),
-            colored_program: link_program(vert2, frag2)
+            colored_program: link_program(vert2, frag2),
+            text_program: link_program(vert_txt, frag_txt)
         }
     }
 

@@ -15,7 +15,8 @@ mod macros;
 use app::App;
 use cgmath::{Deg, Rad};
 use shaders::Shaders;
-use sdl2::video::GLProfile;
+use sdl2::{mouse::MouseButton, video::GLProfile};
+use text::CharAtlas;
 
 
 
@@ -42,9 +43,13 @@ fn main() {
     window.gl_make_current(&_gl_context).unwrap();
     gl::load_with(|s| video_subsystem.gl_get_proc_address(s) as *const _);
 
-    let shader = Shaders::new();
+    // This atlas takes like 10 seconds to load...
+    let char_atlas = CharAtlas::new("assets/fonts/PTMono-Regular.ttf");
 
-    let mut app = App::new(shader, window_width, window_height);
+    let shader = Shaders::new();
+    
+
+    let mut app = App::new(shader, char_atlas, window_width, window_height);
 
 
     // app.camera.viewport = (0, 0, window_width, window_height);
@@ -56,6 +61,7 @@ fn main() {
         gl::Enable(gl::BLEND);
         gl::Enable(gl::DEPTH_TEST);
         gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+        
     }
 
     let mut event_pump = sdl.event_pump().unwrap();
@@ -63,10 +69,28 @@ fn main() {
 
         app.clear_events();
 
+        app.mouse.left_down = false;
+        app.mouse.middle_down = false;
+        app.mouse.right_down = false;
+
         for event in event_pump.poll_iter() {
             match event {
                 sdl2::event::Event::Quit { .. } => {
                     break 'mainloop;
+                }
+                sdl2::event::Event::MouseButtonDown { timestamp, window_id, which, mouse_btn, clicks, x, y } => {
+                    if mouse_btn == MouseButton::Left {
+                        app.mouse.left_down = true;
+                        app.mouse.left_held = true;
+                    }
+                    else if mouse_btn == MouseButton::Right {
+                        app.mouse.right_down = true;
+                        app.mouse.right_held = true;
+                    }
+                    else if mouse_btn == MouseButton::Middle {
+                        app.mouse.middle_down = true;
+                        app.mouse.middle_held = true;
+                    }
                 }
                 _ => {}
             }

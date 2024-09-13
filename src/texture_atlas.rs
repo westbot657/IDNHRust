@@ -9,22 +9,26 @@ use sdl2::{image::LoadSurface, rect::Rect, surface::Surface};
 
 
 
-pub fn convert_tex_to_gl(surface: &Surface) -> (GLuint, (u32, u32)) {
+pub fn convert_tex_to_gl(surface: &Surface, mipmap_style: u8) -> (GLuint, (u32, u32)) {
     let mut texture: GLuint = 0;
     
     unsafe {
         gl::GenTextures(1, &mut texture);
         gl::BindTexture(gl::TEXTURE_2D, texture);
 
-        // Specify texture parameters
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::REPEAT as i32);
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::REPEAT as i32);
-        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR_MIPMAP_NEAREST as i32);
-        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
+        if mipmap_style == 0 {
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR_MIPMAP_NEAREST as i32);
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
+        }
+        else if mipmap_style == 1 {
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
+
+        }
 
 
-
-        // Load image data into OpenGL texture
         let format = if surface.pixel_format_enum() == sdl2::pixels::PixelFormatEnum::RGB24 {
             gl::RGB
         } else {
@@ -43,7 +47,9 @@ pub fn convert_tex_to_gl(surface: &Surface) -> (GLuint, (u32, u32)) {
             surface.without_lock().unwrap().as_ptr() as *const _,
         );
 
-        gl::GenerateMipmap(gl::TEXTURE_2D);
+        if (mipmap_style == 0) {
+            gl::GenerateMipmap(gl::TEXTURE_2D);
+        }
     }
 
     (texture, surface.size())
