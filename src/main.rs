@@ -13,7 +13,9 @@ mod window_frame;
 mod macros;
 mod button;
 mod storage_component;
-
+mod app_selector;
+mod editor_app;
+mod game_app;
 
 use app::App;
 use macros::SETTINGS;
@@ -39,7 +41,7 @@ fn main() {
     let mut window = video_subsystem.window("Insert Dungeon Name Here", window_width, window_height)
         .opengl()
         .resizable()
-        // .borderless()
+        .borderless()
         .build()
         .unwrap();
 

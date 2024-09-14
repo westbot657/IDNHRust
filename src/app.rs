@@ -4,7 +4,7 @@ use cgmath::{SquareMatrix, Vector4};
 use enigo::{Enigo, Settings};
 use sdl2::{event::Event, video::Window};
 
-use crate::{camera::Camera, component::Component, image::Image, macros::{cast_component, SETTINGS}, rectangle::Rectangle, shaders::Shaders, text::{CharAtlas, Text}, texture_atlas::{convert_tex_to_gl, TextureAtlas}, window_frame::WindowFrame};
+use crate::{app_selector::AppSelector, camera::Camera, component::Component, image::Image, macros::{cast_component, SETTINGS}, rectangle::Rectangle, shaders::Shaders, text::{CharAtlas, Text}, texture_atlas::{convert_tex_to_gl, TextureAtlas}, window_frame::WindowFrame};
 
 pub struct Mouse {
     pub left_down: bool,
@@ -94,7 +94,7 @@ impl<'a> App<'a> {
             pre_fullscreen_size: (0, 0)
         };
 
-
+        let app_selector = AppSelector::new(&app);
 
         app.children = vec![
             Box::new(WindowFrame::new(
@@ -105,6 +105,9 @@ impl<'a> App<'a> {
             )),
 
             Box::new(Text::new(0, 0, "FPS".to_string(), None, 0.3, 1.0, SETTINGS!(text color 4 u8))),
+
+
+            Box::new(app_selector)
 
         ];
 
