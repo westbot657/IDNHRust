@@ -1,6 +1,6 @@
 use std::{collections::HashMap, time};
 
-use cgmath::{SquareMatrix, Vector4};
+use cgmath::{Matrix4, SquareMatrix, Vector4};
 use enigo::{Enigo, Settings};
 use sdl2::{event::Event, video::Window};
 
@@ -22,11 +22,32 @@ pub struct Mouse {
     pub scroll_x: i32,
     pub scroll_y: i32,
 
-    pub position: (i32, i32)
+    pub position: (i32, i32),
+
+    pub cursor_style: Option<String>,
+    pub cursors: HashMap<String, sdl2::mouse::Cursor>,
+    pub active_cursor_style: Option<String>,
+    pub previous_cursor_style: Option<String>
 }
 
 impl Mouse {
     pub fn new() -> Self {
+
+        let mut cursors = HashMap::new();
+
+        cursors.insert("SizeWE".to_string(), sdl2::mouse::Cursor::from_system(sdl2::mouse::SystemCursor::SizeWE).unwrap());
+        cursors.insert("SizeNS".to_string(), sdl2::mouse::Cursor::from_system(sdl2::mouse::SystemCursor::SizeNS).unwrap());
+        cursors.insert("SizeNWSE".to_string(), sdl2::mouse::Cursor::from_system(sdl2::mouse::SystemCursor::SizeNWSE).unwrap());
+        cursors.insert("SizeNESW".to_string(), sdl2::mouse::Cursor::from_system(sdl2::mouse::SystemCursor::SizeNESW).unwrap());
+        cursors.insert("SizeAll".to_string(), sdl2::mouse::Cursor::from_system(sdl2::mouse::SystemCursor::SizeAll).unwrap());
+        cursors.insert("Hand".to_string(), sdl2::mouse::Cursor::from_system(sdl2::mouse::SystemCursor::Hand).unwrap());
+        cursors.insert("Arrow".to_string(), sdl2::mouse::Cursor::from_system(sdl2::mouse::SystemCursor::Arrow).unwrap());
+        cursors.insert("IBeam".to_string(), sdl2::mouse::Cursor::from_system(sdl2::mouse::SystemCursor::IBeam).unwrap());
+        cursors.insert("Crosshair".to_string(), sdl2::mouse::Cursor::from_system(sdl2::mouse::SystemCursor::Crosshair).unwrap());
+        cursors.insert("No".to_string(), sdl2::mouse::Cursor::from_system(sdl2::mouse::SystemCursor::No).unwrap());
+        cursors.insert("Wait".to_string(), sdl2::mouse::Cursor::from_system(sdl2::mouse::SystemCursor::Wait).unwrap());
+        cursors.insert("WaitArrow".to_string(), sdl2::mouse::Cursor::from_system(sdl2::mouse::SystemCursor::WaitArrow).unwrap());
+
         Self {
             left_down: false,
             left_up: false,
@@ -39,7 +60,12 @@ impl Mouse {
             right_held: false,
             scroll_x: 0,
             scroll_y: 0,
-            position: (0, 0)
+            position: (0, 0),
+
+            cursor_style: None,
+            cursors,
+            active_cursor_style: None,
+            previous_cursor_style: None
         }
     }
 }
@@ -60,7 +86,7 @@ pub struct App<'a> {
     pub should_quit: bool,
     pub fullscreen: bool,
     pub pre_fullscreen_pos: (i32, i32),
-    pub pre_fullscreen_size: (u32, u32)
+    pub pre_fullscreen_size: (u32, u32),
 }
 
 
@@ -115,6 +141,13 @@ impl<'a> App<'a> {
         app
     }
 
+    pub fn set_cursor(&mut self, cursor: String) {
+        if self.mouse.cursors.contains_key(&cursor) {
+            self.mouse.active_cursor_style = Some(cursor);
+
+        }
+    }
+
     pub fn clear_events(&mut self) {
         self.events.clear();
     }
@@ -122,6 +155,7 @@ impl<'a> App<'a> {
     pub fn update(&mut self) {
         
         let dt = time::Instant::now();
+        self.mouse.cursor_style = None;
 
         let mut children = std::mem::take(&mut self.children);
 
@@ -138,6 +172,11 @@ impl<'a> App<'a> {
 
         self.camera.pop();
 
+        if self.mouse.cursor_style.is_some() {
+            self.mouse.cursors.get(self.mouse.cursor_style.as_ref().unwrap()).unwrap().set();
+        } else {
+            self.mouse.cursors.get("Arrow").unwrap().set();
+        }
         
         let fps = dt.elapsed().as_secs_f64();
         
@@ -170,22 +209,37 @@ impl<'a> App<'a> {
 
     /// check for a collision, including any transformations made to the camera
     pub fn collides(&self, rect: (i32, i32, u32, u32), point: (i32, i32)) -> bool {
-        let (rect_x, rect_y, rect_w, rect_h) = rect;
-        
-        let aspect_ratio = self.window_size.0 as f32 / self.window_size.1 as f32;
+        let pos = self.map_coords(&(rect.0, rect.1));
+        let sz = self.map_size(&(rect.2, rect.3));
+    
+        let transform_matrix = Matrix4::from_cols(
+            Vector4::new(sz.0 * 2.0, 0.0, 0.0, 0.0),
+            Vector4::new(0.0, sz.1 * 2.0, 0.0, 0.0),
+            Vector4::new(0.0, 0.0, 1.0, 0.0),
+            Vector4::new(pos.0 + (sz.0), pos.1 - (sz.1), 0.0, 1.0),
+        );
+    
+        let (camera_matrix, viewport) = self.camera.peek();
+        let combined_matrix = camera_matrix * transform_matrix;
 
-        let point_vec = Vector4::new(point.0 as f32, point.1 as f32, 0.0, 1.0);
-        
-        let camera_matrix = self.camera.peek().0;
+        if !(viewport.0 <= point.0 && point.0 <= viewport.0 + viewport.2 as i32 &&
+            viewport.1 <= point.1 && point.1 <= viewport.1 + viewport.3 as i32) {
+                return false
+            }
     
-        if let Some(inv_camera_matrix) = camera_matrix.invert() {
-            let transformed_point = inv_camera_matrix * point_vec;
+        let screen_coords = Vector4::new(
+            2.0 * (point.0 as f32 / self.window_size.0 as f32) - 1.0,
+            1.0 - 2.0 * (point.1 as f32 / self.window_size.1 as f32),
+            0.0,
+            1.0,
+        );
     
-            let transformed_x = transformed_point.x / aspect_ratio;
-            let transformed_y = transformed_point.y;
+        if let Some(inv_combined_matrix) = combined_matrix.invert() {
+            let transformed_point = inv_combined_matrix * screen_coords;
+            let world_x = transformed_point.x * 2.0;
+            let world_y = transformed_point.y * 2.0;
     
-            transformed_x >= rect_x as f32 && transformed_x <= (rect_x + rect_w as i32) as f32 &&
-            transformed_y >= rect_y as f32 && transformed_y <= (rect_y + rect_h as i32) as f32
+            world_x >= -1.0 && world_x <= 1.0 && world_y >= -1.0 && world_y <= 1.0
         } else {
             false
         }

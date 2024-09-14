@@ -19,10 +19,6 @@ impl Component for StorageComponent {
     fn update(&mut self, _app: &mut crate::app::App) {
     }
 
-    fn collides(&self, _point: (i32, i32)) -> bool {
-        false
-    }
-
     fn destroy(self) {
     }
 }

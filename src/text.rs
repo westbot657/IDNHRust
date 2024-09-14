@@ -303,11 +303,6 @@ impl Component for Text {
         app.char_atlas.draw_text(app, self.position.0, self.position.1, &self.content, self.scale, self.max_width.or(Some(std::u32::MAX)), Some(std::u32::MAX), self.z_index, self.color)
     }
 
-    fn collides(&self, point: (i32, i32)) -> bool {
-        self.position.0 <= point.0 && point.0 <= self.position.0 + self.size.0 as i32 &&
-        self.position.1 <= point.1 && point.1 <= self.position.1 + self.size.1 as i32
-    }
-
     fn destroy(self) {
     }
 }

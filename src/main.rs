@@ -16,6 +16,7 @@ mod storage_component;
 mod app_selector;
 mod editor_app;
 mod game_app;
+mod collider;
 
 use app::App;
 use macros::SETTINGS;
@@ -35,7 +36,7 @@ fn main() {
     gl_attr.set_context_version(3, 3);
     
 
-    let window_width: u32 = 1080;
+    let window_width:  u32 = 1080;
     let window_height: u32 = 720;
 
     let mut window = video_subsystem.window("Insert Dungeon Name Here", window_width, window_height)
@@ -50,9 +51,11 @@ fn main() {
     gl::load_with(|s| video_subsystem.gl_get_proc_address(s) as *const _);
     /* GL DEPENDENT STUFF MUST HAPPEN AFTER THIS POINT */
 
+
+    let _ = window.set_minimum_size(800, 450);
+
     video_subsystem.gl_set_swap_interval(0).unwrap();
 
-    // This atlas takes like 10 seconds to load...
     let char_atlas = CharAtlas::new("assets/fonts/PTMono-Regular.ttf");
 
     let shader = Shaders::new();
@@ -67,6 +70,8 @@ fn main() {
     }
 
     let mut event_pump = sdl.event_pump().unwrap();
+
+
     'mainloop: loop {
 
         if app.should_quit {
@@ -138,6 +143,7 @@ fn main() {
 
         app.mouse.position = (event_pump.mouse_state().x(), event_pump.mouse_state().y());
         
+        
 
         app.camera.project(window_width, window_height);
 
@@ -149,7 +155,7 @@ fn main() {
             
             gl::Viewport(0, 0, window_width.try_into().unwrap(), window_height.try_into().unwrap());
         }
-            
+
         app.update();
 
 

@@ -1,12 +1,28 @@
 use enigo::Mouse;
 
-use crate::{app::App, button::Button, component::Component, image::Image, macros::{cast_component, SETTINGS}, rectangle::Rectangle, storage_component::StorageComponent, text::Text};
+use crate::{
+    app::App,
+    button::Button,
+    collider::Collider,
+    component::Component,
+    image::Image,
+    macros::{cast_component, collides, SETTINGS},
+    rectangle::Rectangle,
+    storage_component::StorageComponent,
+    text::Text
+};
 
 
 pub struct WindowFrame {
     children: Vec<Box<dyn Component>>,
     grab_delta: (i32, i32),
-    grabbed: bool
+    grabbed: bool,
+    left_drag: Collider,
+    left_corner_drag: Collider,
+    bottom_drag: Collider,
+    right_corner_drag: Collider,
+    right_drag: Collider,
+    selected_drag: u32
 }
 
 
@@ -73,7 +89,13 @@ impl WindowFrame {
                 )
             ],
             grab_delta: (0, 0),
-            grabbed: false
+            grabbed: false,
+            left_drag: Collider::new(0, 0, 5, 5),
+            left_corner_drag: Collider::new(0, 5, 5, 5),
+            bottom_drag: Collider::new(5, 5, 10, 5),
+            right_corner_drag: Collider::new(5, 5, 5, 5),
+            right_drag: Collider::new(5, 25, 5, 30),
+            selected_drag: 0
         }
     }
 }
@@ -94,11 +116,11 @@ impl Component for WindowFrame {
         
 
         if app.mouse.left_down {
-            if top_bar.collides(app.mouse.position) &&
+            if collides!(app, top_bar, app.mouse.position) &&
             !(
-                exit_button.collides(app.mouse.position) ||
-                fullscreen_button.collides(app.mouse.position) ||
-                minimize_button.collides(app.mouse.position)
+                collides!(app, exit_button, app.mouse.position) ||
+                collides!(app, fullscreen_button, app.mouse.position) ||
+                collides!(app, minimize_button, app.mouse.position)
             ) && !app.fullscreen {
                 let (ax, ay) = app.enigo.location().unwrap();
 
@@ -139,8 +161,22 @@ impl Component for WindowFrame {
         let minimize_button = cast_component!(self.children.get_mut(6).unwrap() => mut Button);
         minimize_button.position = (app.window_size.0 as i32 - 120, 0);
 
+        self.left_drag.size.1 = app.window_size.1-5;
+        self.left_corner_drag.position.1 = app.window_size.1 as i32 - 5;
+        self.bottom_drag.position.1 = app.window_size.1 as i32 - 5;
+        self.bottom_drag.size.0 = app.window_size.0 - 10;
+        self.right_corner_drag.position = (app.window_size.0 as i32 - 5, app.window_size.1 as i32 - 5);
+        self.right_drag.position.0 = app.window_size.0 as i32 - 5;
+        self.right_drag.size.1 = app.window_size.1 - 30;
+
         for child in &mut self.children {
             child.update(app);
+        }
+
+        if !app.fullscreen {
+            if collides!(app, self.left_drag, app.mouse.position) {
+                app.set_cursor("SizeWE".to_string());
+            }
         }
 
         let exit_button = cast_component!(self.children.get(4).unwrap() => Button);
@@ -185,10 +221,6 @@ impl Component for WindowFrame {
 
 
 
-    }
-
-    fn collides(&self, _point: (i32, i32)) -> bool {
-        false
     }
 
     fn destroy(self) {

@@ -60,5 +60,11 @@ macro_rules! CONST {
     }
 }
 
+macro_rules! collides {
+    ( $app:expr, $component:expr, $point:expr) => {
+        $app.collides(($component.position.0, $component.position.1, $component.size.0, $component.size.1), $point)
+    };
+}
 
-pub(crate) use {cast_component, SETTINGS, CONST};
+
+pub(crate) use {cast_component, SETTINGS, CONST, collides};

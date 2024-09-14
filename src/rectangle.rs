@@ -8,8 +8,8 @@ use crate::{app::App, component::Component};
 
 
 pub struct Rectangle {
-    position: (i32, i32),
-    size: (u32, u32),
+    pub position: (i32, i32),
+    pub size: (u32, u32),
     color: (u8, u8, u8, u8),
     vao: GLuint,
     shader: Option<u32>
@@ -137,11 +137,6 @@ impl Rectangle {
 impl Component for Rectangle {
     fn update(&mut self, app: &mut crate::app::App) {
         self.render(app);
-    }
-
-    fn collides(&self, point: (i32, i32)) -> bool {
-        self.position.0 <= point.0 && point.0 <= self.position.0 + self.size.0 as i32 &&
-        self.position.1 <= point.1 && point.1 <= self.position.1 + self.size.1 as i32
     }
 
     fn destroy(self) {

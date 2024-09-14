@@ -19,8 +19,6 @@ impl<T: 'static> ComponentToAny for T {
 pub trait Component: ComponentToAny {
     fn update(&mut self, app: &mut App);
 
-    fn collides(&self, point: (i32, i32)) -> bool;
-
     fn destroy(self);
 }
 

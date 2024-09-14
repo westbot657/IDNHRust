@@ -47,11 +47,6 @@ impl Component for Button {
         app.camera.pop();
     }
 
-    fn collides(&self, point: (i32, i32)) -> bool {
-        self.position.0 <= point.0 && point.0 <= self.position.0 + self.size.0 as i32 &&
-        self.position.1 <= point.1 && point.1 <= self.position.1 + self.size.1 as i32
-    }
-
     fn destroy(self) {
     }
 }
