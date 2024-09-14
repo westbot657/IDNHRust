@@ -7,6 +7,8 @@ use glob::glob;
 use rect_packer::{Config, Packer};
 use sdl2::{image::LoadSurface, rect::Rect, surface::Surface};
 
+use crate::macros::CONST;
+
 
 
 pub fn convert_tex_to_gl(surface: &Surface, mipmap_style: u8) -> (GLuint, (u32, u32)) {
@@ -65,8 +67,8 @@ pub struct TextureAtlas<'a> {
 impl<'a> TextureAtlas<'a> {
     pub fn new() -> TextureAtlas<'a> {
 
-        const WIDTH: u32 = 4096;
-        const HEIGHT: u32 = 4096;
+        const WIDTH: u32 = CONST!(atlas);
+        const HEIGHT: u32 = CONST!(atlas);
 
         let config = Config {
             width: WIDTH as i32,

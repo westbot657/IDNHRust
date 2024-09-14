@@ -1,9 +1,10 @@
 use std::ffi::CString;
 
-use cgmath::{Matrix, Matrix4};
+use cgmath::Matrix;
+use enigo::Mouse;
 use gl::types::{GLfloat, GLsizei, GLsizeiptr, GLuint, GLvoid};
 
-use crate::{app::App, component::Component};
+use crate::{app::App, component::Component, macros::CONST};
 
 
 
@@ -12,7 +13,8 @@ pub struct Image {
     pub size: (u32, u32),
     pub src: String,
     pub uv: (u32, u32, u32, u32),
-    vao: u32
+    vao: u32,
+    shader: Option<u32>
 }
 
 impl Image {
@@ -64,7 +66,8 @@ impl Image {
             size: (width, height),
             src: src.replace("/", "\\"),
             uv,
-            vao
+            vao,
+            shader: None
         }
     }
 
@@ -72,12 +75,17 @@ impl Image {
         self.position = (x, y);
     }
 
+    pub fn with_shader(mut self, shader: u32) -> Self {
+        self.shader = Some(shader);
+        self
+    }
+
     pub fn set_size(&mut self, width: u32, height: u32) {
         self.size = (width, height);
     }
 
     fn render(&self, app: &App) {
-        let shader_program = app.shaders.textured_program;
+        let shader_program = self.shader.or(Some(app.shaders.textured_program)).unwrap();
         let pos = app.map_coords(&self.position);
         let sz = app.map_size(&self.size);
         unsafe {
@@ -100,10 +108,10 @@ impl Image {
             let uv_loc = gl::GetUniformLocation(shader_program, uv_str.as_ptr());
 
             gl::Uniform4f(uv_loc,
-                (rect.0 + self.uv.0) as f32 / 4096.0,
-                (rect.1 + self.uv.1) as f32 / 4096.0,
-                (self.uv.2) as f32 / 4096.0,
-                (self.uv.3) as f32 / 4096.0
+                (rect.0 + self.uv.0) as f32 / CONST!(atlas) as f32,
+                (rect.1 + self.uv.1) as f32 / CONST!(atlas) as f32,
+                (self.uv.2) as f32 / CONST!(atlas) as f32,
+                (self.uv.3) as f32 / CONST!(atlas) as f32
             );
 
             let cam_str = CString::new("camera").unwrap();
@@ -121,13 +129,13 @@ impl Image {
                 viewport.3 as f32 / app.window_size.1 as f32 * 2.0
             );
 
-            // let aspect_str = CString::new("apsect_ratio").unwrap();
-            // let aspect_loc = gl::GetUniformLocation(shader_program, aspect_str.as_ptr());
-            // let aspect_ratio = app.window_size.0 as f32 / app.window_size.1 as f32;
-
-            // println!("Aspect ratio: {}", aspect_ratio);
-            // gl::Uniform1f(aspect_loc, aspect_ratio);
-
+            let mpos_str = CString::new("mouse").unwrap();
+            let mpos_loc = gl::GetUniformLocation(shader_program, mpos_str.as_ptr());
+            let mpos = app.enigo.location().unwrap();
+            gl::Uniform2f(mpos_loc,
+                ((mpos.0 - app.window_pos.0) as f32 * 2.0 / app.window_size.0 as f32) - 1.0,
+                -((mpos.1 - app.window_pos.1) as f32 * 2.0 / app.window_size.1 as f32) + 1.0
+            );
 
             gl::ActiveTexture(gl::TEXTURE0);
             gl::BindTexture(gl::TEXTURE_2D, atlas_id);
@@ -141,6 +149,11 @@ impl Image {
 impl Component for Image {
     fn update(&mut self, app: &mut crate::app::App) {
         self.render(app);
+    }
+
+    fn collides(&self, point: (i32, i32)) -> bool {
+        self.position.0 <= point.0 && point.0 <= self.position.0 + self.size.0 as i32 &&
+        self.position.1 <= point.1 && point.1 <= self.position.1 + self.size.1 as i32
     }
 
     fn destroy(self) {

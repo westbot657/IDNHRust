@@ -1,6 +1,7 @@
 use std::ffi::CString;
 
 use cgmath::Matrix;
+use enigo::Mouse;
 use gl::types::{GLfloat, GLsizei, GLsizeiptr, GLuint, GLvoid};
 
 use crate::{app::App, component::Component};
@@ -10,7 +11,8 @@ pub struct Rectangle {
     position: (i32, i32),
     size: (u32, u32),
     color: (u8, u8, u8, u8),
-    vao: GLuint
+    vao: GLuint,
+    shader: Option<u32>
 }
 
 impl Rectangle {
@@ -61,7 +63,8 @@ impl Rectangle {
             position: (x, y),
             size: (width, height),
             color,
-            vao
+            vao,
+            shader: None
         }
     }
 
@@ -73,8 +76,14 @@ impl Rectangle {
         self.size = (width, height);
     }
 
+    pub fn with_shader(mut self, shader: u32) -> Self {
+        self.shader = Some(shader);
+
+        self
+    }
+
     fn render(&self, app: &App) {
-        let shader_program = app.shaders.colored_program;
+        let shader_program = self.shader.or(Some(app.shaders.colored_program)).unwrap();
         let pos = app.map_coords(&self.position);
         let sz = app.map_size(&self.size);
         unsafe {
@@ -106,6 +115,13 @@ impl Rectangle {
                 viewport.3 as f32 / app.window_size.1 as f32 * 2.0
             );
 
+            let mpos_str = CString::new("mouse").unwrap();
+            let mpos_loc = gl::GetUniformLocation(shader_program, mpos_str.as_ptr());
+            let mpos = app.enigo.location().unwrap();
+            gl::Uniform2f(mpos_loc,
+                ((mpos.0 - app.window_pos.0) as f32 * 2.0 / app.window_size.0 as f32) - 1.0,
+                -((mpos.1 - app.window_pos.1) as f32 * 2.0 / app.window_size.1 as f32) + 1.0
+            );
 
             let clr = CString::new("color").unwrap();
             let color_loc = gl::GetUniformLocation(shader_program, clr.as_ptr());
@@ -121,6 +137,11 @@ impl Rectangle {
 impl Component for Rectangle {
     fn update(&mut self, app: &mut crate::app::App) {
         self.render(app);
+    }
+
+    fn collides(&self, point: (i32, i32)) -> bool {
+        self.position.0 <= point.0 && point.0 <= self.position.0 + self.size.0 as i32 &&
+        self.position.1 <= point.1 && point.1 <= self.position.1 + self.size.1 as i32
     }
 
     fn destroy(self) {

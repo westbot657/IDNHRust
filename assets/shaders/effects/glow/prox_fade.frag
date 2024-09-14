@@ -15,5 +15,5 @@ void main() {
 
     if (color.a < 0.1)
         discard;
-    FragColor = color;
+    FragColor = vec4(color.rgb * (1-clamp(distance(mouse, ScreenPos), 0, 0.5)), color.a);
 }

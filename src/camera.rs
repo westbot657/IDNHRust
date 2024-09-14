@@ -1,4 +1,4 @@
-use cgmath::{ortho, Angle, Matrix4, Rad, SquareMatrix, Vector3};
+use cgmath::{ortho, Matrix4, Rad, SquareMatrix, Vector3};
 
 
 pub struct Camera {
@@ -66,7 +66,7 @@ impl Camera {
     }
 
     pub fn set_position(&mut self, x: f32, y: f32) {
-        let translation = Matrix4::from_translation(Vector3::new(-x*2.0, y*2.0, 0.0));
+        let translation = Matrix4::from_translation(Vector3::new(x*2.0, -y*2.0, 0.0));
         self.apply_transform(translation);
     }
 

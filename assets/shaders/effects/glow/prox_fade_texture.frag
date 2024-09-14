@@ -26,6 +26,6 @@ void main() {
     if (col.a < 0.01) {
         discard;
     }
-    FragColor = col;
-
+    float dist = distance(mouse, ScreenPos);
+    FragColor = vec4(col.rgb * (1-clamp(dist*2, 0, 0.5)), col.a);
 }

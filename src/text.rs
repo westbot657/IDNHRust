@@ -3,10 +3,9 @@ use std::{collections::HashMap, ffi::CString, panic};
 use cgmath::Matrix;
 use gl::types::{GLfloat, GLsizei, GLsizeiptr, GLuint, GLvoid};
 use rect_packer::{Config, Packer};
-use rusttype::{point, Font, Glyph, GlyphId, OutlineBuilder, Scale};
-use sdl2::{image::SaveSurface, rect::Rect};
+use rusttype::{point, Font, GlyphId, Scale};
 
-use crate::{app::App, component::Component, texture_atlas::convert_tex_to_gl};
+use crate::{app::App, component::Component, texture_atlas::convert_tex_to_gl, macros::CONST};
 
 // TODO: create a font sheet either dynamically or manually, and use it for rendering text
 // also make a new shader for text I guess (to apply color)
@@ -18,14 +17,7 @@ pub struct CharAtlas {
     vao: u32
 }
 
-macro_rules! CONST {
-    ( height ) => {
-        50
-    };
-    ( atlas ) => {
-        4096
-    }
-}
+
 
 impl CharAtlas {
     pub fn new(font_path: &str) -> Self {
@@ -52,16 +44,13 @@ impl CharAtlas {
             panic!("Error loading font data from '{:?}'", font_path);
         });
 
-        let height: f32 = CONST!(height) as f32;
-        let pixel_height = height.ceil() as usize;
+        let height: f32 = CONST!(text height) as f32;
 
         let scale = Scale {
             x: height * 2.0,
             y: height
         };
 
-        let v_metrics = font.v_metrics(scale);
-        let offset = point(0.0, v_metrics.ascent);
         
 
         for codepoint in 0..=0x4E00 as u32 {
@@ -177,8 +166,8 @@ impl CharAtlas {
         }
     }
 
-    fn renderChar(&self, app: &App, x: i32, y: i32, draw_x: &mut i32, draw_y: &mut i32, character: &str, z_index: f32, scale: f32) {
-        const HEIGHT: u32 = CONST!(height);
+    fn render_char(&self, app: &App, x: i32, y: i32, draw_x: &mut i32, draw_y: &mut i32, character: &str, z_index: f32, scale: f32) {
+        const HEIGHT: u32 = CONST!(text height);
 
         if character == "\n" {
             *draw_y += (HEIGHT as f32 * scale) as i32 + (4.0 * scale) as i32;
@@ -190,7 +179,7 @@ impl CharAtlas {
         else if self.chars.contains_key(character) {
             let rect = self.chars.get(character).unwrap();
 
-            let mut pos = app.map_coords(&(x+*draw_x, ((y+*draw_y) as f32 + (rect.1 as f32 * scale) + (HEIGHT as f32 * scale)).round() as i32));
+            let pos = app.map_coords(&(x+*draw_x, ((y+*draw_y) as f32 + (rect.1 as f32 * scale) + (HEIGHT as f32 * scale)).round() as i32));
 
             let sz = app.map_size(&((rect.0.2 as f32 / 2.0 * scale) as u32, (rect.0.3 as f32 * scale) as u32));
 
@@ -229,7 +218,7 @@ impl CharAtlas {
 
     }
 
-    pub fn drawText(&self, app: &App, x: i32, y: i32, text: &str, scale: f32, max_width:Option<u32>, max_height:Option<u32>, z_index: f32, color: (u8, u8, u8, u8)) {
+    pub fn draw_text(&self, app: &App, x: i32, y: i32, text: &str, scale: f32, max_width:Option<u32>, max_height:Option<u32>, z_index: f32, color: (u8, u8, u8, u8)) {
         let mut draw_x = 0;
         let mut draw_y = 0;
 
@@ -269,7 +258,7 @@ impl CharAtlas {
             gl::BindVertexArray(self.vao);
 
             for character in text.split("") {
-                self.renderChar(app, x, y, &mut draw_x, &mut draw_y, character, z_index, scale);
+                self.render_char(app, x, y, &mut draw_x, &mut draw_y, character, z_index, scale);
 
             }
 
@@ -285,7 +274,7 @@ impl CharAtlas {
 
 pub struct Text {
     pub position: (i32, i32),
-    content: String,
+    pub content: String,
     pub max_width: Option<u32>,
     size: (u32, u32),
     scale: f32,
@@ -311,82 +300,14 @@ impl Text {
 
 impl Component for Text {
     fn update(&mut self, app: &mut App) {
-        app.char_atlas.drawText(app, self.position.0, self.position.1, &self.content, self.scale, self.max_width.or(Some(std::u32::MAX)), Some(std::u32::MAX), self.z_index, self.color)
+        app.char_atlas.draw_text(app, self.position.0, self.position.1, &self.content, self.scale, self.max_width.or(Some(std::u32::MAX)), Some(std::u32::MAX), self.z_index, self.color)
+    }
+
+    fn collides(&self, point: (i32, i32)) -> bool {
+        self.position.0 <= point.0 && point.0 <= self.position.0 + self.size.0 as i32 &&
+        self.position.1 <= point.1 && point.1 <= self.position.1 + self.size.1 as i32
     }
 
     fn destroy(self) {
     }
 }
-
-// pub struct Text {
-//     pub position: (i32, i32),
-//     pub size: (u32, u32),
-//     content: String,
-//     vao: u32
-// }
-
-// impl Text {
-
-//     pub fn new(x: i32, y: i32, max_width: Option<u32>, max_height: Option<u32>, font_src: &str, z_index: f32) -> Text {
-//         const lower_bound: f32 = -0.5;
-//         const upper_bound: f32 = 0.5;
-//         let vertices: [f32; 30] = [
-//             // Positions          // Texture Coords
-//             lower_bound, lower_bound, z_index,      0.0, 1.0,  // Top-left
-//             lower_bound, upper_bound, z_index,      0.0, 0.0,  // Bottom-left
-//             upper_bound, upper_bound, z_index,      1.0, 0.0,  // Bottom-right
-//             lower_bound, lower_bound, z_index,      0.0, 1.0,  // Top-left
-//             upper_bound, upper_bound, z_index,      1.0, 0.0,  // Bottom-right
-//             upper_bound, lower_bound, z_index,      1.0, 1.0
-//         ];
-
-//         let mut vao: GLuint = 0;
-//         let mut vbo: GLuint = 0;
-
-
-
-//         unsafe {
-//             gl::GenVertexArrays(1, &mut vao);
-//             gl::GenBuffers(1, &mut vbo);
-        
-//             gl::BindVertexArray(vao);
-//             gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
-//             gl::BufferData(
-//                 gl::ARRAY_BUFFER,
-//                 (vertices.len() * std::mem::size_of::<GLfloat>()) as GLsizeiptr,
-//                 vertices.as_ptr() as *const GLvoid,
-//                 gl::STATIC_DRAW,
-//             );
-        
-//             // Position attribute (location 0)
-//             gl::VertexAttribPointer(0, 3, gl::FLOAT, gl::FALSE, 5 * std::mem::size_of::<GLfloat>() as GLsizei, std::ptr::null());
-//             gl::EnableVertexAttribArray(0);
-        
-//             // Texture Coord attribute (location 1)
-//             gl::VertexAttribPointer(
-//                 1,
-//                 2,
-//                 gl::FLOAT,
-//                 gl::FALSE,
-//                 5 * std::mem::size_of::<GLfloat>() as GLsizei,
-//                 (3 * std::mem::size_of::<GLfloat>()) as *const GLvoid,
-//             );
-//             gl::EnableVertexAttribArray(1);
-//         }
-
-//         Text {
-//             position: (x, y),
-//             size: (0, 0),
-//             content: "".to_string(),
-//             vao
-
-//         }
-//     }
-
-//     pub fn set_content(&mut self, content: String) {
-//         self.content = content;
-//     }
-
-
-// }
-

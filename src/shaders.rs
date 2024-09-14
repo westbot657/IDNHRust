@@ -2,6 +2,15 @@
 use std::{ffi::CString, fs};
 use gl::types::*;
 
+macro_rules! shader {
+    ( vert $path:expr ) => {
+        compile_shader(&fs::read_to_string("assets/shaders/".to_owned() + $path).unwrap(), gl::VERTEX_SHADER)
+    };
+    ( frag $path:expr) => {
+        compile_shader(&fs::read_to_string("assets/shaders/".to_owned() + $path).unwrap(), gl::FRAGMENT_SHADER)
+
+    }
+}
 
 pub fn compile_shader(src: &str, ty: GLenum) -> GLuint {
     let shader = unsafe { gl::CreateShader(ty) };
@@ -59,25 +68,37 @@ pub fn link_program(vs: GLuint, fs: GLuint) -> GLuint {
 pub struct Shaders {
     pub textured_program: u32,
     pub colored_program: u32,
-    pub text_program: u32
+    pub text_program: u32,
+    pub prox_fade: u32,
+    pub prox_fade_red: u32,
+    pub prox_fade_texture: u32
 }
 
 impl Shaders {
     pub fn new() -> Shaders {
 
-        let vert1 = compile_shader(&fs::read_to_string("assets/shaders/textured_vertex_shader.vert").unwrap(), gl::VERTEX_SHADER);
-        let frag1 = compile_shader(&fs::read_to_string("assets/shaders/textured_fragment_shader.frag").unwrap(), gl::FRAGMENT_SHADER);
+        let vert1 = shader!(vert "textured_vertex_shader.vert");
+        let frag1 = shader!(frag "textured_fragment_shader.frag");
 
-        let vert2 = compile_shader(&fs::read_to_string("assets/shaders/color_vertex_shader.vert").unwrap(), gl::VERTEX_SHADER);
-        let frag2 = compile_shader(&fs::read_to_string("assets/shaders/color_fragment_shader.frag").unwrap(), gl::FRAGMENT_SHADER);
+        let vert2 = shader!(vert "color_vertex_shader.vert");
+        let frag2 = shader!(frag "color_fragment_shader.frag");
 
-        let vert_txt = compile_shader(&fs::read_to_string("assets/shaders/text_vertex_shader.vert").unwrap(), gl::VERTEX_SHADER);
-        let frag_txt = compile_shader(&fs::read_to_string("assets/shaders/text_fragment_shader.frag").unwrap(), gl::FRAGMENT_SHADER);
+        let vert_txt = shader!(vert "text_vertex_shader.vert");
+        let frag_txt = shader!(frag "text_fragment_shader.frag");
+
+        let prox_fade_frag = shader!(frag "effects/glow/prox_fade.frag");
+
+        let prox_fade_red_frag = shader!(frag "effects/glow/prox_fade_red.frag");
+
+        let prox_fade_texture_frag = shader!(frag "effects/glow/prox_fade_texture.frag");
 
         Shaders {
             textured_program: link_program(vert1, frag1),
             colored_program: link_program(vert2, frag2),
-            text_program: link_program(vert_txt, frag_txt)
+            text_program: link_program(vert_txt, frag_txt),
+            prox_fade: link_program(vert2, prox_fade_frag),
+            prox_fade_red: link_program(vert1, prox_fade_red_frag),
+            prox_fade_texture: link_program(vert1, prox_fade_texture_frag)
         }
     }
 
