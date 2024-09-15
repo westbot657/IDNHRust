@@ -11,3 +11,13 @@ glob = "0.3.1"
 rect_packer = "0.2.1"
 rusttype = { version = "0.9.3", features = ["gpu_cache"] }
 sdl2 = { version = "0.37.0", features = ["bundled", "image", "mixer", "ttf", "unsafe_textures"] }
+toml = { version = "0.8.19", features = ["preserve_order"] }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+winapi = { version = "0.3.9", features = ["windef", "winuser"] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+core-graphics = "0.22"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+x11 = { version = "2.20", features = ["xlib"] }

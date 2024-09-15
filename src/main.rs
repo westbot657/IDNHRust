@@ -17,7 +17,7 @@ mod app_selector;
 mod editor_app;
 mod game_app;
 mod collider;
-// mod monitor_info;
+mod monitor_info;
 
 use app::App;
 use macros::SETTINGS;
@@ -52,9 +52,9 @@ fn main() {
     gl::load_with(|s| video_subsystem.gl_get_proc_address(s) as *const _);
     /* GL DEPENDENT STUFF MUST HAPPEN AFTER THIS POINT */
 
-    window.set_icon(sdl2::surface::Surface::from_file("assets/textures/idnh_icon.png").unwrap());
+    let monitors = monitor_info::get_info();
 
-    // window.set_opacity(0.5);
+    window.set_icon(sdl2::surface::Surface::from_file("assets/textures/idnh_icon.png").unwrap());
 
     let _ = window.set_minimum_size(1080, 720);
 
