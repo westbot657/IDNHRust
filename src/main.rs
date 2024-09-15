@@ -17,11 +17,12 @@ mod app_selector;
 mod editor_app;
 mod game_app;
 mod collider;
+// mod monitor_info;
 
 use app::App;
 use macros::SETTINGS;
 use shaders::Shaders;
-use sdl2::{event::WindowEvent, mouse::MouseButton, video::GLProfile};
+use sdl2::{event::WindowEvent, image::LoadSurface, mouse::MouseButton, video::GLProfile};
 use text::CharAtlas;
 
 
@@ -51,8 +52,11 @@ fn main() {
     gl::load_with(|s| video_subsystem.gl_get_proc_address(s) as *const _);
     /* GL DEPENDENT STUFF MUST HAPPEN AFTER THIS POINT */
 
+    window.set_icon(sdl2::surface::Surface::from_file("assets/textures/idnh_icon.png").unwrap());
 
-    let _ = window.set_minimum_size(800, 450);
+    // window.set_opacity(0.5);
+
+    let _ = window.set_minimum_size(1080, 720);
 
     video_subsystem.gl_set_swap_interval(0).unwrap();
 
@@ -157,7 +161,6 @@ fn main() {
         }
 
         app.update();
-
 
         app.camera.pop();
 

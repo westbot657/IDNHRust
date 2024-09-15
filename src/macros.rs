@@ -57,7 +57,10 @@ macro_rules! CONST {
     };
     ( atlas ) => {
         4096
-    }
+    };
+    ( text atlas ) => {
+        2048
+    };
 }
 
 macro_rules! collides {

@@ -8,9 +8,6 @@ cgmath = "0.18.0"
 enigo = "0.2.1"
 gl = "0.14.0"
 glob = "0.3.1"
-nalgebra = "0.33.0"
-rayon = "1.10.0"
 rect_packer = "0.2.1"
 rusttype = { version = "0.9.3", features = ["gpu_cache"] }
 sdl2 = { version = "0.37.0", features = ["bundled", "image", "mixer", "ttf", "unsafe_textures"] }
-winit = "0.30.5"

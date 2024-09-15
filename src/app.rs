@@ -4,7 +4,7 @@ use cgmath::{Matrix4, SquareMatrix, Vector4};
 use enigo::{Enigo, Settings};
 use sdl2::{event::Event, video::Window};
 
-use crate::{app_selector::AppSelector, camera::Camera, component::Component, image::Image, macros::{cast_component, SETTINGS}, rectangle::Rectangle, shaders::Shaders, text::{CharAtlas, Text}, texture_atlas::{convert_tex_to_gl, TextureAtlas}, window_frame::WindowFrame};
+use crate::{app_selector::AppSelector, camera::Camera, component::Component, image::Image, macros::{cast_component, SETTINGS}, shaders::Shaders, text::{CharAtlas, Text}, texture_atlas::{convert_tex_to_gl, TextureAtlas}, window_frame::WindowFrame};
 
 pub struct Mouse {
     pub left_down: bool,
@@ -155,7 +155,7 @@ impl<'a> App<'a> {
     pub fn update(&mut self) {
         
         let dt = time::Instant::now();
-        self.mouse.cursor_style = None;
+        self.mouse.active_cursor_style = None;
 
         let mut children = std::mem::take(&mut self.children);
 
@@ -172,8 +172,8 @@ impl<'a> App<'a> {
 
         self.camera.pop();
 
-        if self.mouse.cursor_style.is_some() {
-            self.mouse.cursors.get(self.mouse.cursor_style.as_ref().unwrap()).unwrap().set();
+        if self.mouse.active_cursor_style.is_some() {
+            self.mouse.cursors.get(self.mouse.active_cursor_style.as_ref().unwrap()).unwrap().set();
         } else {
             self.mouse.cursors.get("Arrow").unwrap().set();
         }
@@ -200,10 +200,12 @@ impl<'a> App<'a> {
     }
 
     pub fn set_pos(&mut self, x: i32, y: i32) {
+        self.window_pos = (x, y);
         self.window.set_position(sdl2::video::WindowPos::Positioned(x), sdl2::video::WindowPos::Positioned(y))
     }
 
     pub fn set_size(&mut self, size: (u32, u32)) {
+        self.window_size = (size.0, size.1);
         self.window.set_size(size.0, size.1).unwrap();
     }
 

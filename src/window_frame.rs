@@ -120,7 +120,8 @@ impl Component for WindowFrame {
             !(
                 collides!(app, exit_button, app.mouse.position) ||
                 collides!(app, fullscreen_button, app.mouse.position) ||
-                collides!(app, minimize_button, app.mouse.position)
+                collides!(app, minimize_button, app.mouse.position) ||
+                collides!(app, self.left_drag, app.mouse.position)
             ) && !app.fullscreen {
                 let (ax, ay) = app.enigo.location().unwrap();
 
@@ -131,6 +132,7 @@ impl Component for WindowFrame {
         }
         if app.mouse.left_up {
             self.grabbed = false;
+            self.selected_drag = 0;
         }
 
         if self.grabbed {
@@ -139,6 +141,23 @@ impl Component for WindowFrame {
                 loc.0 - self.grab_delta.0,
                 loc.1 - self.grab_delta.1
             )
+        }
+
+        if self.selected_drag != 0 {
+            let (mx, my) = app.enigo.location().unwrap();
+            if self.selected_drag == 1 || self.selected_drag == 2 {
+                app.set_pos(mx.min(self.grab_delta.1 - app.window.minimum_size().0 as i32), app.window_pos.1);
+                app.set_size(((app.window.minimum_size().0).max((self.grab_delta.1 - mx).max(0) as u32), app.window_size.1));
+            }
+
+            if self.selected_drag == 2 || self.selected_drag == 3 || self.selected_drag == 4 {
+                app.set_size((app.window_size.0, (app.window.minimum_size().1).max((my - app.window_pos.1).max(0) as u32)));
+            }
+
+            if self.selected_drag == 4 || self.selected_drag == 5 {
+                app.set_size(((app.window.minimum_size().0).max((mx - app.window_pos.0).max(0) as u32), app.window_size.1));
+            }
+
         }
 
         let left_bar = cast_component!(self.children.get_mut(1).unwrap() => mut Rectangle);
@@ -176,7 +195,41 @@ impl Component for WindowFrame {
         if !app.fullscreen {
             if collides!(app, self.left_drag, app.mouse.position) {
                 app.set_cursor("SizeWE".to_string());
+                if app.mouse.left_down {
+                    self.selected_drag = 1;
+                    self.grab_delta.1 = app.window_pos.0 + app.window_size.0 as i32;
+                }
             }
+
+            else if collides!(app, self.left_corner_drag, app.mouse.position) {
+                app.set_cursor("SizeNESW".to_string());
+                if app.mouse.left_down {
+                    self.selected_drag = 2;
+                    self.grab_delta.1 = app.window_pos.0 + app.window_size.0 as i32;
+                }
+            }
+
+            else if collides!(app, self.bottom_drag, app.mouse.position) {
+                app.set_cursor("SizeNS".to_string());
+                if app.mouse.left_down {
+                    self.selected_drag = 3;
+                }
+            }
+
+            else if collides!(app, self.right_corner_drag, app.mouse.position) {
+                app.set_cursor("SizeNWSE".to_string());
+                if app.mouse.left_down {
+                    self.selected_drag = 4;
+                }
+            }
+
+            else if collides!(app, self.right_drag, app.mouse.position) {
+                app.set_cursor("SizeWE".to_string());
+                if app.mouse.left_down {
+                    self.selected_drag = 5;
+                }
+            }
+
         }
 
         let exit_button = cast_component!(self.children.get(4).unwrap() => Button);

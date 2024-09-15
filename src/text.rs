@@ -4,6 +4,7 @@ use cgmath::Matrix;
 use gl::types::{GLfloat, GLsizei, GLsizeiptr, GLuint, GLvoid};
 use rect_packer::{Config, Packer};
 use rusttype::{point, Font, GlyphId, Scale};
+use sdl2::image::SaveSurface;
 
 use crate::{app::App, component::Component, texture_atlas::convert_tex_to_gl, macros::CONST};
 
@@ -22,8 +23,8 @@ pub struct CharAtlas {
 impl CharAtlas {
     pub fn new(font_path: &str) -> Self {
 
-        const WIDTH:  u32 = CONST!(atlas);
-        const HEIGHT: u32 = CONST!(atlas);
+        const WIDTH:  u32 = CONST!(text atlas);
+        const HEIGHT: u32 = CONST!(text atlas);
 
         let config = Config {
             width: WIDTH as i32,
@@ -179,7 +180,9 @@ impl CharAtlas {
         else if self.chars.contains_key(character) {
             let rect = self.chars.get(character).unwrap();
 
-            let pos = app.map_coords(&(x+*draw_x, ((y+*draw_y) as f32 + (rect.1 as f32 * scale) + (HEIGHT as f32 * scale)).round() as i32));
+            let tx = ((((HEIGHT as f32 / 2.0 * scale) as i32 + 4) - (rect.0.2 as f32 * scale) as i32) as f32 / 4.0) as i32;
+
+            let pos = app.map_coords(&(x+*draw_x+tx, ((y+*draw_y) as f32 + (rect.1 as f32 * scale) + (HEIGHT as f32 * scale)).round() as i32));
 
             let sz = app.map_size(&((rect.0.2 as f32 / 2.0 * scale) as u32, (rect.0.3 as f32 * scale) as u32));
 
@@ -202,17 +205,18 @@ impl CharAtlas {
                 let uv_loc = gl::GetUniformLocation(app.shaders.text_program, uv_str.as_ptr());
     
                 gl::Uniform4f(uv_loc,
-                    (rect.0.0) as f32 / CONST!(atlas) as f32,
-                    (rect.0.1) as f32 / CONST!(atlas) as f32,
-                    (rect.0.2) as f32 / CONST!(atlas) as f32,
-                    (rect.0.3) as f32 / CONST!(atlas) as f32
+                    (rect.0.0) as f32 / CONST!(text atlas) as f32,
+                    (rect.0.1) as f32 / CONST!(text atlas) as f32,
+                    (rect.0.2) as f32 / CONST!(text atlas) as f32,
+                    (rect.0.3) as f32 / CONST!(text atlas) as f32
                 );
 
                 gl::DrawArrays(gl::TRIANGLES, 0, 6);
 
             }
 
-            *draw_x += (rect.0.2 as f32 / 2.0 * scale) as i32 + (4.0 * scale) as i32;
+            *draw_x += (HEIGHT as f32 / 2.0 * scale) as i32 + (4.0 * scale) as i32;
+            // *draw_x += (rect.0.2 as f32 / 2.0 * scale) as i32 + (4.0 * scale) as i32;
 
         }
 
