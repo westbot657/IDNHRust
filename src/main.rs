@@ -64,7 +64,7 @@ fn main() {
 
     let shader = Shaders::new();
 
-    let mut app = App::new(shader, char_atlas, window_width, window_height, &mut window);
+    let mut app = App::new(shader, char_atlas, window_width, window_height, &mut window, monitors);
 
     unsafe {
         gl::Enable(gl::BLEND);

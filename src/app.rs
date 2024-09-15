@@ -87,11 +87,12 @@ pub struct App<'a> {
     pub fullscreen: bool,
     pub pre_fullscreen_pos: (i32, i32),
     pub pre_fullscreen_size: (u32, u32),
+    pub monitors: Vec<(i32, i32, u32, u32)>
 }
 
 
 impl<'a> App<'a> {
-    pub fn new(shaders: Shaders, char_atlas: CharAtlas, window_width: u32, window_height: u32, window: &'a mut Window) -> App<'a> {
+    pub fn new(shaders: Shaders, char_atlas: CharAtlas, window_width: u32, window_height: u32, window: &'a mut Window, monitors: Vec<(i32, i32, u32, u32)>) -> App<'a> {
 
         let mut tex_atlas = TextureAtlas::new();
 
@@ -117,7 +118,8 @@ impl<'a> App<'a> {
             should_quit: false,
             fullscreen: false,
             pre_fullscreen_pos: (0, 0),
-            pre_fullscreen_size: (0, 0)
+            pre_fullscreen_size: (0, 0),
+            monitors
         };
 
         let app_selector = AppSelector::new(&app);
