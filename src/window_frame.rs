@@ -191,7 +191,7 @@ impl Component for WindowFrame {
 
                 if self.snapped {
                     self.snapped = false;
-                    app.set_size((app.window_size.0, app.window.minimum_size().1));
+                    app.set_size(app.window.minimum_size());
                 }
 
             }
