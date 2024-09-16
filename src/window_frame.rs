@@ -113,11 +113,11 @@ impl WindowFrame {
             if monitor.0 <= mx && mx <= monitor.0 + monitor.2 as i32 &&
                 monitor.1 <= my && my <= monitor.1 + monitor.3 as i32 {
                 if monitor.0 <= mx && mx <= monitor.0 + 5 {
-                    if monitor.1 <= my && my <= monitor.1 + 5 {
+                    if monitor.1 <= my && my <= monitor.1 + 40 {
                         return Some((monitor.0, monitor.1, monitor.2, monitor.3, 7))
 
                     }
-                    else if monitor.1 + monitor.3 as i32 - 5 <= my && my <= monitor.1 + monitor.3 as i32 {
+                    else if monitor.1 + monitor.3 as i32 - 40 <= my && my <= monitor.1 + monitor.3 as i32 {
                         return Some((monitor.0, monitor.1, monitor.2, monitor.3, 5))
 
                     }
@@ -127,7 +127,7 @@ impl WindowFrame {
                     }
                 }
                 else if monitor.1 <= my && my <= monitor.1 + 5 {
-                    if monitor.0 + monitor.2 as i32 - 5 <= mx && mx <= monitor.0 + monitor.2 as i32 {
+                    if monitor.0 + monitor.2 as i32 - 40 <= mx && mx <= monitor.0 + monitor.2 as i32 {
                         return Some((monitor.0, monitor.1, monitor.2, monitor.3, 1))
 
                     }
@@ -136,7 +136,7 @@ impl WindowFrame {
                     }
                 }
                 else if monitor.0 + monitor.2 as i32 - 5 <= mx && mx <= monitor.0 + monitor.2 as i32 {
-                    if monitor.1 + monitor.3 as i32 - 5 <= my && my <= monitor.1 + monitor.3 as i32 {
+                    if monitor.1 + monitor.3 as i32 - 40 <= my && my <= monitor.1 + monitor.3 as i32 {
                         return Some((monitor.0, monitor.1, monitor.2, monitor.3, 3))
 
                     }
