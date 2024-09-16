@@ -191,6 +191,8 @@ impl Component for WindowFrame {
 
                 if self.snapped {
                     self.snapped = false;
+                    let dw = app.window.minimum_size().0 as f32 / app.window_size.0 as f32;
+                    self.grab_delta.0 = (self.grab_delta.0 as f32 * dw) as i32;
                     app.set_size(app.window.minimum_size());
                 }
 
