@@ -98,9 +98,6 @@ fn ghost(pos_x: i32, pos_y: i32, width: i32, height: i32, side: u8) {
     }
 
     let mut event_pump = sdl.event_pump().unwrap();
-    
-
-    println!("{}, {}", mx, my);
 
     let start = Instant::now();
 
@@ -383,28 +380,30 @@ fn main_app() {
             app.events.push(event);
         }
         
-        if device_state.get_mouse().button_pressed[1] {
-            if !app.mouse.left_held {
-                app.mouse.left_down = true;
+        if app.window.is_always_on_top() {
+            if device_state.get_mouse().button_pressed[1] {
+                if !app.mouse.left_held {
+                    app.mouse.left_down = true;
+                }
+                app.mouse.left_held = true;
+            } else {
+                if app.mouse.left_held {
+                    app.mouse.left_up = true;
+                }
+                app.mouse.left_held = false;
             }
-            app.mouse.left_held = true;
-        } else {
-            if app.mouse.left_held {
-                app.mouse.left_up = true;
-            }
-            app.mouse.left_held = false;
-        }
 
-        if device_state.get_mouse().button_pressed[3] {
-            if !app.mouse.right_held {
-                app.mouse.right_down = true;
+            if device_state.get_mouse().button_pressed[3] {
+                if !app.mouse.right_held {
+                    app.mouse.right_down = true;
+                }
+                app.mouse.right_held = true;
+            } else {
+                if app.mouse.right_held {
+                    app.mouse.right_up = true;
+                }
+                app.mouse.right_held = false;
             }
-            app.mouse.right_held = true;
-        } else {
-            if app.mouse.right_held {
-                app.mouse.right_up = true;
-            }
-            app.mouse.right_held = false;
         }
 
         let (window_x, window_y) = app.window.position();
@@ -413,8 +412,9 @@ fn main_app() {
         app.window_pos = (window_x, window_y);
         app.window_size = (window_width, window_height);
 
-        app.mouse.position = (event_pump.mouse_state().x(), event_pump.mouse_state().y());
-        
+        // app.mouse.position = (event_pump.mouse_state().x(), event_pump.mouse_state().y());
+        app.mouse.position = app.enigo.location().unwrap();
+        app.mouse.position = ( app.mouse.position.0 - app.window_pos.0, app.mouse.position.1 - app.window_pos.1 );
         
 
         app.camera.project(window_width, window_height);

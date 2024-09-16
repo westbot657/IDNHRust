@@ -26,7 +26,8 @@ pub struct WindowFrame {
     right_drag: Collider,
     selected_drag: u32,
     ghost_window: Option<Child>,
-    disable_ghost: bool
+    disable_ghost: bool,
+    snapped: bool
 }
 
 
@@ -101,7 +102,8 @@ impl WindowFrame {
             right_drag: Collider::new(5, 25, 5, 30),
             selected_drag: 0,
             ghost_window: None,
-            disable_ghost: false
+            disable_ghost: false,
+            snapped: false
         }
     }
 
@@ -186,6 +188,12 @@ impl Component for WindowFrame {
                 self.grab_delta = (ax-app.window_pos.0, ay-app.window_pos.1);
                 self.grabbed = true;
                 app.mouse.left_down = false; // Set to false to block input to anything behind
+
+                if self.snapped {
+                    self.snapped = false;
+                    app.set_size((app.window_size.0, app.window.minimum_size().1));
+                }
+
             }
         }
         if app.mouse.left_up {
@@ -197,6 +205,59 @@ impl Component for WindowFrame {
                 let mut process = self.ghost_window.take().unwrap();
                 if let Err(e) = process.kill() {
                     eprintln!("FAILED TO KILL PROCESS {}", e);
+                }
+
+                if let Some((pos_x, pos_y, width, height, side)) = self.detect_edge_collision(app) {
+                    let mut target: (i32, i32, i32, i32) = (0, 0, 50, 50);
+                    let width = width as i32;
+                    let height = height as i32;
+
+                    if side == 0 {
+                        target = (pos_x, pos_y, width, height);
+                        app.fullscreen = true;
+                        app.pre_fullscreen_pos = (app.window_pos.0, app.window_pos.1 + 20);
+                        app.pre_fullscreen_size = app.window_size;
+                    }
+                    else if side == 1 {
+                        target = (pos_x+width/2, pos_y, width/2, height/2);
+                    }
+                    else if side == 2 {
+                        target = (pos_x+width/2, pos_y, width/2, height);
+                    }
+                    else if side == 3 {
+                        target = (pos_x+width/2, pos_y+height/2, width/2, height/2);
+                    }
+                    else if side == 4 {
+                        target = (pos_x, pos_y+height/2, width, height/2);
+                    }
+                    else if side == 5 {
+                        target = (pos_x, pos_y+height/2, width/2, height/2);
+                    }
+                    else if side == 6 {
+                        target = (pos_x, pos_y, width/2, height);
+                    }
+                    else {
+                        target = (pos_x, pos_y, width/2, height/2);
+                    }
+
+                    app.set_pos(target.0, target.1);
+
+                    app.set_size((target.2 as u32, target.3 as u32));
+
+                    if side == 0 {
+                        let fullscreen_button = cast_component!(self.children.get_mut(5).unwrap() => mut Button);
+
+                        let img: Box<dyn Component> = fullscreen_button.children.pop().unwrap();
+
+                        let storage = cast_component!(self.children.get_mut(7).unwrap() => mut StorageComponent);
+                        let img2 = storage.comps.pop().unwrap();
+                        storage.comps.push(img);
+
+                        let fullscreen_button = cast_component!(self.children.get_mut(5).unwrap() => mut Button);
+                        fullscreen_button.children.push(img2);
+                    } else {
+                        self.snapped = true;
+                    }
                 }
 
             }
