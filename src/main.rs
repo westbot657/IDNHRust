@@ -25,7 +25,6 @@ mod easing;
 use std::{collections::VecDeque, env, time::Instant};
 
 use app::App;
-use camera::Camera;
 use device_query::{DeviceQuery, DeviceState};
 use enigo::{Enigo, Mouse, Settings};
 use macros::SETTINGS;
@@ -195,7 +194,7 @@ fn main_app() {
     window.set_icon(sdl2::surface::Surface::from_file("assets/textures/idnh_icon.png").unwrap());
 
 
-    let _ = window.set_minimum_size(1080, 720);
+    let _ = window.set_minimum_size(960, 540);
 
     video_subsystem.gl_set_swap_interval(0).unwrap();
 
@@ -382,6 +381,30 @@ fn main_app() {
                 }
             }
             app.events.push(event);
+        }
+        
+        if device_state.get_mouse().button_pressed[1] {
+            if !app.mouse.left_held {
+                app.mouse.left_down = true;
+            }
+            app.mouse.left_held = true;
+        } else {
+            if app.mouse.left_held {
+                app.mouse.left_up = true;
+            }
+            app.mouse.left_held = false;
+        }
+
+        if device_state.get_mouse().button_pressed[3] {
+            if !app.mouse.right_held {
+                app.mouse.right_down = true;
+            }
+            app.mouse.right_held = true;
+        } else {
+            if app.mouse.right_held {
+                app.mouse.right_up = true;
+            }
+            app.mouse.right_held = false;
         }
 
         let (window_x, window_y) = app.window.position();
