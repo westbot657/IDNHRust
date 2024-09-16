@@ -125,9 +125,9 @@ impl Rectangle {
 
             let res_str = CString::new("screen_size").unwrap();
             let res_pos = gl::GetUniformLocation(shader_program, res_str.as_ptr());
-            gl::Uniform2i(res_pos,
-                app.window_size.0 as i32,
-                app.window_size.1 as i32
+            gl::Uniform2f(res_pos,
+                app.window_size.0 as f32,
+                app.window_size.1 as f32
             );
 
             let clr = CString::new("color").unwrap();

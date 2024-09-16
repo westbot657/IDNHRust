@@ -129,6 +129,13 @@ impl Image {
                 viewport.3 as f32 / app.window_size.1 as f32 * 2.0
             );
 
+            let res_str = CString::new("screen_size").unwrap();
+            let res_pos = gl::GetUniformLocation(shader_program, res_str.as_ptr());
+            gl::Uniform2f(res_pos,
+                app.window_size.0 as f32,
+                app.window_size.1 as f32
+            );
+
             let mpos_str = CString::new("mouse").unwrap();
             let mpos_loc = gl::GetUniformLocation(shader_program, mpos_str.as_ptr());
             let mpos = app.enigo.location().unwrap();

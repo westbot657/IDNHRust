@@ -7,6 +7,7 @@ uniform sampler2D atlas;
 uniform vec4 uv;
 uniform vec4 viewport;
 uniform vec2 mouse;
+uniform vec2 screen_size;
 
 out vec4 FragColor;
 
