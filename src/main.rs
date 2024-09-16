@@ -21,6 +21,7 @@ mod monitor_info;
 mod keybinds;
 mod settings;
 mod easing;
+mod canvas;
 
 use std::{collections::VecDeque, env, time::Instant};
 
@@ -32,7 +33,7 @@ use shaders::Shaders;
 use sdl2::{event::WindowEvent, image::LoadSurface, mouse::{MouseButton, MouseWheelDirection}, video::GLProfile};
 use text::CharAtlas;
 
-fn main() -> Result<(), String>{
+fn main() -> Result<(), String> {
 
     let mut args: VecDeque<String> = env::args().collect();
 

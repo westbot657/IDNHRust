@@ -71,16 +71,17 @@ pub struct Shaders {
     pub text_program: u32,
     pub prox_fade: u32,
     pub prox_fade_red: u32,
-    pub prox_fade_texture: u32
+    pub prox_fade_texture: u32,
+    pub grid_shader: u32
 }
 
 impl Shaders {
     pub fn new() -> Shaders {
 
-        let vert1 = shader!(vert "textured_vertex_shader.vert");
+        let texture_vert = shader!(vert "textured_vertex_shader.vert");
         let frag1 = shader!(frag "textured_fragment_shader.frag");
 
-        let vert2 = shader!(vert "color_vertex_shader.vert");
+        let colored_vert = shader!(vert "color_vertex_shader.vert");
         let frag2 = shader!(frag "color_fragment_shader.frag");
 
         let vert_txt = shader!(vert "text_vertex_shader.vert");
@@ -92,13 +93,16 @@ impl Shaders {
 
         let prox_fade_texture_frag = shader!(frag "effects/glow/prox_fade_texture.frag");
 
+        let grid_frag = shader!(frag "canvas.frag");
+
         Shaders {
-            textured_program: link_program(vert1, frag1),
-            colored_program: link_program(vert2, frag2),
+            textured_program: link_program(texture_vert, frag1),
+            colored_program: link_program(colored_vert, frag2),
             text_program: link_program(vert_txt, frag_txt),
-            prox_fade: link_program(vert2, prox_fade_frag),
-            prox_fade_red: link_program(vert1, prox_fade_red_frag),
-            prox_fade_texture: link_program(vert1, prox_fade_texture_frag)
+            prox_fade: link_program(colored_vert, prox_fade_frag),
+            prox_fade_red: link_program(texture_vert, prox_fade_red_frag),
+            prox_fade_texture: link_program(texture_vert, prox_fade_texture_frag),
+            grid_shader: link_program(colored_vert, grid_frag)
         }
     }
 

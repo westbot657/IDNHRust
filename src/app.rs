@@ -248,6 +248,12 @@ impl<'a> App<'a> {
         ((pos.0 as f32 * 2.0 / self.window_size.1 as f32) - (self.window_size.0 as f32 / self.window_size.1 as f32), 1.0 - (pos.1 as f32 * 2.0 / self.window_size.1 as f32))
     }
 
+    pub fn map_coordsi64(&self, pos: &(i64, i64)) -> (f32, f32) {
+        ((pos.0 as f32 * 2.0 / self.window_size.1 as f32) - (self.window_size.0 as f32 / self.window_size.1 as f32), 1.0 - (pos.1 as f32 * 2.0 / self.window_size.1 as f32))
+    }
+
+
+
     pub fn map_size(&self, size: &(u32, u32)) -> (f32, f32) {
         (size.0 as f32 / self.window_size.1 as f32, size.1 as f32 / self.window_size.1 as f32)
     }

@@ -50,10 +50,23 @@ impl AppSelector {
 
 impl Component for AppSelector {
     fn update(&mut self, app: &mut crate::app::App) {
+
+
+        let cam_pos = app.map_coords(&((app.window_size.0 as i32/2)+50, app.window_size.1 as i32/2));
+        
+
+
         if self.selected_app == 0 {
             self.game_app_selected.update(app);
 
+            
+            app.camera.push();
+
+            app.camera.set_position(cam_pos.0, cam_pos.1);
+
             self.game_app.update(app);
+            app.camera.pop();
+
 
         } else {
             self.game_app_unselected.update(app);
@@ -62,11 +75,19 @@ impl Component for AppSelector {
         if self.selected_app == 1 {
             self.editor_app_selected.update(app);
 
+            
+            app.camera.push();
+
+            app.camera.set_position(cam_pos.0, cam_pos.1);
+
             self.editor_app.update(app);
+            app.camera.pop();
+
 
         } else {
             self.editor_app_unselected.update(app);
         }
+
 
         if app.mouse.left_down {
             if app.collides((0, 0, 50, 50), app.mouse.position) {
