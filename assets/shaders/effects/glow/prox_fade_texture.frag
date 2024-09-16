@@ -15,7 +15,7 @@ float dist(vec2 a, vec2 b) {
     vec2 screenA = (a * 0.5 + 0.5) * screen_size;
     vec2 screenB = (b * 0.5 + 0.5) * screen_size;
 
-    return distance(screenA, screenB) / (screen_size.x);
+    return distance(screenA, screenB) / 1024;
 }
 
 
