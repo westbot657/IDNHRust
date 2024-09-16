@@ -1,10 +1,10 @@
 use std::{collections::HashMap, time};
 
 use cgmath::{Matrix4, SquareMatrix, Vector4};
-use enigo::{Enigo, Settings};
+use enigo::{Enigo, Mouse as eMouse, Settings};
 use sdl2::{event::Event, video::Window};
 
-use crate::{app_selector::AppSelector, camera::Camera, component::Component, image::Image, macros::{cast_component, SETTINGS}, shaders::Shaders, text::{CharAtlas, Text}, texture_atlas::{convert_tex_to_gl, TextureAtlas}, window_frame::WindowFrame};
+use crate::{app_selector::AppSelector, camera::Camera, component::Component, image::Image, keybinds::Keybinds, macros::{cast_component, SETTINGS}, shaders::Shaders, text::{CharAtlas, Text}, texture_atlas::{convert_tex_to_gl, TextureAtlas}, window_frame::WindowFrame};
 
 pub struct Mouse {
     pub left_down: bool,
@@ -70,6 +70,47 @@ impl Mouse {
     }
 }
 
+pub struct Keyboard {
+    pub shift_held: bool,
+    pub lshift_held: bool,
+    pub rshift_held: bool,
+
+    pub ctrl_held: bool,
+    pub lctrl_held: bool,
+    pub rctrl_held: bool,
+
+    pub alt_held: bool,
+    pub lalt_held: bool,
+    pub ralt_held: bool,
+    pub capslock: bool,
+
+    pub held_keys: Vec<String>,
+    pub newly_pressed_keys: Vec<String>,
+    pub released_keys: Vec<String>,
+    pub triggered_keys: Vec<String>,
+}
+
+impl Keyboard {
+    pub fn new() -> Self {
+        Self {
+            shift_held: false,
+            lshift_held: false,
+            rshift_held: false,
+            ctrl_held: false,
+            lctrl_held: false,
+            rctrl_held: false,
+            alt_held: false,
+            lalt_held: false,
+            ralt_held: false,
+            capslock: false,
+            held_keys: Vec::new(),
+            newly_pressed_keys: Vec::new(),
+            released_keys: Vec::new(),
+            triggered_keys: Vec::new()
+        }
+    }
+}
+
 pub struct App<'a> {
     pub tex_atlas: TextureAtlas<'a>,
     pub events: Vec<Event>,
@@ -81,13 +122,16 @@ pub struct App<'a> {
     children: Vec<Box<dyn Component>>,
 
     pub mouse: Mouse,
+    pub keyboard: Keyboard,
     pub enigo: Enigo,
     pub window: &'a mut Window,
     pub should_quit: bool,
     pub fullscreen: bool,
     pub pre_fullscreen_pos: (i32, i32),
     pub pre_fullscreen_size: (u32, u32),
-    pub monitors: Vec<(i32, i32, u32, u32)>
+    pub monitors: Vec<(i32, i32, u32, u32)>,
+    pub keybinds: Keybinds,
+    pub settings: crate::settings::Settings
 }
 
 
@@ -102,6 +146,10 @@ impl<'a> App<'a> {
             tex_atlas.idx_to_gluint.insert(i, val);
         }
 
+        let mut settings = crate::settings::Settings::new();
+
+        settings.load();
+        settings.save();
 
         let mut app = App {
             tex_atlas,
@@ -113,13 +161,16 @@ impl<'a> App<'a> {
             camera: Camera::new(window_width, window_height),
             children: Vec::new(),
             mouse: Mouse::new(),
+            keyboard: Keyboard::new(),
             enigo: Enigo::new(&Settings::default()).unwrap(),
             window,
             should_quit: false,
             fullscreen: false,
             pre_fullscreen_pos: (0, 0),
             pre_fullscreen_size: (0, 0),
-            monitors
+            monitors,
+            keybinds: Keybinds::new(),
+            settings
         };
 
         let app_selector = AppSelector::new(&app);
@@ -249,10 +300,20 @@ impl<'a> App<'a> {
         }
     }
 
-    /// Checks for a plain collision without accounting for camera transformations
-    pub fn raw_collides(rect: (i32, i32, u32, u32), point: (i32, i32)) -> bool {
-        rect.0 <= point.0 && point.0 <= rect.0 + rect.2 as i32 &&
-        rect.1 <= point.1 && point.1 <= rect.1 + rect.3 as i32
+    
+
+    /// In theory this function should only ever return Some()
+    pub fn get_monitor_with_cursor(&self) -> Option<(i32, i32, u32, u32)> {
+
+        let (mx, my) = self.enigo.location().unwrap();
+        for monitor in &self.monitors {
+            if monitor.0 <= mx && mx <= monitor.0 + monitor.2 as i32 &&
+                monitor.1 <= my && my <= monitor.1 + monitor.3 as i32 {
+                return Some(monitor.clone())
+            }
+        }
+
+        return None
 
     }
 

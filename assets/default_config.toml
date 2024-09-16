@@ -1,0 +1,16 @@
+[Game-Settings]
+
+[Editor-Settings]
+undo-history-limit = 200
+master-volume = 0.5
+seen-tutorial = false
+
+# keybinds can have multiple options, seperated with " | "
+[Keybinds]
+Save  = 'Ctrl+S'
+Undo  = 'Ctrl+Z'
+Redo  = 'Ctrl+Shift+Z'
+Copy  = 'Ctrl+C'
+Paste = 'Ctrl+V'
+Cut   = 'Ctrl+X'
+

@@ -123,6 +123,13 @@ impl Rectangle {
                 -((mpos.1 - app.window_pos.1) as f32 * 2.0 / app.window_size.1 as f32) + 1.0
             );
 
+            let res_str = CString::new("screen_size").unwrap();
+            let res_pos = gl::GetUniformLocation(shader_program, res_str.as_ptr());
+            gl::Uniform2i(res_pos,
+                app.window_size.0 as i32,
+                app.window_size.1 as i32
+            );
+
             let clr = CString::new("color").unwrap();
             let color_loc = gl::GetUniformLocation(shader_program, clr.as_ptr());
             gl::Uniform4f(color_loc, self.color.0 as f32 / 255.0, self.color.1 as f32 / 255.0, self.color.2 as f32 / 255.0, self.color.3 as f32 / 255.0);

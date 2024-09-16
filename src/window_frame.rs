@@ -1,3 +1,5 @@
+use std::process::{Child, Command};
+
 use enigo::Mouse;
 
 use crate::{
@@ -22,7 +24,9 @@ pub struct WindowFrame {
     bottom_drag: Collider,
     right_corner_drag: Collider,
     right_drag: Collider,
-    selected_drag: u32
+    selected_drag: u32,
+    ghost_window: Option<Child>,
+    disable_ghost: bool
 }
 
 
@@ -95,9 +99,60 @@ impl WindowFrame {
             bottom_drag: Collider::new(5, 5, 10, 5),
             right_corner_drag: Collider::new(5, 5, 5, 5),
             right_drag: Collider::new(5, 25, 5, 30),
-            selected_drag: 0
+            selected_drag: 0,
+            ghost_window: None,
+            disable_ghost: false
         }
     }
+
+    fn detect_edge_collision(&self, app: &App) -> Option<(i32, i32, u32, u32, u8)> {
+
+        let (mx, my) = app.enigo.location().unwrap();
+
+        for monitor in &app.monitors {
+            if monitor.0 <= mx && mx <= monitor.0 + 5 {
+                if monitor.1 <= my && my <= monitor.1 + 5 {
+                    return Some((monitor.0, monitor.1, monitor.2, monitor.3, 7))
+
+                }
+                else if monitor.1 + monitor.3 as i32 - 5 <= my && my <= monitor.1 + monitor.3 as i32 {
+                    return Some((monitor.0, monitor.1, monitor.2, monitor.3, 5))
+
+                }
+                else {
+                    return Some((monitor.0, monitor.1, monitor.2, monitor.3, 6))
+
+                }
+            }
+            else if monitor.1 <= my && my <= monitor.1 + 5 {
+                if monitor.0 + monitor.2 as i32 - 5 <= mx && mx <= monitor.0 + monitor.2 as i32 {
+                    return Some((monitor.0, monitor.1, monitor.2, monitor.3, 1))
+
+                }
+                else {
+                    return Some((monitor.0, monitor.1, monitor.2, monitor.3, 0))
+                }
+            }
+            else if monitor.0 + monitor.2 as i32 - 5 <= mx && mx <= monitor.0 + monitor.2 as i32 {
+                if monitor.1 + monitor.3 as i32 - 5 <= my && my <= monitor.1 + monitor.3 as i32 {
+                    return Some((monitor.0, monitor.1, monitor.2, monitor.3, 3))
+
+                }
+                else {
+                    return Some((monitor.0, monitor.1, monitor.2, monitor.3, 2))
+                    
+                }
+
+            }
+            else if monitor.1 + monitor.3 as i32 - 5 <= my && my <= monitor.1 + monitor.3 as i32 {
+                return Some((monitor.0, monitor.1, monitor.2, monitor.3, 4))
+
+            }
+        }
+
+        None
+    }
+
 }
 
 impl Component for WindowFrame {
@@ -133,14 +188,61 @@ impl Component for WindowFrame {
         if app.mouse.left_up {
             self.grabbed = false;
             self.selected_drag = 0;
+            app.window.set_always_on_top(false);
+
+            if self.ghost_window.is_some() {
+                let mut process = self.ghost_window.take().unwrap();
+                if let Err(e) = process.kill() {
+                    eprintln!("FAILED TO KILL PROCESS {}", e);
+                }
+
+            }
         }
 
         if self.grabbed {
+            app.window.raise();
             let loc = app.enigo.location().unwrap();
             app.set_pos(
                 loc.0 - self.grab_delta.0,
                 loc.1 - self.grab_delta.1
-            )
+            );
+
+            let edge = self.detect_edge_collision(app);
+            if edge.is_some() {
+                if self.ghost_window.is_none() {
+                    if !self.disable_ghost {
+
+                        let this_exe = std::env::current_exe();
+                        if this_exe.is_ok() {
+                            let rect = edge.unwrap();
+                            match Command::new(this_exe.unwrap())
+                            .args(["--win-ghost", &format!("{}", rect.0), &format!("{}", rect.1), &format!("{}", rect.2), &format!("{}", rect.3), &format!("{}", rect.4)])
+                            .spawn() {
+                                Ok(child) => {
+                                    self.ghost_window = Some(child);
+                                }
+                                Err(_e) => {
+                                    self.disable_ghost = true; // if something goes wrong, then prevent retrying until later
+                                }
+                            }
+                        }
+
+                        app.window.raise();
+                        app.window.set_always_on_top(true);
+                    }
+                }
+            } else {
+                if self.ghost_window.is_some() {
+                    let mut process = self.ghost_window.take().unwrap();
+                    if let Err(e) = process.kill() {
+                        eprintln!("FAILED TO KILL PROCESS {}", e);
+                    }
+
+                } else {
+                    self.disable_ghost = false;
+                }
+            }
+
         }
 
         if self.selected_drag != 0 {
@@ -250,8 +352,11 @@ impl Component for WindowFrame {
                 // app.window.set_fullscreen(sdl2::video::FullscreenType::True).unwrap();
                 app.pre_fullscreen_pos = app.window_pos;
                 app.pre_fullscreen_size = app.window_size;
-                app.set_pos(0, 0);
-                app.set_size((1920, 1080));
+
+                let space = app.get_monitor_with_cursor().unwrap();
+
+                app.set_pos(space.0, space.1);
+                app.set_size((space.2, space.3));
                 app.fullscreen = true;
             }
 
