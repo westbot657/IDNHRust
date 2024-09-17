@@ -1,6 +1,6 @@
 use std::ffi::CString;
 
-use cgmath::Matrix;
+use cgmath::{Matrix, Matrix4, Rad, SquareMatrix, Vector3};
 use enigo::Mouse;
 use gl::types::{GLfloat, GLsizei, GLsizeiptr, GLuint, GLvoid};
 
@@ -91,6 +91,13 @@ impl Canvas {
         let shader_program = app.shaders.grid_shader;
         let pos = app.map_coords(&self.position);
         let sz = app.map_size(&self.size);
+
+        let current = app.camera.peek();
+        let dx = current.0.w.x;
+        let dy = current.0.w.y;
+
+        println!("{}, {}", dx, dy);
+
         unsafe {
             gl::UseProgram(shader_program);
 
@@ -155,6 +162,12 @@ impl Canvas {
             let spacing_loc = gl::GetUniformLocation(shader_program, spacing_str.as_ptr());
             gl::Uniform1f(spacing_loc, self.grid_spacing as f32);
 
+            let canvas_origin_str = CString::new("canvas_origin").unwrap();
+            let canvas_origin_loc = gl::GetUniformLocation(shader_program, canvas_origin_str.as_ptr());
+            gl::Uniform2f(canvas_origin_loc,
+                pos.0 + dx, pos.1 + dy
+            );
+
 
             let clr = CString::new("color").unwrap();
             let color_loc = gl::GetUniformLocation(shader_program, clr.as_ptr());
@@ -170,7 +183,51 @@ impl Canvas {
 
 impl Component for Canvas {
     fn update(&mut self, app: &mut crate::app::App) {
+
+        if app.keyboard.held_keys.contains(&"Left Ctrl".to_string()) {
+            self.rotation += app.mouse.scroll_y as f32 / 100.0;
+        }
+        else if app.keyboard.held_keys.contains(&"Left Alt".to_string()) {
+            self.scroll_offset = (
+                self.scroll_offset.0 + app.mouse.scroll_x as i64,
+                self.scroll_offset.1 + app.mouse.scroll_y as i64
+            )
+        }
+        else {
+            self.zoom += app.mouse.scroll_y as f32 / 100.0;
+        }
+
         self.render(app);
+
+        let current = app.camera.peek();
+
+        let x = current.0.w.x;
+        let y = current.0.w.y;
+
+        app.camera.push();
+
+        let mpos = (
+            self.position.0 as f32 / app.window_size.0 as f32 * self.zoom,
+            self.position.1 as f32 / app.window_size.1 as f32 * self.zoom
+        );
+        
+
+        app.camera.translate(
+            -self.zoom * app.window_size.1 as f32 / self.size.0 as f32 + ((self.zoom - 1.0) * (app.window_size.1 as f32 / 2.0)),
+            -self.zoom * app.window_size.0 as f32 / self.size.1 as f32 - ((self.zoom - 1.0) * (app.window_size.0 as f32 / 2.0)),
+            app.window_size
+        );
+        app.camera.set_scale(self.zoom, self.zoom);
+
+
+        // app.camera.viewport = (self.position.0, self.position.1, self.size.0, self.size.1);
+
+        for child in &mut self.children {
+            child.update(app);
+        }
+
+        app.camera.pop();
+
     }
 
     fn destroy(self) {

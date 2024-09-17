@@ -24,10 +24,8 @@ pub struct Mouse {
 
     pub position: (i32, i32),
 
-    pub cursor_style: Option<String>,
     pub cursors: HashMap<String, sdl2::mouse::Cursor>,
-    pub active_cursor_style: Option<String>,
-    pub previous_cursor_style: Option<String>
+    pub active_cursor_style: Option<String>
 }
 
 impl Mouse {
@@ -62,10 +60,8 @@ impl Mouse {
             scroll_y: 0,
             position: (0, 0),
 
-            cursor_style: None,
             cursors,
             active_cursor_style: None,
-            previous_cursor_style: None
         }
     }
 }

@@ -4,7 +4,6 @@ use cgmath::Matrix;
 use gl::types::{GLfloat, GLsizei, GLsizeiptr, GLuint, GLvoid};
 use rect_packer::{Config, Packer};
 use rusttype::{point, Font, GlyphId, Scale};
-use sdl2::image::SaveSurface;
 
 use crate::{app::App, component::Component, texture_atlas::convert_tex_to_gl, macros::CONST};
 

@@ -1,6 +1,7 @@
 use cgmath::{ortho, Matrix4, Rad, SquareMatrix, Vector3};
 
 
+
 pub struct Camera {
     pub matrix: Matrix4<f32>,
     pub viewport: (i32, i32, u32, u32),
@@ -41,7 +42,7 @@ impl Camera {
     pub fn push(&mut self) {
         self.stack.push((self.matrix, self.viewport));
         self.matrix = Matrix4::identity();
-        self.viewport = (self.viewport.0, self.viewport.1, self.viewport.2, self.viewport.3)
+        self.viewport = (0, 0, self.viewport.2, self.viewport.3)
     }
 
     pub fn pop(&mut self) {
@@ -54,11 +55,16 @@ impl Camera {
     pub fn peek(&self) -> (Matrix4<f32>, (i32, i32, u32, u32)) {
         let mut mat_out: Matrix4<f32> = Matrix4::identity();
 
+        let mut dx = 0;
+        let mut dy = 0;
+
         for mat in &self.stack {
             mat_out = mat_out * mat.0;
+            dx += mat.1.0;
+            dy += mat.1.1;
         }
         mat_out = mat_out * self.matrix;
-        (mat_out, self.viewport)
+        (mat_out, (self.viewport.0 + dx, self.viewport.1 + dy, self.viewport.2, self.viewport.3))
     }
 
     pub fn apply_transform(&mut self, transform: Matrix4<f32>) {
@@ -79,4 +85,10 @@ impl Camera {
         let rotation = Matrix4::from_angle_z(angle);
         self.apply_transform(rotation);
     }
+
+    pub fn translate(&mut self, dx: f32, dy: f32, window_size: (u32, u32)) {
+        let translation = Matrix4::from_translation(Vector3::new(dx as f32 / window_size.1 as f32 * 2.0, -dy as f32 / window_size.1 as f32 * 2.0, 0.0));
+        self.apply_transform(translation);
+    }
+
 }

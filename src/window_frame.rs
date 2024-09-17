@@ -210,7 +210,7 @@ impl Component for WindowFrame {
                 }
 
                 if let Some((pos_x, pos_y, width, height, side)) = self.detect_edge_collision(app) {
-                    let mut target: (i32, i32, i32, i32) = (0, 0, 50, 50);
+                    let target;
                     let width = width as i32;
                     let height = height as i32;
 

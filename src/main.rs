@@ -102,7 +102,7 @@ fn ghost(pos_x: i32, pos_y: i32, width: i32, height: i32, side: u8) {
 
     let start = Instant::now();
 
-    let mut target: (i32, i32, i32, i32) = (0, 0, 1, 1);
+    let mut target;
 
     if side == 0 {
         // start from top at whatever point the mouse is at, go to full screen with 10px margin
@@ -228,6 +228,8 @@ fn main_app() {
         app.keyboard.newly_pressed_keys.clear();
         app.keyboard.released_keys.clear();
         app.keyboard.triggered_keys.clear();
+        app.mouse.scroll_x = 0;
+        app.mouse.scroll_y = 0;
 
         let keys = device_state.get_keys();
         app.keyboard.capslock = keys.contains(&device_query::Keycode::CapsLock);
@@ -303,7 +305,8 @@ fn main_app() {
 
                             app.keyboard.triggered_keys.push(key.clone());
                             app.keybinds.push_key(&key);
-                            app.keyboard.newly_pressed_keys.push(key);
+                            app.keyboard.newly_pressed_keys.push(key.clone());
+                            app.keyboard.held_keys.push(key);
                             
                         }
 
@@ -342,7 +345,12 @@ fn main_app() {
                         }
 
                         app.keybinds.pop_key(&key);
+                        if app.keyboard.held_keys.contains(&key) {
+                            let index = app.keyboard.held_keys.iter().position(|x| *x == key).unwrap();
+                            app.keyboard.held_keys.remove(index);
+                        }
                         app.keyboard.released_keys.push(key);
+
 
                     }
 

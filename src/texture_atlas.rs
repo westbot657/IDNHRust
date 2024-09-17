@@ -49,7 +49,7 @@ pub fn convert_tex_to_gl(surface: &Surface, mipmap_style: u8) -> (GLuint, (u32, 
             surface.without_lock().unwrap().as_ptr() as *const _,
         );
 
-        if (mipmap_style == 0) {
+        if mipmap_style == 0 {
             gl::GenerateMipmap(gl::TEXTURE_2D);
         }
     }

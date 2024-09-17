@@ -52,7 +52,7 @@ impl Component for AppSelector {
     fn update(&mut self, app: &mut crate::app::App) {
 
 
-        let cam_pos = app.map_coords(&((app.window_size.0 as i32/2)+50, app.window_size.1 as i32/2));
+        let cam_pos = (50, 0);
         
 
 
@@ -62,7 +62,7 @@ impl Component for AppSelector {
             
             app.camera.push();
 
-            app.camera.set_position(cam_pos.0, cam_pos.1);
+            app.camera.translate(cam_pos.0 as f32, cam_pos.1 as f32, app.window_size);
 
             self.game_app.update(app);
             app.camera.pop();
@@ -78,7 +78,7 @@ impl Component for AppSelector {
             
             app.camera.push();
 
-            app.camera.set_position(cam_pos.0, cam_pos.1);
+            app.camera.translate(cam_pos.0 as f32, cam_pos.1 as f32, app.window_size);
 
             self.editor_app.update(app);
             app.camera.pop();

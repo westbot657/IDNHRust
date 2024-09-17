@@ -22,12 +22,10 @@ impl Keybinds {
             return
         }
         self.bind += &(key.to_string() + "+");
-        println!("Keybind: {}", self.bind);
     }
 
     pub fn pop_key(&mut self, key: &str) {
         self.bind = self.bind.replace(&(key.to_string() + "+"), "");
-        println!("Keybind: {}", self.bind);
     }
 
     pub fn check_binding(&self, binding: &str) -> bool {
