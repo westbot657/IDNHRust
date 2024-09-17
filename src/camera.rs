@@ -5,7 +5,8 @@ use cgmath::{ortho, Matrix4, Rad, SquareMatrix, Vector3};
 pub struct Camera {
     pub matrix: Matrix4<f32>,
     pub viewport: (i32, i32, u32, u32),
-    stack: Vec<(Matrix4<f32>, (i32, i32, u32, u32))>,
+    pub position: (i32, i32),
+    stack: Vec<(Matrix4<f32>, (i32, i32, u32, u32), (i32, i32))>,
 }
 
 impl Camera {
@@ -14,6 +15,7 @@ impl Camera {
         Self {
             matrix: Matrix4::identity(),
             viewport: (0, 0, screen_width, screen_height),
+            position: (0, 0),
             stack: Vec::new(),
         }
     }
@@ -40,35 +42,45 @@ impl Camera {
     }
 
     pub fn push(&mut self) {
-        self.stack.push((self.matrix, self.viewport));
+        self.stack.push((self.matrix, self.viewport, self.position.clone()));
         self.matrix = Matrix4::identity();
-        self.viewport = (0, 0, self.viewport.2, self.viewport.3)
+        self.viewport = (0, 0, self.viewport.2, self.viewport.3);
+        self.position = (0, 0);
     }
 
     pub fn pop(&mut self) {
         if let Some(previous_matrix) = self.stack.pop() {
             self.matrix = previous_matrix.0;
             self.viewport = previous_matrix.1;
+            self.position = previous_matrix.2;
         }
     }
 
-    pub fn peek(&self) -> (Matrix4<f32>, (i32, i32, u32, u32)) {
+    pub fn peek(&self) -> (Matrix4<f32>, (i32, i32, u32, u32), (i32, i32)) {
         let mut mat_out: Matrix4<f32> = Matrix4::identity();
 
         let mut dx = 0;
         let mut dy = 0;
+        let mut x = 0;
+        let mut y = 0;
 
         for mat in &self.stack {
             mat_out = mat_out * mat.0;
             dx += mat.1.0;
             dy += mat.1.1;
+            x += mat.2.0;
+            y += mat.2.1;
         }
         mat_out = mat_out * self.matrix;
-        (mat_out, (self.viewport.0 + dx, self.viewport.1 + dy, self.viewport.2, self.viewport.3))
+        (mat_out, (self.viewport.0 + dx, self.viewport.1 + dy, self.viewport.2, self.viewport.3), (x + self.position.0, y + self.position.1))
     }
 
     pub fn apply_transform(&mut self, transform: Matrix4<f32>) {
         self.matrix = self.matrix * transform;
+    }
+
+    pub fn set_ipos(&mut self, x: i32, y: i32) {
+        self.position = (x, y);
     }
 
     pub fn set_position(&mut self, x: f32, y: f32) {

@@ -23,6 +23,8 @@ float ease(float x) {
     }
 }
 
+
+
 void main() {
     if (!(viewport.x <= ScreenPos.x && ScreenPos.x <= viewport.x + viewport.z &&
           viewport.y <= ScreenPos.y && ScreenPos.y <= viewport.y + viewport.w)) {
@@ -34,7 +36,7 @@ void main() {
     vec2 correctedScreenPos = vec2(ScreenPos.x * aspectRatio, ScreenPos.y);
 
     // Adjust the screen position by the canvas origin
-    vec2 adjustedScreenPos = correctedScreenPos - canvas_origin;
+    vec2 adjustedScreenPos = correctedScreenPos - (canvas_origin);
 
     // Step 1: map the origin and adjustedScreenPos into grid space
     vec2 origin = vec2(

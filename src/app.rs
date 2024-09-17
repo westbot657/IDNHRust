@@ -212,6 +212,7 @@ impl<'a> App<'a> {
 
         self.camera.push();
 
+        self.camera.set_ipos(5, 25);
         self.camera.set_position(5.0 / self.window_size.0 as f32, 25.0 / self.window_size.1 as f32);
         self.camera.viewport = (5, 25, self.window_size.0-5, self.window_size.1-20);
 
@@ -276,7 +277,7 @@ impl<'a> App<'a> {
             Vector4::new(pos.0 + (sz.0), pos.1 - (sz.1), 0.0, 1.0),
         );
     
-        let (camera_matrix, viewport) = self.camera.peek();
+        let (camera_matrix, viewport, _) = self.camera.peek();
         let combined_matrix = camera_matrix * transform_matrix;
 
         if !(viewport.0 <= point.0 && point.0 <= viewport.0 + viewport.2 as i32 &&

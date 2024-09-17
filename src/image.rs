@@ -119,7 +119,7 @@ impl Image {
 
             let view_str = CString::new("viewport").unwrap();
             let view_loc = gl::GetUniformLocation(shader_program, view_str.as_ptr());
-            let (mat4, viewport) = app.camera.peek();
+            let (mat4, viewport, _) = app.camera.peek();
 
             gl::UniformMatrix4fv(cam_loc, 1, gl::FALSE, mat4.as_ptr());
             gl::Uniform4f(view_loc, 

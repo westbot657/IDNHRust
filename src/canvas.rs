@@ -92,11 +92,6 @@ impl Canvas {
         let pos = app.map_coords(&self.position);
         let sz = app.map_size(&self.size);
 
-        let current = app.camera.peek();
-        let dx = current.0.w.x;
-        let dy = current.0.w.y;
-
-        println!("{}, {}", dx, dy);
 
         unsafe {
             gl::UseProgram(shader_program);
@@ -117,7 +112,7 @@ impl Canvas {
 
             let view_str = CString::new("viewport").unwrap();
             let view_loc = gl::GetUniformLocation(shader_program, view_str.as_ptr());
-            let (mat4, viewport) = app.camera.peek();
+            let (mat4, viewport, camera_position) = app.camera.peek();
 
             gl::UniformMatrix4fv(cam_loc, 1, gl::FALSE, mat4.as_ptr());
             gl::Uniform4f(view_loc, 
@@ -164,8 +159,11 @@ impl Canvas {
 
             let canvas_origin_str = CString::new("canvas_origin").unwrap();
             let canvas_origin_loc = gl::GetUniformLocation(shader_program, canvas_origin_str.as_ptr());
+
+            let orig = app.map_coords(&(&camera_position.0 + &self.position.0, &camera_position.1 + &self.position.1));
+
             gl::Uniform2f(canvas_origin_loc,
-                pos.0 + dx, pos.1 + dy
+                orig.0, orig.1
             );
 
 
@@ -195,28 +193,23 @@ impl Component for Canvas {
         }
         else {
             self.zoom += app.mouse.scroll_y as f32 / 100.0;
+            self.zoom = self.zoom.clamp(0.1, 4.0);
         }
 
         self.render(app);
 
-        let current = app.camera.peek();
 
-        let x = current.0.w.x;
-        let y = current.0.w.y;
+        let (_, _, cam_pos) = app.camera.peek();
 
+        let dx = (cam_pos.0 as f32 / app.window_size.0 as f32) * (self.zoom - 1.0);
+        let dy = (cam_pos.1 as f32 / app.window_size.1 as f32) * (self.zoom - 1.0);
+        
         app.camera.push();
 
-        let mpos = (
-            self.position.0 as f32 / app.window_size.0 as f32 * self.zoom,
-            self.position.1 as f32 / app.window_size.1 as f32 * self.zoom
-        );
-        
 
-        app.camera.translate(
-            -self.zoom * app.window_size.1 as f32 / self.size.0 as f32 + ((self.zoom - 1.0) * (app.window_size.1 as f32 / 2.0)),
-            -self.zoom * app.window_size.0 as f32 / self.size.1 as f32 - ((self.zoom - 1.0) * (app.window_size.0 as f32 / 2.0)),
-            app.window_size
-        );
+
+        app.camera.set_position(dx, dy);
+        
         app.camera.set_scale(self.zoom, self.zoom);
 
 
