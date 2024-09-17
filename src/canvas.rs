@@ -199,18 +199,25 @@ impl Component for Canvas {
         self.render(app);
 
 
-        let (_, _, cam_pos) = app.camera.peek();
+        // let (_, _, cam_pos) = app.camera.peek();
 
-        let dx = (cam_pos.0 as f32 / app.window_size.0 as f32) * (self.zoom - 1.0);
-        let dy = (cam_pos.1 as f32 / app.window_size.1 as f32) * (self.zoom - 1.0);
-        
         app.camera.push();
 
-
-
-        app.camera.set_position(dx, dy);
+        // println!("zoom: {} set-pos: {}, {}", self.zoom, dx, dy);
+        // app.camera.set_position(dx, -dy);
         
+        let dx = ((app.window_size.0 as f32 * self.zoom) - app.window_size.0 as f32) / 2.0;
+        let dy = ((app.window_size.1 as f32 * self.zoom) - app.window_size.1 as f32) / 2.0;
+
+        let ox = self.scroll_offset.0 as f32 / 2.0 / (app.window_size.0 as f32 / app.window_size.1 as f32);
+        let oy = -(self.scroll_offset.1 as f32 / 2.0);
+        
+        app.camera.translate(dx + ox, dy + oy, app.window_size);
+
         app.camera.set_scale(self.zoom, self.zoom);
+
+        // TODO: add another translation to compensate for rotation
+        app.camera.set_rotation(Rad(-self.rotation));
 
 
         // app.camera.viewport = (self.position.0, self.position.1, self.size.0, self.size.1);
