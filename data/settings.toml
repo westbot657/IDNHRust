@@ -4,6 +4,7 @@
 undo-history-limit = 200
 master-volume = 0.5
 seen-tutorial = false
+allow-grid-rotation = false
 
 [Keybinds]
 Save = "Ctrl+S"

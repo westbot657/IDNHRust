@@ -141,7 +141,7 @@ impl Canvas {
             let offset_loc = gl::GetUniformLocation(shader_program, offset_str.as_ptr());
             // let offset = app.map_coordsi64(&self.scroll_offset);
             gl::Uniform2f(offset_loc,
-                self.scroll_offset.0 as f32 / app.window_size.0 as f32,
+                self.scroll_offset.0 as f32 / app.window_size.1 as f32,
                 self.scroll_offset.1 as f32 / app.window_size.1 as f32
             );
 
@@ -209,10 +209,11 @@ impl Component for Canvas {
         let dx = ((app.window_size.0 as f32 * self.zoom) - app.window_size.0 as f32) / 2.0;
         let dy = ((app.window_size.1 as f32 * self.zoom) - app.window_size.1 as f32) / 2.0;
 
-        let ox = self.scroll_offset.0 as f32 / 2.0 / (app.window_size.0 as f32 / app.window_size.1 as f32);
+        let ox = self.scroll_offset.0 as f32 / 2.0; // (app.window_size.0 as f32 / app.window_size.1 as f32);
         let oy = -(self.scroll_offset.1 as f32 / 2.0);
         
         app.camera.translate(dx + ox, dy + oy, app.window_size);
+
 
         app.camera.set_scale(self.zoom, self.zoom);
 
