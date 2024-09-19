@@ -22,6 +22,9 @@ mod keybinds;
 mod settings;
 mod easing;
 mod canvas;
+mod object_tree;
+mod shelf_tile;
+mod text_input_handler;
 
 use std::{collections::VecDeque, env, time::Instant};
 
