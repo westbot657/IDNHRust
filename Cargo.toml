@@ -15,7 +15,7 @@ sdl2 = { version = "0.37.0", features = ["bundled", "image", "mixer", "unsafe_te
 toml = { version = "0.8.19", features = ["preserve_order"] }
 
 [target.'cfg(target_os = "windows")'.dependencies]
-winapi = { version = "0.3.9", features = ["windef", "winuser"] }
+winapi = { version = "0.3.9", features = ["windef", "winuser", "minwindef"] }
 widestring = "0.5"
 
 [target.'cfg(target_os = "macos")'.dependencies]
