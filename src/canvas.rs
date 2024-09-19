@@ -1,6 +1,6 @@
 use std::ffi::CString;
 
-use cgmath::{Matrix, Matrix4, Rad, SquareMatrix, Vector3};
+use cgmath::{Matrix, Rad};
 use enigo::Mouse;
 use gl::types::{GLfloat, GLsizei, GLsizeiptr, GLuint, GLvoid};
 
@@ -187,8 +187,8 @@ impl Component for Canvas {
         }
         else if app.keyboard.held_keys.contains(&"Left Alt".to_string()) {
             self.scroll_offset = (
-                self.scroll_offset.0 + app.mouse.scroll_x as i64,
-                self.scroll_offset.1 + app.mouse.scroll_y as i64
+                self.scroll_offset.0 - app.mouse.scroll_x as i64,
+                self.scroll_offset.1 - app.mouse.scroll_y as i64
             )
         }
         else {
