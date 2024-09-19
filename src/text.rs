@@ -1,12 +1,11 @@
 use std::{collections::HashMap, ffi::CString, panic};
 
 use cgmath::Matrix;
-use gl::types::{GLfloat, GLsizei, GLsizeiptr, GLuint, GLvoid};
 use rect_packer::{Config, Packer};
 use rusttype::{point, Font, GlyphId, Scale};
 
 use crate::{app::App, component::Component, texture_atlas::convert_tex_to_gl, macros::CONST};
-
+use crate::component::setup_gl;
 // TODO: create a font sheet either dynamically or manually, and use it for rendering text
 // also make a new shader for text I guess (to apply color)
 
@@ -53,7 +52,7 @@ impl CharAtlas {
 
         
 
-        for codepoint in 0..=0x4E00 as u32 {
+        for codepoint in 0..=0x4E00u32 {
             if let Some(character) = char::from_u32(codepoint) {
                 let result = panic::catch_unwind(|| font.glyph(character));
                 if result.is_err() {
@@ -125,38 +124,7 @@ impl CharAtlas {
             UPPER_BOUND, LOWER_BOUND, 0.0,      1.0, 1.0
         ];
 
-        let mut vao: GLuint = 0;
-        let mut vbo: GLuint = 0;
-
-        unsafe {
-            gl::GenVertexArrays(1, &mut vao);
-            gl::GenBuffers(1, &mut vbo);
-
-            gl::BindVertexArray(vao);
-            gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
-            gl::BufferData(
-                gl::ARRAY_BUFFER,
-                (vertices.len() * size_of::<GLfloat>()) as GLsizeiptr,
-                vertices.as_ptr() as *const GLvoid,
-                gl::STATIC_DRAW,
-            );
-
-            // Position attribute (location 0)
-            gl::VertexAttribPointer(0, 3, gl::FLOAT, gl::FALSE, 5 * size_of::<GLfloat>() as GLsizei, std::ptr::null());
-            gl::EnableVertexAttribArray(0);
-        
-            // Texture Coord attribute (location 1)
-            gl::VertexAttribPointer(
-                1,
-                2,
-                gl::FLOAT,
-                gl::FALSE,
-                5 * size_of::<GLfloat>() as GLsizei,
-                (3 * size_of::<GLfloat>()) as *const GLvoid,
-            );
-            gl::EnableVertexAttribArray(1);
-
-        }
+        let vao = setup_gl(vertices);
 
 
         Self {
