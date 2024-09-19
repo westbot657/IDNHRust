@@ -80,7 +80,7 @@ impl<'a> TextureAtlas<'a> {
 
         let mut atlases: Vec<Packer> = Vec::new();
         let mut packer = Packer::new(config);
-        let mut surf = sdl2::surface::Surface::new(WIDTH, HEIGHT, sdl2::pixels::PixelFormatEnum::RGBA32).unwrap();
+        let mut surf = Surface::new(WIDTH, HEIGHT, sdl2::pixels::PixelFormatEnum::RGBA32).unwrap();
 
         // this indicates a file's position on an atlas
         let mut position_data: HashMap<String, (u32, u32, u32, u32)> = HashMap::new();
@@ -94,7 +94,7 @@ impl<'a> TextureAtlas<'a> {
             let path = texture.unwrap(); // if a texture fails to load, then panic
             
 
-            let surface = sdl2::surface::Surface::from_file(&path).unwrap();
+            let surface = Surface::from_file(&path).unwrap();
 
             let (w, h) = surface.size();
 
@@ -102,7 +102,7 @@ impl<'a> TextureAtlas<'a> {
                 //atlases.push(packer);
                 packer = Packer::new(config);
                 surfaces.push(surf);
-                surf = sdl2::surface::Surface::new(WIDTH, HEIGHT, sdl2::pixels::PixelFormatEnum::RGBA32).unwrap();
+                surf = Surface::new(WIDTH, HEIGHT, sdl2::pixels::PixelFormatEnum::RGBA32).unwrap();
             }
 
             let rect = packer.pack(w as i32, h as i32, false).unwrap();

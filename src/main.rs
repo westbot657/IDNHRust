@@ -142,9 +142,9 @@ fn ghost(pos_x: i32, pos_y: i32, width: i32, height: i32, side: u8) {
             }
         }
 
-        let dx = crate::easing::delta(0.0, start.elapsed().as_secs_f32(), crate::easing::ease_in_out_quart(0.3));
+        let dx = easing::delta(0.0, start.elapsed().as_secs_f32(), easing::ease_in_out_quart(0.3));
 
-        let rect = crate::easing::lerp4i((mx, my, 1, 1), target, dx);
+        let rect = easing::lerp4i((mx, my, 1, 1), target, dx);
 
         // println!("Set rect: {:?}", rect);
 

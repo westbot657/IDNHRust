@@ -20,7 +20,7 @@ mod monitor_info {
         let monitor_data = &mut *(lparam as *mut MonitorData);
 
         let mut mi = MONITORINFO {
-            cbSize: std::mem::size_of::<MONITORINFO>() as u32,
+            cbSize: size_of::<MONITORINFO>() as u32,
             rcMonitor: RECT { left: 0, top: 0, right: 0, bottom: 0 },
             rcWork: RECT { left: 0, top: 0, right: 0, bottom: 0 },
             dwFlags: 0,

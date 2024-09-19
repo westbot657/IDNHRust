@@ -49,7 +49,7 @@ impl AppSelector {
 
 
 impl Component for AppSelector {
-    fn update(&mut self, app: &mut crate::app::App) {
+    fn update(&mut self, app: &mut App) {
 
 
         let cam_pos = (50, 0);
