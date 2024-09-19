@@ -1,9 +1,11 @@
+use std::collections::HashMap;
 use crate::{canvas::Canvas, component::Component, rectangle::Rectangle};
 
 
 
 pub struct EditorApp {
-    canvas: Canvas
+    canvas: Canvas,
+    visibility_toggles: HashMap<String, bool>
 }
 
 
@@ -18,8 +20,13 @@ impl EditorApp {
             )
         );
 
+        let mut visibility_toggles = HashMap::new();
+
+
+
         Self {
-            canvas
+            canvas,
+            visibility_toggles
         }
     }
 }
@@ -27,6 +34,8 @@ impl EditorApp {
 
 impl Component for EditorApp {
     fn update(&mut self, app: &mut crate::app::App) {
+
+        self.canvas.size = (app.window_size.0 - 360, app.window_size.1 - 100);
 
         self.canvas.update(app);
 

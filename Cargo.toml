@@ -9,6 +9,7 @@ device_query = "2.1.0"
 enigo = "0.2.1"
 gl = "0.14.0"
 glob = "0.3.1"
+libp2p = "0.54.1"
 rect_packer = "0.2.1"
 rusttype = { version = "0.9.3", features = ["gpu_cache"] }
 sdl2 = { version = "0.37.0", features = ["bundled", "image", "mixer", "unsafe_textures"] }
