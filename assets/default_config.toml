@@ -10,8 +10,8 @@ allow-grid-rotation = false # sane people probably don't care about rotating the
 [Keybinds]
 Save  = 'Ctrl+S'
 Undo  = 'Ctrl+Z'
-Redo  = 'Ctrl+Shift+Z'
+Redo  = 'Ctrl+Shift+Z|Ctrl+Y'
+Cut   = 'Ctrl+X'
 Copy  = 'Ctrl+C'
 Paste = 'Ctrl+V'
-Cut   = 'Ctrl+X'
 
