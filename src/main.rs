@@ -1,30 +1,30 @@
 extern crate sdl2;
 extern crate gl;
 
-mod shaders;
-mod texture_atlas;
 mod app;
-mod component;
-mod rectangle;
-mod image;
-mod text;
-mod camera;
-mod window_frame;
-mod macros;
-mod button;
-mod storage_component;
 mod app_selector;
+mod button;
+mod camera;
+mod canvas;
+mod collider;
+mod component;
+mod easing;
 mod editor_app;
 mod game_app;
-mod collider;
-mod monitor_info;
+mod image;
 mod keybinds;
-mod settings;
-mod easing;
-mod canvas;
+mod macros;
+mod monitor_info;
 mod object_tree;
+mod rectangle;
+mod settings;
+mod shaders;
 mod shelf_tile;
+mod storage_component;
+mod text;
+mod texture_atlas;
 mod text_input_handler;
+mod window_frame;
 
 use std::{collections::VecDeque, env, time::Instant};
 
