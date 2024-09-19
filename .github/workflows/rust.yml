@@ -39,13 +39,14 @@ jobs:
         brew update
         brew install sdl2 sdl2_mixer sdl2_image
 
-    # Windows setup
-    - name: Install SDL2 dependencies (Windows)
+    # Windows setup using vcpkg
+    - name: Install vcpkg
       if: matrix.os == 'windows-latest'
       run: |
-        choco install -y sdl2
-        choco install -y sdl2_mixer
-        choco install -y sdl2_image
+        git clone https://github.com/microsoft/vcpkg.git
+        .\vcpkg\bootstrap-vcpkg.bat
+        .\vcpkg\vcpkg.exe integrate install
+        .\vcpkg\vcpkg.exe install sdl2 sdl2-mixer sdl2-image
 
     - name: Build the project
       run: cargo build --verbose
