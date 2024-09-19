@@ -83,8 +83,8 @@ fn ghost(pos_x: i32, pos_y: i32, width: i32, height: i32, side: u8) {
         .build()
         .unwrap();
 
-    let _gl_context = window.gl_create_context().unwrap();
-    window.gl_make_current(&_gl_context).unwrap();
+    let gl_context = window.gl_create_context().unwrap();
+    window.gl_make_current(&gl_context).unwrap();
     gl::load_with(|s| video_subsystem.gl_get_proc_address(s) as *const _);
     /* GL DEPENDENT STUFF MUST HAPPEN AFTER THIS POINT */
 
