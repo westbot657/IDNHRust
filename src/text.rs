@@ -6,8 +6,6 @@ use rusttype::{point, Font, GlyphId, Scale};
 
 use crate::{app::App, component::Component, texture_atlas::convert_tex_to_gl, macros::CONST};
 use crate::component::setup_gl;
-// TODO: create a font sheet either dynamically or manually, and use it for rendering text
-// also make a new shader for text I guess (to apply color)
 
 
 pub struct CharAtlas {

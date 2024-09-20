@@ -1,0 +1,55 @@
+name: rust tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      # Linux setup
+      - name: Install SDL2 dependencies (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libsdl2-dev libsdl2-mixer-dev libsdl2-image-dev libxdo-dev
+
+      # macOS setup
+      - name: Install SDL2 dependencies (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew update
+          brew install sdl2 sdl2_mixer sdl2_image
+
+      # Windows setup using vcpkg
+      - name: Install vcpkg
+        if: matrix.os == 'windows-latest'
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git
+          .\vcpkg\bootstrap-vcpkg.bat
+          .\vcpkg\vcpkg.exe integrate install
+          .\vcpkg\vcpkg.exe install sdl2 sdl2-mixer sdl2-image
+
+      - name: Build the project
+        run: cargo build --verbose
+
+      - name: Run tests
+        run: cargo test --verbose
