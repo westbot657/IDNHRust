@@ -36,7 +36,7 @@ jobs:
       - name: Install SDL2 dependencies (macOS)
         if: matrix.os == 'macos-latest'
         run: |
-          export LIB=./lib/
+          export LIB="./lib/"
           echo "LIB=$LIB" >> $GITHUB_ENV
           brew update
           brew install sdl2 sdl2_mixer sdl2_image
