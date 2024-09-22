@@ -43,6 +43,8 @@ jobs:
       - name: Install vcpkg
         if: matrix.os == 'windows-latest'
         run: |
+          $env:LIB="./lib/"
+          echo "LIB=$env:LIB" >> $env:GITHUB_ENV
           git clone https://github.com/microsoft/vcpkg.git
           .\vcpkg\bootstrap-vcpkg.bat
           .\vcpkg\vcpkg.exe integrate install
