@@ -42,7 +42,7 @@ impl Camera {
     }
 
     pub fn push(&mut self) {
-        self.stack.push((self.matrix, self.viewport, self.position.clone()));
+        self.stack.push((self.matrix, self.viewport, self.position));
         self.matrix = Matrix4::identity();
         self.viewport = (0, 0, self.viewport.2, self.viewport.3);
         self.position = (0, 0);
@@ -99,7 +99,7 @@ impl Camera {
     }
 
     pub fn translate(&mut self, dx: f32, dy: f32, window_size: (u32, u32)) {
-        let translation = Matrix4::from_translation(Vector3::new(dx as f32 / window_size.1 as f32 * 2.0, -dy as f32 / window_size.1 as f32 * 2.0, 0.0));
+        let translation = Matrix4::from_translation(Vector3::new(dx / window_size.1 as f32 * 2.0, -dy / window_size.1 as f32 * 2.0, 0.0));
         self.apply_transform(translation);
     }
 

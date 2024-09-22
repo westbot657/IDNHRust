@@ -129,7 +129,7 @@ impl Canvas {
             let canvas_origin_str = CString::new("canvas_origin").unwrap();
             let canvas_origin_loc = gl::GetUniformLocation(shader_program, canvas_origin_str.as_ptr());
 
-            let orig = app.map_coords(&(&camera_position.0 + &self.position.0, &camera_position.1 + &self.position.1));
+            let orig = app.map_coords(&(camera_position.0 + self.position.0, camera_position.1 + self.position.1));
 
             gl::Uniform2f(canvas_origin_loc,
                 orig.0, orig.1

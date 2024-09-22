@@ -269,7 +269,7 @@ impl Text {
 
 impl Component for Text {
     fn update(&mut self, app: &mut App) {
-        app.char_atlas.draw_text(app, self.position.0, self.position.1, &self.content, self.scale, self.max_width.or(Some(std::u32::MAX)), Some(std::u32::MAX), self.z_index, self.color)
+        app.char_atlas.draw_text(app, self.position.0, self.position.1, &self.content, self.scale, self.max_width.or(Some(u32::MAX)), Some(u32::MAX), self.z_index, self.color)
     }
 
     fn destroy(self) {

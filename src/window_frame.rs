@@ -175,28 +175,26 @@ impl Component for WindowFrame {
         let minimize_button = cast_component!(self.children.get(6).unwrap() => Button);
         
 
-        if app.mouse.left_down {
-            if collides!(app, top_bar, app.mouse.position) &&
+        if app.mouse.left_down && collides!(app, top_bar, app.mouse.position) &&
             !(
                 collides!(app, exit_button, app.mouse.position) ||
                 collides!(app, fullscreen_button, app.mouse.position) ||
                 collides!(app, minimize_button, app.mouse.position) ||
                 collides!(app, self.left_drag, app.mouse.position)
             ) && !app.fullscreen {
-                let (ax, ay) = app.enigo.location().unwrap();
+            let (ax, ay) = app.enigo.location().unwrap();
 
-                self.grab_delta = (ax-app.window_pos.0, ay-app.window_pos.1);
-                self.grabbed = true;
-                app.mouse.left_down = false; // Set to false to block input to anything behind
+            self.grab_delta = (ax-app.window_pos.0, ay-app.window_pos.1);
+            self.grabbed = true;
+            app.mouse.left_down = false; // Set to false to block input to anything behind
 
-                if self.snapped {
-                    self.snapped = false;
-                    let dw = app.window.minimum_size().0 as f32 / app.window_size.0 as f32;
-                    self.grab_delta.0 = (self.grab_delta.0 as f32 * dw) as i32;
-                    app.set_size(app.window.minimum_size());
-                }
-
+            if self.snapped {
+                self.snapped = false;
+                let dw = app.window.minimum_size().0 as f32 / app.window_size.0 as f32;
+                self.grab_delta.0 = (self.grab_delta.0 as f32 * dw) as i32;
+                app.set_size(app.window.minimum_size());
             }
+
         }
         if app.mouse.left_up {
             self.grabbed = false;
@@ -275,38 +273,34 @@ impl Component for WindowFrame {
 
             let edge = self.detect_edge_collision(app);
             if edge.is_some() {
-                if self.ghost_window.is_none() {
-                    if !self.disable_ghost {
+                if self.ghost_window.is_none() && !self.disable_ghost {
 
-                        let this_exe = std::env::current_exe();
-                        if this_exe.is_ok() {
-                            let rect = edge.unwrap();
-                            match Command::new(this_exe.unwrap())
-                            .args(["--win-ghost", &format!("{}", rect.0), &format!("{}", rect.1), &format!("{}", rect.2), &format!("{}", rect.3), &format!("{}", rect.4)])
-                            .spawn() {
-                                Ok(child) => {
-                                    self.ghost_window = Some(child);
-                                }
-                                Err(_e) => {
-                                    self.disable_ghost = true; // if something goes wrong, then prevent retrying until later
-                                }
+                    let this_exe = std::env::current_exe();
+                    if this_exe.is_ok() {
+                        let rect = edge.unwrap();
+                        match Command::new(this_exe.unwrap())
+                        .args(["--win-ghost", &format!("{}", rect.0), &format!("{}", rect.1), &format!("{}", rect.2), &format!("{}", rect.3), &format!("{}", rect.4)])
+                        .spawn() {
+                            Ok(child) => {
+                                self.ghost_window = Some(child);
+                            }
+                            Err(_e) => {
+                                self.disable_ghost = true; // if something goes wrong, then prevent retrying until later
                             }
                         }
-
-                        app.window.raise();
-                        app.window.set_always_on_top(true);
                     }
+
+                    app.window.raise();
+                    app.window.set_always_on_top(true);
                 }
+            } else if self.ghost_window.is_some() {
+                let mut process = self.ghost_window.take().unwrap();
+                if let Err(e) = process.kill() {
+                    eprintln!("FAILED TO KILL PROCESS {}", e);
+                }
+
             } else {
-                if self.ghost_window.is_some() {
-                    let mut process = self.ghost_window.take().unwrap();
-                    if let Err(e) = process.kill() {
-                        eprintln!("FAILED TO KILL PROCESS {}", e);
-                    }
-
-                } else {
-                    self.disable_ghost = false;
-                }
+                self.disable_ghost = false;
             }
 
         }

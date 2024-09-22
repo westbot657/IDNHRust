@@ -132,7 +132,7 @@ impl<'a> TextureAtlas<'a> {
             if self.position_data.contains_key(texture) {
                 let map_idx = self.atlas_map.get(texture).unwrap().to_owned();
 
-                Ok((self.idx_to_gluint.get(&map_idx).unwrap().to_owned(), self.position_data.get(texture).unwrap().clone()))
+                Ok((self.idx_to_gluint.get(&map_idx).unwrap().to_owned(), *self.position_data.get(texture).unwrap()))
             } else {
                 Err(format!("Texture '{}' not in Atlas", texture).to_string())
             }

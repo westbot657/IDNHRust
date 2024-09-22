@@ -32,9 +32,9 @@ impl Keybinds {
         if self.bindings.contains_key(binding) {
             let bind = self.bindings.get(binding).unwrap();
 
-            let mut pattern = self.bind.strip_suffix("+").or(Some(&self.bind.to_string())).unwrap().to_string();
+            let mut pattern = self.bind.strip_suffix("+").unwrap_or(&self.bind.to_string()).to_string();
 
-            pattern += &(" | ".to_string() + &(self.bind.strip_suffix("+").or(Some(&self.bind.to_string())).unwrap()
+            pattern += &(" | ".to_string() + &(self.bind.strip_suffix("+").unwrap_or(&self.bind.to_string())
                 .replace("Left Ctrl", "Ctrl")
                 .replace("Right Ctrl", "Ctrl")
                 .replace("Left Shift", "Shift")

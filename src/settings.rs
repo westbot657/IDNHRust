@@ -27,12 +27,12 @@ impl Settings {
     pub fn save(&mut self) {
         let out_res = toml::to_string_pretty(&self.table);
 
-        if out_res.is_ok() {
+        if let Ok(out) = out_res {
             if !fs::exists("./data/settings.toml").unwrap() {
                 let _ = fs::create_dir_all("./data/");
             }
 
-            fs::write("data/settings.toml", out_res.unwrap()).unwrap();
+            fs::write("data/settings.toml", out).unwrap();
 
         }
     }

@@ -296,8 +296,8 @@ impl<'a> App<'a> {
             let transformed_point = inv_combined_matrix * screen_coords;
             let world_x = transformed_point.x * 2.0;
             let world_y = transformed_point.y * 2.0;
-    
-            world_x >= -1.0 && world_x <= 1.0 && world_y >= -1.0 && world_y <= 1.0
+
+            (-1.0..=1.0).contains(&world_x) && (-1.0..=1.0).contains(&world_y)
         } else {
             false
         }
@@ -312,11 +312,11 @@ impl<'a> App<'a> {
         for monitor in &self.monitors {
             if monitor.0 <= mx && mx <= monitor.0 + monitor.2 as i32 &&
                 monitor.1 <= my && my <= monitor.1 + monitor.3 as i32 {
-                return Some(monitor.clone())
+                return Some(*monitor)
             }
         }
 
-        return None
+        None
 
     }
 

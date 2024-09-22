@@ -54,7 +54,7 @@ impl Rectangle {
     }
 
     fn render(&self, app: &App) {
-        let shader_program = self.shader.or(Some(app.shaders.colored_program)).unwrap();
+        let shader_program = self.shader.unwrap_or(app.shaders.colored_program);
         let pos = app.map_coords(&self.position);
         let sz = app.map_size(&self.size);
         unsafe {

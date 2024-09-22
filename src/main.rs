@@ -40,7 +40,7 @@ fn main() -> Result<(), String> {
 
     let mut args: VecDeque<String> = env::args().collect();
 
-    while args.len() > 0 {
+    while !args.is_empty() {
         let arg = args.pop_front().unwrap();
 
         if arg == "--win-ghost" {
@@ -137,11 +137,8 @@ fn ghost(pos_x: i32, pos_y: i32, width: i32, height: i32, side: u8) {
 
     'mainloop: loop {
         for event in event_pump.poll_iter() {
-            match event {
-                sdl2::event::Event::Quit { .. } => {
-                    break 'mainloop;
-                }
-                _ => {}
+            if let sdl2::event::Event::Quit { .. } = event {
+                break 'mainloop;
             }
         }
 
@@ -368,9 +365,7 @@ fn main_app() {
                     }
 
                     if app.keyboard.shift_held {
-                        let t = sx;
-                        sx = sy;
-                        sy = t;
+                        std::mem::swap(&mut sx, &mut sy);
                     }
 
                     app.mouse.scroll_x = sx;
@@ -378,12 +373,9 @@ fn main_app() {
 
                 }
                 sdl2::event::Event::Window {timestamp: _, window_id: _, win_event} => {
-                    match win_event {
-                        WindowEvent::FocusGained => {
-                            app.window.restore();
-                            app.window.raise();
-                        }
-                        _ => {}
+                    if win_event == WindowEvent::FocusGained {
+                        app.window.restore();
+                        app.window.raise();
                     }
                 }
                 _ => {
