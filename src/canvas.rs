@@ -5,6 +5,7 @@ use enigo::Mouse;
 
 use crate::{app::App, component::Component};
 use crate::component::setup_gl;
+use crate::macros::collides;
 
 pub struct Canvas {
     pub position: (i32, i32),
@@ -151,18 +152,19 @@ impl Canvas {
 impl Component for Canvas {
     fn update(&mut self, app: &mut App) {
 
-        if app.keyboard.held_keys.contains(&"Left Ctrl".to_string()) {
-            self.rotation += app.mouse.scroll_y as f32 / 100.0;
-        }
-        else if app.keyboard.held_keys.contains(&"Left Alt".to_string()) {
-            self.scroll_offset = (
-                self.scroll_offset.0 - app.mouse.scroll_x as i64,
-                self.scroll_offset.1 - app.mouse.scroll_y as i64
-            )
-        }
-        else {
-            self.zoom += app.mouse.scroll_y as f32 / 100.0;
-            self.zoom = self.zoom.clamp(0.1, 4.0);
+        if collides!(app, self, app.mouse.position) {
+            // if app.keyboard.held_keys.contains(&"Left Ctrl".to_string()) {
+            //     self.rotation += app.mouse.scroll_y as f32 / 100.0;
+            // } else
+            if app.keyboard.held_keys.contains(&"Left Alt".to_string()) {
+                self.scroll_offset = (
+                    self.scroll_offset.0 - app.mouse.scroll_x as i64,
+                    self.scroll_offset.1 - app.mouse.scroll_y as i64
+                )
+            } else {
+                self.zoom += app.mouse.scroll_y as f32 / 100.0;
+                self.zoom = self.zoom.clamp(0.1, 4.0);
+            }
         }
 
         self.render(app);
