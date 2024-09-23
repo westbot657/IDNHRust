@@ -13,6 +13,7 @@ mod editor_app;
 mod game_app;
 mod image;
 mod keybinds;
+mod language_server_protocol;
 mod macros;
 mod monitor_info;
 mod object_tree;
