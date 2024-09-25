@@ -89,7 +89,22 @@ impl TextInputHandler {
         // thing to account for shifting since we're removing content, which de-syncs the indices
         let mut idx_mod = 0;
 
+        let mut remove_ranges: Vec<(IdxSize, IdxSize)> = Vec::new();
 
+        for sel in self.selections {
+
+        }
+
+    }
+
+    pub fn get_selection_at_index(&self, index: IdxSize) -> Option<Selection> {
+        for sel in self.selections {
+            if (sel.start_index..sel.end_index).contains(&index) {
+                return Some(sel)
+            }
+        }
+
+        None
     }
 
     /// same as backspace_at_cursor, but with delete behavior
