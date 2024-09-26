@@ -16,6 +16,9 @@ sdl2 = { version = "0.37.0", features = ["bundled", "image", "mixer", "unsafe_te
 toml = { version = "0.8.19", features = ["preserve_order"] }
 tower-lsp = "0.20.0"
 tokio = { version = "1.40.0", features = ["rt", "rt-multi-thread", "macros", "io-std"] }
+serde_json = "1.0.128"
+reqwest = { version = "0.12.7", features = ["json"] }
+zip = "2.2.0"
 
 [target.'cfg(target_os = "windows")'.dependencies]
 winapi = { version = "0.3.9", features = ["windef", "winuser", "minwindef"] }

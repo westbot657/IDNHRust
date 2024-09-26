@@ -1,8 +1,11 @@
-
+use std::cmp::Ordering;
+use std::collections::HashMap;
+use crate::semantics::Semantics;
 
 // Using this ensures that all text edit indexing uses the same type
-type IdxSize = usize;
+pub type IdxSize = usize;
 
+#[derive(Eq)]
 pub struct Selection {
     start_index: IdxSize,
     end_index: IdxSize,
@@ -29,6 +32,25 @@ impl Selection {
     }
 }
 
+impl PartialEq for Selection {
+    fn eq(&self, other: &Self) -> bool {
+        self.start_index.eq(&other.start_index)
+    }
+}
+
+impl PartialOrd for Selection {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.start_index.partial_cmp(&other.start_index)
+    }
+}
+
+impl Ord for Selection {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.start_index.cmp(&other.start_index)
+    }
+}
+
+
 // Base for all text boxes
 pub struct TextInputHandler {
     content: String,
@@ -38,7 +60,9 @@ pub struct TextInputHandler {
     allow_editing: bool,
     cursor_idx: IdxSize,
     secondary_cursors: Vec<IdxSize>,
-    selections: Vec<Selection>
+    selections: Vec<Selection>,
+    construction_selections: HashMap<IdxSize, Selection>,
+    semantics: Semantics
 }
 
 impl TextInputHandler {
@@ -47,7 +71,7 @@ impl TextInputHandler {
     /// ## Parameters
     /// - **content**: content for the handler to start with
     /// - **allow_newlines**: set to false for single-line text inputs
-    /// - **max_length**: set to None for no length limit. Otherwise, specify a max content length
+    /// - **max_length**: set to NONE for no length limit. Otherwise, specify a max content length
     pub fn new(content: String, allow_newlines: bool, max_length: Option<IdxSize>, allow_editing: bool) -> Self {
 
         Self {
@@ -58,7 +82,9 @@ impl TextInputHandler {
             allow_editing,
             cursor_idx: 0,
             secondary_cursors: Vec::new(),
-            selections: Vec::new()
+            selections: Vec::new(),
+            construction_selections: HashMap::new(),
+            semantics: Semantics::None
         }
     }
 

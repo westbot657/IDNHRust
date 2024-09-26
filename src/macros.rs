@@ -69,5 +69,11 @@ macro_rules! collides {
     };
 }
 
+macro_rules! string {
+    ( $obj:expr ) => {
+        $obj.to_string()
+    };
+}
 
-pub(crate) use {cast_component, SETTINGS, CONST, collides};
+
+pub(crate) use {cast_component, SETTINGS, CONST, collides, string};
