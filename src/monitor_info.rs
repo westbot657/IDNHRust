@@ -68,15 +68,6 @@ mod monitor_info {
     }
 }
 
-#[cfg(target_os = "macos")]
-mod monitor_info {
-    pub fn get_monitor_info() -> Vec<(i32, i32, u32, u32)> {
-        let mut monitors: Vec<(i32, i32, u32, u32)> = Vec::new();
-
-        monitors
-    }
-}
-
 pub fn get_info() -> Vec<(i32, i32, u32, u32)> {
     monitor_info::get_monitor_info()
 }

@@ -1,6 +1,5 @@
 use std::cmp::Ordering;
 use std::collections::HashMap;
-use crate::semantics::Semantics;
 
 // Using this ensures that all text edit indexing uses the same type
 pub type IdxSize = usize;
@@ -61,8 +60,7 @@ pub struct TextInputHandler {
     cursor_idx: IdxSize,
     secondary_cursors: Vec<IdxSize>,
     selections: Vec<Selection>,
-    construction_selections: HashMap<IdxSize, Selection>,
-    semantics: Semantics
+    construction_selections: HashMap<IdxSize, Selection>
 }
 
 impl TextInputHandler {
@@ -83,8 +81,7 @@ impl TextInputHandler {
             cursor_idx: 0,
             secondary_cursors: Vec::new(),
             selections: Vec::new(),
-            construction_selections: HashMap::new(),
-            semantics: Semantics::None
+            construction_selections: HashMap::new()
         }
     }
 
