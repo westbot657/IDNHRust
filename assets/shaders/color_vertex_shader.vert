@@ -8,7 +8,7 @@ out vec2 ScreenPos;
 
 void main() {
 
-    vec4 pos = camera * transform * vec4(aPos, 1.0);
+    vec4 pos = vec4((camera * transform) * vec4(aPos, 1.0));
 
     gl_Position = pos;
     ScreenPos = pos.xy;
