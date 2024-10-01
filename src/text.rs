@@ -6,7 +6,7 @@ use rusttype::{point, Font, GlyphId, Scale};
 
 use crate::{app::App, component::Component, texture_atlas::convert_tex_to_gl, macros::CONST};
 use crate::component::setup_gl;
-
+use crate::es3::style_flags;
 
 pub struct CharAtlas {
     chars: HashMap<String, ((u32, u32, u32, u32), i32)>,
@@ -187,7 +187,7 @@ impl CharAtlas {
 
     }
 
-    pub fn draw_text(&self, app: &App, x: i32, y: i32, text: &str, scale: f32, max_width:Option<u32>, max_height:Option<u32>, z_index: f32, color: (u8, u8, u8, u8)) {
+    pub fn draw_text(&self, app: &App, x: i32, y: i32, text: &str, scale: f32, max_width:Option<u32>, max_height:Option<u32>, z_index: f32, color: (u8, u8, u8, u8), styles: u8) {
         let mut draw_x = 0;
         let mut draw_y = 0;
 
@@ -220,10 +220,13 @@ impl CharAtlas {
                 color.3 as f32 / 255.0,
             );
 
-            
+            let italic_str = CString::new("italic").unwrap();
+            let italic_loc = gl::GetUniformLocation(shader_program, italic_str.as_ptr());
+            gl::Uniform1f(italic_loc, (styles & style_flags::ITALIC) as f32);
+
+
             gl::ActiveTexture(gl::TEXTURE0);
             gl::BindTexture(gl::TEXTURE_2D, self.atlas_id);
-            
             gl::BindVertexArray(self.vao);
 
             for character in text.split("") {
@@ -231,10 +234,7 @@ impl CharAtlas {
                 self.render_char(app, x, y, &mut draw_x, &mut draw_y, character, z_index, scale);
 
             }
-
-            
         }
-
     }
 
 }
@@ -249,7 +249,8 @@ pub struct Text {
     size: (u32, u32),
     scale: f32,
     z_index: f32,
-    color: (u8, u8, u8, u8)
+    color: (u8, u8, u8, u8),
+    styles: u8
 }
 
 impl Text {
@@ -263,14 +264,21 @@ impl Text {
             size: (0, 0),
             scale,
             z_index,
-            color
+            color,
+            styles: 0
         }
     }
+
+    pub fn set_styles(&mut self, styles: u8) {
+        self.styles = styles;
+    }
+
 }
 
 impl Component for Text {
     fn update(&mut self, app: &mut App) {
-        app.char_atlas.draw_text(app, self.position.0, self.position.1, &self.content, self.scale, self.max_width.or(Some(u32::MAX)), Some(u32::MAX), self.z_index, self.color)
+        println!("Rendering text '{}'", self.content);
+        app.char_atlas.draw_text(app, self.position.0, self.position.1, &self.content, self.scale, self.max_width.or(Some(u32::MAX)), Some(u32::MAX), self.z_index, self.color, self.styles)
     }
 
     fn destroy(self) {

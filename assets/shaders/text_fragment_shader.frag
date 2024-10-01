@@ -15,7 +15,7 @@ void main() {
     if (!(viewport.x <= ScreenPos.x && ScreenPos.x <= viewport.x+viewport.z && viewport.y <= ScreenPos.y && ScreenPos.y <= viewport.y+viewport.w)) {
         discard;
     }
-    
+
     vec2 atlasTexCoord = vec2(
         uv.x + TexCoord.x * uv.z,
         uv.y + TexCoord.y * uv.w

@@ -21,6 +21,7 @@ pub enum Token {
     JSONKey(String),
     JSONValue(String),
 
+    Error(String)
 }
 
 struct CompileContext {}
@@ -86,27 +87,107 @@ impl Node for IfNode {
     }
 }
 
+pub mod style_flags {
+    pub const BOLD: u8          = 0b0000_0001;
+    pub const ITALIC: u8        = 0b0000_0010;
+    pub const UNDERLINE: u8     = 0b0000_0100;
+    pub const STRIKETHROUGH: u8 = 0b0000_1000;
+    pub const ERROR: u8         = 0b0001_0000;
+    pub const WARNING: u8       = 0b0010_0000;
+    pub const FADED: u8         = 0b0100_0000;
+    pub const BACKGROUND: u8    = 0b1000_0000;
+}
+
+struct TokenStyle {
+    flags: u8
+}
+impl TokenStyle {
+    /// ```
+    /// flags: 0b 0 0 0 0 0 0 0 0
+    ///           ^ ^ ^ ^ ^ ^ ^ ^
+    ///           | | | | | | | Bold
+    ///           | | | | | | Italic
+    ///           | | | | | Underline
+    ///           | | | | Strikethrough
+    ///           | | | Error
+    ///           | | Warning
+    ///           | Faded
+    ///           Background
+    /// ```
+    pub fn new(flags: u8) -> Self {
+
+        Self {
+            flags
+        }
+    }
+
+    pub fn set_flag(&mut self, flag: u8, value: bool) {
+        if value {
+            self.flags |= flag;
+        } else {
+            self.flags &= !flag;
+        }
+    }
+
+    pub fn is_bold(&self) -> bool {
+        self.flags & style_flags::BOLD != 0
+    }
+    pub fn is_italic(&self) -> bool {
+        self.flags & style_flags::ITALIC != 0
+    }
+    pub fn is_underline(&self) -> bool {
+        self.flags & style_flags::UNDERLINE != 0
+    }
+    pub fn is_strikethrough(&self) -> bool {
+        self.flags & style_flags::STRIKETHROUGH != 0
+    }
+    pub fn is_error(&self) -> bool {
+        self.flags & style_flags::ERROR != 0
+    }
+    pub fn is_warning(&self) -> bool {
+        self.flags & style_flags::WARNING != 0
+    }
+    pub fn is_faded(&self) -> bool {
+        self.flags & style_flags::FADED != 0
+    }
+    pub fn is_background(&self) -> bool {
+        self.flags & style_flags::BACKGROUND != 0
+    }
+
+    pub fn clear_flags(&mut self) {
+        self.flags = 0;
+    }
+    pub fn set_flags(&mut self, flags: u8) {
+        self.flags = flags;
+    }
+
+}
+
 struct PositionedToken {
     token: Token,
     index: usize,
     line: usize,
     column: usize,
+    style: TokenStyle,
+    links: HashMap<String, String>
 }
 
 macro_rules! tok {
-    ( $tk:expr @ $idx:expr, $line:expr, $col:expr ) => {
+    ( $tk:expr => $idx:expr, $line:expr, $col:expr ) => {
         PositionedToken {
             token: $tk,
             index: $idx,
             line: $line,
-            column: $col
+            column: $col,
+            style: TokenStyle::new(0),
+            links: HashMap::new()
         }
     };
 }
 
 pub struct ES3Compiler {
-    tokens: Vec<Token>,
-    body: Box<dyn Node>,
+    pub tokens: Vec<PositionedToken>,
+    pub body: Box<dyn Node>,
     patterns: HashMap<&'static str, &'static str>
 }
 
@@ -116,11 +197,11 @@ impl ES3Compiler {
 
         let mut patterns = HashMap::new();
 
-        patterns.insert(r"\/\/.*", "ignore");
-        patterns.insert(r"(?<!\/)\/\*(\*[^/]|[^*])+\*\/", "ignore");
+        patterns.insert(r"\/\/.*", "COMMENT");
+        patterns.insert(r"(?<!\/)\/\*(\*[^/]|[^*])+\*\/", "COMMENT");
         patterns.insert(r"\\#\\![^\n;]*;?", "CONTEXT");
         patterns.insert("(\"(\\\\.|[^\"\\\\])*\"|\'(\\\\.|[^\'\\\\])*\')", "STRING");
-        patterns.insert(r"@[^ ]*", "TAG");
+        patterns.insert(r"=>[^ ]*", "TAG");
         patterns.insert(r"\$[a-zA-Z_][a-zA-Z0-9_]*", "MACRO");
         patterns.insert(r"\b(true|false)\b", "BOOLEAN");
         patterns.insert(r"\<[^<> ]+\>", "OBJECT");
@@ -133,6 +214,7 @@ impl ES3Compiler {
         patterns.insert(r"[=\-+*/()&\[\]{},#%:|^\.\$;~`]", "LITERAL");
         patterns.insert(r"\n+", "NEWLINE");
         patterns.insert(r"[\t ]+", "ignore");
+        patterns.insert(r".", "ERROR");
 
 
         Self {
@@ -142,10 +224,7 @@ impl ES3Compiler {
         }
     }
 
-    /// attempts to tokenize the input value.
-    /// If tokenization fails for whatever reason, `self.tokens` will be unaffected and an error will be returned.
-    /// this means `self.tokens` will always hold tokens from the last successful tokenization
-    pub fn tokenize(&mut self, input: &str) -> Result<(), String> {
+    pub fn tokenize(&mut self, input: &str) {
 
         let mut pat = "(".to_string();
 
@@ -160,45 +239,106 @@ impl ES3Compiler {
         let mut idx: usize = 0;
         let mut line: usize = 1;
         let mut column: usize = 0;
+        let mut matches = false;
 
         for mat in pattern.find_iter(input) {
+            matches = false;
             'pattern_loop: for (key, tp) in &self.patterns {
                 let sub_pattern = regex::Regex::new(key).unwrap();
                 if sub_pattern.find(mat.as_str()).is_some() {
+                    let str_val = input[mat.range()].to_string();
+                    matches = true;
                     idx += mat.len();
-                    if tp == &"ignore" {
+                    if *tp == "ignore" {
                         column += mat.len();
                         break 'pattern_loop
                     }
-                    else if tp == &"NEWLINE" {
+                    else if *tp == "NEWLINE" {
                         column = 0;
                         line += mat.len();
                         break 'pattern_loop
                     }
-                    else if tp == &"STRING" {
-                        column += input[mat.range()].rsplit_once("\n").unwrap_or(("", &input[mat.range()])).1.len();
-                        line += input[mat.range()].split("\n").count() - 1;
-                        tokens_out.push(tok!(Token::String(input[mat.range()].to_string()) @ idx, line, column));
+                    else if *tp == "STRING" {
+                        let li = str_val.split("\n").count() - 1;
+                        line += li;
+                        if li > 0 {
+                            column = str_val.rsplit_once("\n").unwrap().1.len();
+                        } else {
+                            column += str_val.len();
+                        }
+
+                        tokens_out.push(tok!(Token::String(str_val) => idx, line, column));
+                        break 'pattern_loop
                     }
 
+                    column += mat.len();
 
-                    if tp == &"CONTEXT" {}
-                    else if tp == &"TAG" {}
-                    else if tp == &"MACRO" {}
-                    else if tp == &"BOOLEAN" {}
-                    else if tp == &"OBJECT" {}
-                    else if tp == &"COMP" {}
-                    else if tp == &"CONCAT" {}
-                    else if tp == &"COMMAND" {}
-                    else if tp == &"KEYWORD" {}
-                    else if tp == &"WORD" {}
-                    else if tp == &"NUMBER" {}
-                    else if tp == &"LITERAL" {}
 
-                    break;
+                    if *tp == "CONTEXT" {
+                        tokens_out.push(tok!(Token::Context(str_val) => idx, line, column));
+                    }
+                    else if *tp == "COMMENT" {
+                        tokens_out.push(tok!(Token::Comment(str_val) => idx, line, column));
+                    }
+                    else if *tp == "TAG" {
+                        tokens_out.push(tok!(Token::Tag(str_val) => idx, line, column));
+                    }
+                    else if *tp == "MACRO" {
+                        tokens_out.push(tok!(Token::Macro(str_val) => idx, line, column));
+                    }
+                    else if *tp == "BOOLEAN" {
+                        tokens_out.push(tok!(Token::Boolean(str_val.to_lowercase().parse::<bool>().unwrap()) => idx, line, column));
+                    }
+                    else if *tp == "OBJECT" {
+                        tokens_out.push(tok!(Token::Object(str_val) => idx, line, column));
+                    }
+                    else if *tp == "COMP" {
+                        tokens_out.push(tok!(Token::Comparison(str_val) => idx, line, column));
+                    }
+                    else if *tp == "CONCAT" {
+                        tokens_out.push(tok!(Token::Literal(str_val) => idx, line, column));
+                    }
+                    else if *tp == "COMMAND" {
+                        tokens_out.push(tok!(Token::Command(str_val) => idx, line, column));
+                    }
+                    else if *tp == "KEYWORD" {
+                        tokens_out.push(tok!(Token::Keyword(str_val) => idx, line, column));
+                    }
+                    else if *tp == "WORD" {
+                        tokens_out.push(tok!(Token::Word(str_val) => idx, line, column));
+                    }
+                    else if *tp == "NUMBER" {
+                        if str_val.contains(".") {
+                            tokens_out.push(tok!(Token::Float(str_val.parse::<f64>().unwrap()) => idx, line, column));
+                        } else {
+                            tokens_out.push(tok!(Token::Integer(str_val.parse::<i64>().unwrap()) => idx, line, column));
+                        }
+                    }
+                    else if *tp == "LITERAL" {
+                        tokens_out.push(tok!(Token::Literal(str_val) => idx, line, column));
+                    }
+                    else if *tp == "ERROR" {
+                        let mut token = tok!(Token::Error(str_val) => idx, line, column);
+                        token.style.set_flag(style_flags::ERROR, true);
+                        tokens_out.push(token);
+                    }
+
+                    break 'pattern_loop;
                 }
             }
         }
+
+        self.tokens = tokens_out;
+
+    }
+
+    /// Attempts to parse the current token vec into an AST.
+    /// The parser will attempt to recover from errors, and will collect errors to be returned at the end of parsing.
+    /// This function will also update the tokens with more informed highlighting, and create links for
+    /// definitions, uses, etc...
+    pub fn parse(&mut self) -> Result<(), Vec<String>> {
+
+
 
         Ok(())
     }
