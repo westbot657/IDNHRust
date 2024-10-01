@@ -89,8 +89,19 @@ impl Node for IfNode {
 struct PositionedToken {
     token: Token,
     index: usize,
-    column: usize,
     line: usize,
+    column: usize,
+}
+
+macro_rules! tok {
+    ( $tk:expr @ $idx:expr, $line:expr, $col:expr ) => {
+        PositionedToken {
+            token: $tk,
+            index: $idx,
+            line: $line,
+            column: $col
+        }
+    };
 }
 
 pub struct ES3Compiler {
@@ -138,50 +149,51 @@ impl ES3Compiler {
 
         let mut pat = "(".to_string();
 
-        for key in &self.patterns.keys() {
+        for key in self.patterns.keys() {
             pat += &("|".to_string() + key);
         }
         pat += ")";
 
         let pattern = regex::Regex::new(&pat).unwrap();
 
-        let mut tokens_out = Vec::new();
+        let mut tokens_out: Vec<PositionedToken> = Vec::new();
         let mut idx: usize = 0;
         let mut line: usize = 1;
         let mut column: usize = 0;
 
         for mat in pattern.find_iter(input) {
-            'pattern_loop: for (key, tp) in &self.patterns.iter() {
+            'pattern_loop: for (key, tp) in &self.patterns {
                 let sub_pattern = regex::Regex::new(key).unwrap();
                 if sub_pattern.find(mat.as_str()).is_some() {
                     idx += mat.len();
-                    if tp == "ignore" {
+                    if tp == &"ignore" {
                         column += mat.len();
                         break 'pattern_loop
                     }
-                    else if tp == "NEWLINE" {
+                    else if tp == &"NEWLINE" {
                         column = 0;
                         line += mat.len();
                         break 'pattern_loop
                     }
-                    else if tp == "STRING" {
+                    else if tp == &"STRING" {
                         column += input[mat.range()].rsplit_once("\n").unwrap_or(("", &input[mat.range()])).1.len();
                         line += input[mat.range()].split("\n").count() - 1;
+                        tokens_out.push(tok!(Token::String(input[mat.range()].to_string()) @ idx, line, column));
                     }
 
 
-                    if tp == "CONTEXT" {}
-                    else if tp == "TAG" {}
-                    else if tp == "MACRO" {}
-                    else if tp == "BOOLEAN" {}
-                    else if tp == "OBJECT" {}
-                    else if tp == "COMP" {}
-                    else if tp == "CONCAT" {}
-                    else if tp == "COMMAND" {}
-                    else if tp == "KEYWORD" {}
-                    else if tp == "WORD" {}
-                    else if tp == "NUMBER" {}
-                    else if tp == "LITERAL" {}
+                    if tp == &"CONTEXT" {}
+                    else if tp == &"TAG" {}
+                    else if tp == &"MACRO" {}
+                    else if tp == &"BOOLEAN" {}
+                    else if tp == &"OBJECT" {}
+                    else if tp == &"COMP" {}
+                    else if tp == &"CONCAT" {}
+                    else if tp == &"COMMAND" {}
+                    else if tp == &"KEYWORD" {}
+                    else if tp == &"WORD" {}
+                    else if tp == &"NUMBER" {}
+                    else if tp == &"LITERAL" {}
 
                     break;
                 }
