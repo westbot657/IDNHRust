@@ -2,6 +2,7 @@
 
 in vec2 TexCoord;
 in vec2 ScreenPos;
+in float antialiasing;
 
 uniform sampler2D atlas;
 uniform vec4 uv;
@@ -26,7 +27,7 @@ void main() {
         discard;
     }
 
-    col = vec4(color.rgb, col.a * color.a);
+    col = vec4(color.rgb, col.a * color.a * antialiasing);
     if (col.a < 0.01) {
         discard;
     }

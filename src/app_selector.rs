@@ -80,6 +80,7 @@ impl Component for AppSelector {
             app.camera.push();
 
             app.camera.set_ipos(50, 0);
+
             app.camera.translate(cam_pos.0 as f32, cam_pos.1 as f32, app.window_size);
 
             self.editor_app.update(app);
