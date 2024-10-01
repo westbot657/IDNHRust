@@ -227,6 +227,7 @@ impl CharAtlas {
             gl::BindVertexArray(self.vao);
 
             for character in text.split("") {
+                if character == "" {continue}
                 self.render_char(app, x, y, &mut draw_x, &mut draw_y, character, z_index, scale);
 
             }

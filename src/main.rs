@@ -25,7 +25,7 @@ mod text;
 mod texture_atlas;
 mod text_input_handler;
 mod window_frame;
-mod ES3;
+mod es3;
 
 use std::{collections::VecDeque, env, time::Instant};
 
