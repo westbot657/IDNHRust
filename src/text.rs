@@ -77,7 +77,7 @@ impl CharAtlas {
                 let bounds = bounds.unwrap();
 
                 if !packer.can_pack(bounds.width(), bounds.height(), false) {
-                    panic!("Font filled the entire texture atlas!! (at character '{:?}')", character);
+                    panic!("Font filled the entire texture atlas!! (at character '{}')", character);
                 }
 
                 let rect = packer.pack(bounds.width(), bounds.height(), false).unwrap();
@@ -132,7 +132,7 @@ impl CharAtlas {
         }
     }
 
-    fn render_char(&self, app: &App, x: i32, y: i32, draw_x: &mut i32, draw_y: &mut i32, character: &str, z_index: f32, scale: f32) {
+    pub fn render_char(&self, app: &App, x: i32, y: i32, draw_x: &mut i32, draw_y: &mut i32, character: &str, z_index: f32, scale: f32) {
         const HEIGHT: u32 = CONST!(text height);
 
         if character == "\n" {
@@ -170,10 +170,10 @@ impl CharAtlas {
                 let uv_loc = gl::GetUniformLocation(app.shaders.text_program, uv_str.as_ptr());
     
                 gl::Uniform4f(uv_loc,
-                    (rect.0.0) as f32 / CONST!(text atlas) as f32,
-                    (rect.0.1) as f32 / CONST!(text atlas) as f32,
-                    (rect.0.2) as f32 / CONST!(text atlas) as f32,
-                    (rect.0.3) as f32 / CONST!(text atlas) as f32
+                    rect.0.0 as f32 / CONST!(text atlas) as f32,
+                    rect.0.1 as f32 / CONST!(text atlas) as f32,
+                    rect.0.2 as f32 / CONST!(text atlas) as f32,
+                    rect.0.3 as f32 / CONST!(text atlas) as f32
                 );
 
                 gl::DrawArrays(gl::TRIANGLES, 0, 6);
@@ -255,8 +255,6 @@ pub struct Text {
 
 impl Text {
     pub fn new(x: i32, y: i32, content: String, max_width: Option<u32>, scale: f32, z_index: f32, color: (u8, u8, u8, u8)) -> Self {
-
-
         Self {
             position: (x, y),
             content,
