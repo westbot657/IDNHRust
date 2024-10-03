@@ -6,7 +6,7 @@ use gl::types::GLuint;
 use glob::glob;
 use rect_packer::{Config, Packer};
 use sdl2::{image::LoadSurface, rect::Rect, surface::Surface};
-
+use sdl2::image::SaveSurface;
 use crate::macros::CONST;
 
 
@@ -114,6 +114,8 @@ impl<'a> TextureAtlas<'a> {
             
 
         }
+
+        // surf.save(&format!("out/texture_atlas_{}.png", atlases.len()).as_str()).unwrap();
 
         atlases.push(packer);
         surfaces.push(surf);
