@@ -26,6 +26,7 @@ mod texture_atlas;
 mod text_input_handler;
 mod window_frame;
 mod es3;
+mod platform;
 
 use std::{collections::VecDeque, env, time::Instant};
 
@@ -36,8 +37,15 @@ use macros::SETTINGS;
 use shaders::Shaders;
 use sdl2::{event::WindowEvent, image::LoadSurface, mouse::{MouseButton, MouseWheelDirection}, video::GLProfile};
 use text::CharAtlas;
+use crate::platform::is_wsl;
+use crate::text::FontHandler;
 
 fn main() -> Result<(), String> {
+
+    if is_wsl() {
+        println!("Windows subsystem for linux is not supported. Both windows and Linux are individually supported however. (Use either of those instead)");
+        return Ok(());
+    }
 
     let mut args: VecDeque<String> = env::args().collect();
 
@@ -197,11 +205,11 @@ fn main_app() {
 
     video_subsystem.gl_set_swap_interval(0).unwrap();
 
-    let char_atlas = CharAtlas::new("assets/fonts/PTMono-Regular.ttf");
+    let font_handler = FontHandler::new("assets/fonts/Hack-Regular.ttf", "assets/fonts/Hack-Italic.ttf", "assets/fonts/Hack-Bold.ttf", "assets/fonts/Hack-BoldItalic.ttf");
 
     let shader = Shaders::new();
 
-    let mut app = App::new(shader, char_atlas, window_width, window_height, &mut window, monitors);
+    let mut app = App::new(shader, font_handler, window_width, window_height, &mut window, monitors);
 
     unsafe {
         gl::Enable(gl::BLEND);

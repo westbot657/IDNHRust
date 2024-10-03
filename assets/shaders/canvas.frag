@@ -17,9 +17,9 @@ out vec4 FragColor;
 
 float ease(float x) {
     if (x == 0) {
-        return 0;
+        return 0.0;
     } else {
-        return pow(2, 10 * x - 10);
+        return pow(2.0, 10.0 * x - 10.0);
     }
 }
 

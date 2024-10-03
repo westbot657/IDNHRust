@@ -25,9 +25,18 @@ impl EditorApp {
 
         let mut children: Vec<Box<dyn Component>> = Vec::new();
 
-        children.push(Box::new(Text::new(200, 20, "Not Italic".to_string(), None, 16.0/50.0, 1.0, (255, 255, 255, 255))));
-        let mut txt = Text::new(200, 80, "Italic".to_string(), None, 16.0/50.0, 1.0, (255, 255, 255, 255));
+        children.push(Box::new(Text::new(50, 20, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz".to_string(), None, 16.0/50.0, 1.0, (255, 255, 255, 255))));
+        let mut txt = Text::new(50, 60, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz".to_string(), None, 16.0/50.0, 1.0, (255, 255, 255, 255));
         txt.set_styles(style_flags::ITALIC);
+        children.push(Box::new(txt));
+
+        let mut txt = Text::new(50, 100, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz".to_string(), None, 16.0/50.0, 1.0, (255, 255, 255, 255));
+        txt.set_styles(style_flags::BOLD);
+        children.push(Box::new(txt));
+
+
+        let mut txt = Text::new(50, 140, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz".to_string(), None, 16.0/50.0, 1.0, (255, 255, 255, 255));
+        txt.set_styles(style_flags::BOLD | style_flags::ITALIC);
         children.push(Box::new(txt));
 
         Self {

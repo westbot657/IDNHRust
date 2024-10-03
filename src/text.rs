@@ -3,7 +3,7 @@ use std::{collections::HashMap, ffi::CString, panic};
 use cgmath::Matrix;
 use rect_packer::{Config, Packer};
 use rusttype::{point, Font, GlyphId, Scale};
-
+use sdl2::image::SaveSurface;
 use crate::{app::App, component::Component, texture_atlas::convert_tex_to_gl, macros::CONST};
 use crate::component::setup_gl;
 use crate::es3::style_flags;
@@ -35,7 +35,7 @@ impl CharAtlas {
 
         let mut chars: HashMap<String, ((u32, u32, u32, u32), i32)> = HashMap::new();
 
-        let data = std::fs::read(font_path).unwrap();
+        let data = std::fs::read(font_path).expect(&format!("Cannot find font {}", font_path).as_str());
 
         let font = Font::try_from_vec(data).unwrap_or_else(|| {
             panic!("Error loading font data from '{:?}'", font_path);
@@ -105,7 +105,7 @@ impl CharAtlas {
             }
         }
 
-        // surf.save("out/text_atlas.png");
+        // surf.save(&format!("out/text_atlas-{}.png", font_path.replace("/", "_")).as_str()).unwrap();
 
 
         let atlas_id = convert_tex_to_gl(&surf, 1).0;
@@ -136,7 +136,7 @@ impl CharAtlas {
         const HEIGHT: u32 = CONST!(text height);
 
         if character == "\n" {
-            *draw_y += (HEIGHT as f32 * scale) as i32 + (4.0 * scale) as i32;
+            *draw_y += ((HEIGHT as f32 * scale) + (4.0 * scale)) as i32;
             *draw_x = 0;
         }
         else if character == " " {
@@ -145,11 +145,11 @@ impl CharAtlas {
         else if self.chars.contains_key(character) {
             let rect = self.chars.get(character).unwrap();
 
-            let tx = ((((HEIGHT as f32 / 2.0 * scale) as i32 + 4) - (rect.0.2 as f32 * scale) as i32) as f32 / 4.0) as i32;
+            let tx = ((((HEIGHT as f32 / 2.0 * scale) + 4.0) - (rect.0.2 as f32 * scale)) / 4.0).round() as i32;
 
             let pos = app.map_coords(&(x+*draw_x+tx, ((y+*draw_y) as f32 + (rect.1 as f32 * scale) + (HEIGHT as f32 * scale)).round() as i32));
 
-            let sz = app.map_size(&((rect.0.2 as f32 / 2.0 * scale) as u32, (rect.0.3 as f32 * scale) as u32));
+            let sz = app.map_size(&((rect.0.2 as f32 / 2.0 * scale).round() as u32, (rect.0.3 as f32 * scale).round() as u32));
 
             unsafe {
 
@@ -240,6 +240,54 @@ impl CharAtlas {
 }
 
 
+pub struct FontHandler {
+    pub normal: CharAtlas,
+    pub italic: CharAtlas,
+    pub bold: CharAtlas,
+    pub bold_italic: CharAtlas
+}
+
+impl FontHandler {
+    pub fn new(normal: &str, italic: &str, bold: &str, bold_italic: &str) -> Self {
+
+        Self {
+            normal: CharAtlas::new(normal),
+            italic: CharAtlas::new(italic),
+            bold: CharAtlas::new(bold),
+            bold_italic: CharAtlas::new(bold_italic)
+        }
+    }
+
+    pub fn style(&self, style: &str) -> &CharAtlas {
+        if style == "italic" {
+            &self.italic
+        }
+        else if style == "bold" {
+            &self.bold
+        }
+        else if style == "bold-italic" {
+            &self.bold_italic
+        }
+        else {
+            &self.normal
+        }
+    }
+
+    pub fn style_flagged(&self, style: u8) -> &CharAtlas {
+        if style & style_flags::ITALIC != 0 {
+            if style & style_flags::BOLD != 0 {
+                &self.bold_italic
+            } else {
+                &self.italic
+            }
+        } else if style & style_flags::BOLD != 0 {
+            &self.bold
+        } else {
+            &self.normal
+        }
+    }
+
+}
 
 
 pub struct Text {
@@ -277,7 +325,10 @@ impl Text {
 
 impl Component for Text {
     fn update(&mut self, app: &mut App) {
-        app.char_atlas.draw_text(app, self.position.0, self.position.1, &self.content, self.scale, self.max_width.or(Some(u32::MAX)), Some(u32::MAX), self.z_index, self.color, self.styles)
+
+
+
+        app.font_handler.style_flagged(self.styles).draw_text(app, self.position.0, self.position.1, &self.content, self.scale, self.max_width.or(Some(u32::MAX)), Some(u32::MAX), self.z_index, self.color, self.styles)
     }
 
     fn destroy(self) {

@@ -5,6 +5,8 @@ use enigo::{Enigo, Mouse as eMouse, Settings};
 use sdl2::{event::Event, video::Window};
 
 use crate::{app_selector::AppSelector, camera::Camera, component::Component, image::Image, keybinds::Keybinds, macros::{cast_component, SETTINGS}, shaders::Shaders, text::{CharAtlas, Text}, texture_atlas::{convert_tex_to_gl, TextureAtlas}, window_frame::WindowFrame};
+use crate::platform::is_wsl;
+use crate::text::FontHandler;
 
 pub struct Mouse {
     pub left_down: bool,
@@ -45,6 +47,7 @@ impl Mouse {
         cursors.insert("No".to_string(), sdl2::mouse::Cursor::from_system(sdl2::mouse::SystemCursor::No).unwrap());
         cursors.insert("Wait".to_string(), sdl2::mouse::Cursor::from_system(sdl2::mouse::SystemCursor::Wait).unwrap());
         cursors.insert("WaitArrow".to_string(), sdl2::mouse::Cursor::from_system(sdl2::mouse::SystemCursor::WaitArrow).unwrap());
+
 
         Self {
             left_down: false,
@@ -111,7 +114,7 @@ pub struct App<'a> {
     pub tex_atlas: TextureAtlas<'a>,
     pub events: Vec<Event>,
     pub shaders: Shaders,
-    pub char_atlas: CharAtlas,
+    pub font_handler: FontHandler,
     pub window_pos: (i32, i32),
     pub window_size: (u32, u32),
     pub camera: Camera,
@@ -132,7 +135,7 @@ pub struct App<'a> {
 
 
 impl<'a> App<'a> {
-    pub fn new(shaders: Shaders, char_atlas: CharAtlas, window_width: u32, window_height: u32, window: &'a mut Window, monitors: Vec<(i32, i32, u32, u32)>) -> App<'a> {
+    pub fn new(shaders: Shaders, font_handler: FontHandler, window_width: u32, window_height: u32, window: &'a mut Window, monitors: Vec<(i32, i32, u32, u32)>) -> App<'a> {
 
         let mut tex_atlas = TextureAtlas::new();
 
@@ -151,7 +154,7 @@ impl<'a> App<'a> {
             tex_atlas,
             events: Vec::new(),
             shaders,
-            char_atlas,
+            font_handler,
             window_pos: (0, 0),
             window_size: (0, 0),
             camera: Camera::new(window_width, window_height),
@@ -227,7 +230,8 @@ impl<'a> App<'a> {
         } else {
             self.mouse.cursors.get("Arrow").unwrap().set();
         }
-        
+
+
         let fps = dt.elapsed().as_secs_f64();
         
         let fps_counter = cast_component!(children.get_mut(1).unwrap() => mut Text);
