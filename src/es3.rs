@@ -1,6 +1,8 @@
-use std::collections::HashMap;
+use std::collections::{HashMap};
+use std::fmt::{Display, Formatter};
 use serde_json::{Map, Value};
 
+#[derive(Debug)]
 pub enum Token {
     Newline,
     String(String),
@@ -98,6 +100,7 @@ pub mod style_flags {
     pub const BACKGROUND: u8    = 0b1000_0000;
 }
 
+#[derive(Debug)]
 struct TokenStyle {
     flags: u8
 }
@@ -163,6 +166,7 @@ impl TokenStyle {
 
 }
 
+#[derive(Debug)]
 struct PositionedToken {
     token: Token,
     index: usize,
@@ -171,6 +175,13 @@ struct PositionedToken {
     style: TokenStyle,
     links: HashMap<String, String>
 }
+
+impl Display for PositionedToken {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Tok[{:?}] @ Idx {} Ln {} Col {}", self.token, self.index, self.line, self.column)
+    }
+}
+
 
 macro_rules! tok {
     ( $tk:expr => $idx:expr, $line:expr, $col:expr ) => {
@@ -188,33 +199,33 @@ macro_rules! tok {
 pub struct ES3Compiler {
     pub tokens: Vec<PositionedToken>,
     pub body: Box<dyn Node>,
-    patterns: HashMap<&'static str, &'static str>
+    patterns: Vec<(&'static str, &'static str)>
 }
 
 impl ES3Compiler {
 
     pub fn new() -> Self {
 
-        let mut patterns = HashMap::new();
+        let mut patterns = Vec::new();
 
-        patterns.insert(r"\/\/.*", "COMMENT");
-        patterns.insert(r"(?<!\/)\/\*(\*[^/]|[^*])+\*\/", "COMMENT");
-        patterns.insert(r"\\#\\![^\n;]*;?", "CONTEXT");
-        patterns.insert("(\"(\\\\.|[^\"\\\\])*\"|\'(\\\\.|[^\'\\\\])*\')", "STRING");
-        patterns.insert(r"=>[^ ]*", "TAG");
-        patterns.insert(r"\$[a-zA-Z_][a-zA-Z0-9_]*", "MACRO");
-        patterns.insert(r"\b(true|false)\b", "BOOLEAN");
-        patterns.insert(r"\<[^<> ]+\>", "OBJECT");
-        patterns.insert(r"(<=|>=|<|>|==|!=)", "COMP");
-        patterns.insert(r"(\.\.|::)", "CONCAT");
-        patterns.insert(r"\b(new|move)\b", "COMMAND");
-        patterns.insert(r"\b(if|elif|else|while|for|in|and|not|or|none|match|case|class|def|break|continue)\b", "KEYWORD");
-        patterns.insert(r"[a-zA-Z_][a-zA-Z0-9_]*", "WORD");
-        patterns.insert(r"(\d+(\.\d+)?|\.\d+)", "NUMBER");
-        patterns.insert(r"[=\-+*/()&\[\]{},#%:|^\.\$;~`]", "LITERAL");
-        patterns.insert(r"\n+", "NEWLINE");
-        patterns.insert(r"[\t ]+", "ignore");
-        patterns.insert(r".", "ERROR");
+        patterns.push((r"\/\/.*", "COMMENT"));
+        patterns.push((r"(?<!\/)\/\*(\*[^/]|[^*])+\*\/", "COMMENT"));
+        patterns.push((r"\#\![^\n;]*;?", "CONTEXT"));
+        patterns.push(("(\"(\\\\.|[^\"\\\\])*\"|\'(\\\\.|[^\'\\\\])*\')", "STRING"));
+        patterns.push((r"=>[^ ]*", "TAG"));
+        patterns.push((r"\$[a-zA-Z_][a-zA-Z0-9_]*", "MACRO"));
+        patterns.push((r"\b(true|false)\b", "BOOLEAN"));
+        patterns.push((r"(<[^\<\> ]+>)", "OBJECT"));
+        patterns.push((r"(<=|>=|<|>|==|!=)", "COMP"));
+        patterns.push((r"(\.\.|::)", "CONCAT"));
+        patterns.push((r"\b(new|move)\b", "COMMAND"));
+        patterns.push((r"\b(if|elif|else|while|for|in|and|not|or|none|match|case|class|def|break|continue)\b", "KEYWORD"));
+        patterns.push((r"[a-zA-Z_][a-zA-Z0-9_]*", "WORD"));
+        patterns.push((r"(\d+(\.\d+)?|\.\d+)", "NUMBER"));
+        patterns.push((r"[=\-+*/()&\[\]{},#%:|^\.\$;~`]", "LITERAL"));
+        patterns.push((r"\n+", "NEWLINE"));
+        patterns.push((r"[\t ]+", "ignore"));
+        patterns.push((r".", "ERROR"));
 
 
         Self {
@@ -228,37 +239,42 @@ impl ES3Compiler {
 
         let mut pat = "(".to_string();
 
-        for key in self.patterns.keys() {
-            pat += &("|".to_string() + key);
+        for (key, _) in &self.patterns {
+            pat += &(key.to_string() + "|");
         }
+
+        pat.remove(pat.len()-1); // remove trailing '|'
         pat += ")";
 
-        let pattern = regex::Regex::new(&pat).unwrap();
+
+        let pattern = fancy_regex::Regex::new(&pat).unwrap();
 
         let mut tokens_out: Vec<PositionedToken> = Vec::new();
         let mut idx: usize = 0;
         let mut line: usize = 1;
         let mut column: usize = 0;
-        let mut matches = false;
 
-        for mat in pattern.find_iter(input) {
-            matches = false;
+        for r_mat in pattern.find_iter(input) {
+            let mat = r_mat.unwrap();
+            let sz = mat.end()-mat.start();
             'pattern_loop: for (key, tp) in &self.patterns {
-                let sub_pattern = regex::Regex::new(key).unwrap();
-                if sub_pattern.find(mat.as_str()).is_some() {
+                let sub_pattern = fancy_regex::Regex::new(key).unwrap();
+                if sub_pattern.find(mat.as_str()).unwrap().is_some() {
                     let str_val = input[mat.range()].to_string();
-                    matches = true;
-                    idx += mat.len();
+                    
                     if *tp == "ignore" {
-                        column += mat.len();
+                        column += sz;
+                        idx += sz;
                         break 'pattern_loop
                     }
                     else if *tp == "NEWLINE" {
                         column = 0;
-                        line += mat.len();
+                        line += sz;
+                        idx += sz;
                         break 'pattern_loop
                     }
                     else if *tp == "STRING" {
+                        tokens_out.push(tok!(Token::String(str_val.clone()) => idx, line, column));
                         let li = str_val.split("\n").count() - 1;
                         line += li;
                         if li > 0 {
@@ -266,12 +282,12 @@ impl ES3Compiler {
                         } else {
                             column += str_val.len();
                         }
+                        idx += sz;
 
-                        tokens_out.push(tok!(Token::String(str_val) => idx, line, column));
                         break 'pattern_loop
                     }
 
-                    column += mat.len();
+                    
 
 
                     if *tp == "CONTEXT" {
@@ -323,6 +339,9 @@ impl ES3Compiler {
                         tokens_out.push(token);
                     }
 
+                    column += sz;
+                    idx += sz;
+
                     break 'pattern_loop;
                 }
             }
@@ -348,7 +367,87 @@ impl ES3Compiler {
 
 
 
+#[cfg(test)]
+pub mod es3_tests {
+    use crate::es3::ES3Compiler;
 
+    const SCRIPT: &str = r##"
+#!emberhollow/rooms/boats/spawn_boat
+#!enter-script
+
+num_players = length(#dungeon.player_ids)
+#dungeon.player_ids.append(#player.uid)
+
+#player.tag$[listening = true]
+
+$listening = #player.tag$[listening]
+
+output("say `skip` to skip dialog")
+
+captain = random.choice(
+    "...",
+    "..."
+)
+
+starting_money = new: <engine:currency> {
+    gold: random.range(9, 11),
+    silver: random.range(5, 7),
+    copper: random.range(2, 9)
+}
+
+if ($listening) {
+    output("...")
+    wait(2)
+}
+
+// compiling seems to stop here
+
+$out($message, $wait_time) {
+    if ($listening) {
+        output(
+            format($message, captain: captain)
+        )
+        wait($wait_time)
+    }
+}
+
+$outm($message, $wait_time) {
+    if ($listening) {
+        output(
+            format($message, captain: captain, money: starting_money.to_string())
+        )
+        wait($wait_time)
+    }
+}
+
+// ...
+
+match random.choice([1, 2, 3, 4]) {
+    case 1 {
+        // ...
+        $outm("{captain} hands you a bag of coins.\n(+{money})", 2)
+    }
+}
+
+#player.give_money(starting_money)
+
+move: #player -> <emberhollow:rooms/docks/roads/road_4>
+    "##;
+
+    #[test]
+    pub fn test_tokenizer() {
+        let mut compiler = ES3Compiler::new();
+
+        // println!("tokenizing");
+        compiler.tokenize(SCRIPT);
+
+        assert_eq!(compiler.tokens.len(), 220);
+        
+        println!("{}", compiler.tokens.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("\n"));
+
+    }
+
+}
 
 
 

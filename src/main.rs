@@ -10,6 +10,8 @@ mod collider;
 mod component;
 mod easing;
 mod editor_app;
+mod es3;
+mod es3_text_editor;
 mod game_app;
 mod image;
 mod keybinds;
