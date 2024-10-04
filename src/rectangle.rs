@@ -5,7 +5,7 @@ use enigo::Mouse;
 use gl::types::GLuint;
 
 use crate::{app::App, component::Component};
-use crate::component::setup_gl;
+use crate::component::{setup_gl_pos, setup_gl_pos_tex};
 
 pub struct Rectangle {
     pub position: (i32, i32),
@@ -19,16 +19,16 @@ impl Rectangle {
     pub fn new(x: i32, y: i32, width: u32, height: u32, color: (u8, u8, u8, u8), z_index: f32) -> Rectangle {
         const LOWER_BOUND: f32 = -0.5;
         const UPPER_BOUND: f32 = 0.5;
-        let vertices: [f32; 30] = [
-            LOWER_BOUND, LOWER_BOUND, z_index,      0.0, 1.0,
-            LOWER_BOUND, UPPER_BOUND, z_index,      0.0, 0.0,
-            UPPER_BOUND, UPPER_BOUND, z_index,      1.0, 0.0,
-            LOWER_BOUND, LOWER_BOUND, z_index,      0.0, 1.0,
-            UPPER_BOUND, UPPER_BOUND, z_index,      1.0, 0.0,
-            UPPER_BOUND, LOWER_BOUND, z_index,      1.0, 1.0
+        let vertices: [f32; 18] = [
+            LOWER_BOUND, LOWER_BOUND, z_index,
+            LOWER_BOUND, UPPER_BOUND, z_index,
+            UPPER_BOUND, UPPER_BOUND, z_index,
+            LOWER_BOUND, LOWER_BOUND, z_index,
+            UPPER_BOUND, UPPER_BOUND, z_index,
+            UPPER_BOUND, LOWER_BOUND, z_index
         ];
 
-        let vao = setup_gl(vertices);
+        let vao = setup_gl_pos(vertices);
 
         Rectangle {
             position: (x, y),

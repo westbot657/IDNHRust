@@ -4,7 +4,7 @@ use cgmath::Matrix;
 use enigo::Mouse;
 
 use crate::{app::App, component::Component, macros::CONST};
-use crate::component::setup_gl;
+use crate::component::setup_gl_pos_tex;
 
 pub struct Image {
     pub position: (i32, i32),
@@ -20,15 +20,15 @@ impl Image {
         const LOWER_BOUND: f32 = -0.5;
         const UPPER_BOUND: f32 = 0.5;
         let vertices: [f32; 30] = [
-            LOWER_BOUND, LOWER_BOUND, z_index,      0.0, 1.0,  // Top-left
-            LOWER_BOUND, UPPER_BOUND, z_index,      0.0, 0.0,  // Bottom-left
-            UPPER_BOUND, UPPER_BOUND, z_index,      1.0, 0.0,  // Bottom-right
-            LOWER_BOUND, LOWER_BOUND, z_index,      0.0, 1.0,  // Top-left
-            UPPER_BOUND, UPPER_BOUND, z_index,      1.0, 0.0,  // Bottom-right
-            UPPER_BOUND, LOWER_BOUND, z_index,      1.0, 1.0
+            LOWER_BOUND, LOWER_BOUND, z_index,      0.0, 1.0,  // top right
+            LOWER_BOUND, UPPER_BOUND, z_index,      0.0, 0.0,  // top left
+            UPPER_BOUND, UPPER_BOUND, z_index,      1.0, 0.0,  // bottom left
+            LOWER_BOUND, LOWER_BOUND, z_index,      0.0, 1.0,  // top right
+            UPPER_BOUND, UPPER_BOUND, z_index,      1.0, 0.0,  // bottom left
+            UPPER_BOUND, LOWER_BOUND, z_index,      1.0, 1.0   // bottom right
         ];
 
-        let vao = setup_gl(vertices);
+        let vao = setup_gl_pos_tex(vertices);
 
         Image {
             position: (x, y),

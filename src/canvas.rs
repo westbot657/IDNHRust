@@ -4,7 +4,7 @@ use cgmath::{Matrix, Rad};
 use enigo::Mouse;
 
 use crate::{app::App, component::Component};
-use crate::component::setup_gl;
+use crate::component::setup_gl_pos_tex;
 use crate::macros::collides;
 
 pub struct Canvas {
@@ -33,7 +33,7 @@ impl Canvas {
             UPPER_BOUND, LOWER_BOUND, z_index,      1.0, 1.0
         ];
 
-        let vao = setup_gl(vertices);
+        let vao = setup_gl_pos_tex(vertices);
 
         Self {
             position: (x, y),

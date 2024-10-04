@@ -5,7 +5,7 @@ use rect_packer::{Config, Packer};
 use rusttype::{point, Font, GlyphId, Scale};
 use sdl2::image::SaveSurface;
 use crate::{app::App, component::Component, texture_atlas::convert_tex_to_gl, macros::CONST};
-use crate::component::setup_gl;
+use crate::component::setup_gl_pos_tex;
 use crate::es3::style_flags;
 
 pub struct CharAtlas {
@@ -122,7 +122,7 @@ impl CharAtlas {
             UPPER_BOUND, LOWER_BOUND, 0.0,      1.0, 1.0
         ];
 
-        let vao = setup_gl(vertices);
+        let vao = setup_gl_pos_tex(vertices);
 
 
         Self {
