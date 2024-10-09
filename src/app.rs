@@ -5,7 +5,6 @@ use enigo::{Enigo, Mouse as eMouse, Settings};
 use sdl2::{event::Event, video::Window};
 
 use crate::{app_selector::AppSelector, camera::Camera, component::Component, image::Image, keybinds::Keybinds, macros::{cast_component, SETTINGS}, shaders::Shaders, text::{CharAtlas, Text}, texture_atlas::{convert_tex_to_gl, TextureAtlas}, window_frame::WindowFrame};
-use crate::platform::is_wsl;
 use crate::text::FontHandler;
 
 pub struct Mouse {
@@ -176,13 +175,13 @@ impl<'a> App<'a> {
 
         app.children = vec![
             Box::new(WindowFrame::new(
-                "Insert Dungeon Name Here".to_string(),
+                "Insert Dungeon Name Here",
                 Image::new(3, 3, 18, 18, "assets/textures/idnh_icon.png".to_string(), (0, 0, 36, 36), 0.91),
                 (window_width, window_height),
                 &app
             )),
 
-            Box::new(Text::new(0, 0, "FPS".to_string(), None, 0.3, 1.0, SETTINGS!(text color 4 u8))),
+            Box::new(Text::new(0, 0, "FPS", None, 0.3, 1.0, SETTINGS!(text color 4 u8))),
 
 
             Box::new(app_selector)

@@ -69,6 +69,10 @@ macro_rules! collides {
     };
 }
 
+macro_rules! font_size {
+    ( $sz:expr px ) => {
+        $sz as f32 / 50.0
+    };
+}
 
-
-pub(crate) use {cast_component, SETTINGS, CONST, collides};
+pub(crate) use {cast_component, SETTINGS, CONST, collides, font_size};

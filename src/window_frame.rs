@@ -32,7 +32,7 @@ pub struct WindowFrame {
 
 
 impl WindowFrame {
-    pub fn new(title: String, icon: Image, window_size: (u32, u32), app: &App) -> Self {
+    pub fn new(title: &str, icon: Image, window_size: (u32, u32), app: &App) -> Self {
         const FRAME_COLOR: (u8, u8, u8, u8) = SETTINGS!(bg medium 4 u8);
 
 

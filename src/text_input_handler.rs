@@ -1,5 +1,6 @@
 use std::cmp::Ordering;
 use std::collections::HashMap;
+use crate::app::App;
 
 // Using this ensures that all text edit indexing uses the same type
 pub type IdxSize = usize;
@@ -52,7 +53,7 @@ impl Ord for Selection {
 
 // Base for all text boxes
 pub struct TextInputHandler {
-    content: String,
+    pub content: String,
     allow_newlines: bool,
     max_length: IdxSize,
     enforce_max_length: bool,
@@ -82,6 +83,14 @@ impl TextInputHandler {
             secondary_cursors: Vec::new(),
             selections: Vec::new(),
             construction_selections: HashMap::new()
+        }
+    }
+
+    pub fn process(&mut self, app: &mut App) {
+        for key in app.keyboard.triggered_keys {
+            if key.len() == 1 {
+                self.content += key.as_str();
+            }
         }
     }
 

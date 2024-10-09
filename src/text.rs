@@ -14,7 +14,7 @@ pub struct CharAtlas {
     vao: u32
 }
 
-
+type Bounds = (Option<u32>, Option<u32>, Option<u32>, Option<u32>);
 
 impl CharAtlas {
     pub fn new(font_path: &str) -> Self {
@@ -132,22 +132,37 @@ impl CharAtlas {
         }
     }
 
-    pub fn render_char(&self, app: &App, x: i32, y: i32, draw_x: &mut i32, draw_y: &mut i32, character: &str, z_index: f32, scale: f32) {
+    pub fn skip_char(&self, draw_x: &mut u32, draw_y: &mut u32, character: &str, scale: f32) {
         const HEIGHT: u32 = CONST!(text height);
 
         if character == "\n" {
-            *draw_y += ((HEIGHT as f32 * scale) + (4.0 * scale)) as i32;
+            *draw_y += ((HEIGHT as f32 * scale) + (4.0 * scale)) as u32;
             *draw_x = 0;
         }
         else if character == " " {
-            *draw_x += (HEIGHT as f32 / 2.0 * scale) as i32 + (4.0 * scale) as i32;
+            *draw_x += ((HEIGHT as f32 / 2.0 * scale) + (4.0 * scale)) as u32;
+        }
+        else if self.chars.contains_key(character) {
+            *draw_x += ((HEIGHT as f32 / 2.0 * scale) + (4.0 * scale)) as u32;
+        }
+    }
+
+    pub fn render_char(&self, app: &App, x: i32, y: i32, draw_x: &mut u32, draw_y: &mut u32, character: &str, z_index: f32, scale: f32) {
+        const HEIGHT: u32 = CONST!(text height);
+
+        if character == "\n" {
+            *draw_y += ((HEIGHT as f32 * scale) + (4.0 * scale)) as u32;
+            *draw_x = 0;
+        }
+        else if character == " " {
+            *draw_x += ((HEIGHT as f32 / 2.0 * scale) + (4.0 * scale)) as u32;
         }
         else if self.chars.contains_key(character) {
             let rect = self.chars.get(character).unwrap();
 
             let tx = ((((HEIGHT as f32 / 2.0 * scale) + 4.0) - (rect.0.2 as f32 * scale)) / 4.0).round() as i32;
 
-            let pos = app.map_coords(&(x+*draw_x+tx, ((y+*draw_y) as f32 + (rect.1 as f32 * scale) + (HEIGHT as f32 * scale)).round() as i32));
+            let pos = app.map_coords(&(x+*draw_x as i32+tx, ((y+*draw_y as i32) as f32 + (rect.1 as f32 * scale) + (HEIGHT as f32 * scale)).round() as i32));
 
             let sz = app.map_size(&((rect.0.2 as f32 / 2.0 * scale).round() as u32, (rect.0.3 as f32 * scale).round() as u32));
 
@@ -180,16 +195,18 @@ impl CharAtlas {
 
             }
 
-            *draw_x += (HEIGHT as f32 / 2.0 * scale) as i32 + (4.0 * scale) as i32;
+            *draw_x += ((HEIGHT as f32 / 2.0 * scale) + (4.0 * scale)) as u32;
             // *draw_x += (rect.0.2 as f32 / 2.0 * scale) as i32 + (4.0 * scale) as i32;
 
         }
 
     }
 
-    pub fn draw_text(&self, app: &App, x: i32, y: i32, text: &str, scale: f32, max_width:Option<u32>, max_height:Option<u32>, z_index: f32, color: (u8, u8, u8, u8), styles: u8) {
-        let mut draw_x = 0;
-        let mut draw_y = 0;
+    pub fn draw_text(&self, app: &App, x: i32, y: i32, text: &str, scale: f32, bounds: Bounds, z_index: f32, color: (u8, u8, u8, u8), styles: u8) {
+        let mut draw_x: u32 = 0;
+        let mut draw_y: u32 = 0;
+
+        let (min_width, min_height, max_width, max_height) = bounds;
 
         let shader_program = app.shaders.text_program;
 
@@ -231,8 +248,14 @@ impl CharAtlas {
 
             for character in text.split("") {
                 if character == "" {continue}
-                self.render_char(app, x, y, &mut draw_x, &mut draw_y, character, z_index, scale);
-
+                if draw_x > max_width.unwrap_or(u32::MAX) || (draw_y + (scale * CONST!(text height) as f32) as u32) < min_height.unwrap_or(u32::MAX) || (draw_x + (scale * CONST!(text height) as f32) as u32) < min_width.unwrap_or(u32::MAX) {
+                    self.skip_char(&mut draw_x, &mut draw_y, character, scale);
+                } else {
+                    self.render_char(app, x, y, &mut draw_x, &mut draw_y, character, z_index, scale);
+                }
+                if draw_y as i64 > max_height.unwrap_or(u32::MAX) as i64 {
+                    return
+                }
             }
         }
     }
@@ -292,8 +315,8 @@ impl FontHandler {
 
 pub struct Text {
     pub position: (i32, i32),
-    pub content: String,
-    pub max_width: Option<u32>,
+    pub content: &'static str,
+    pub bounds: Bounds,
     size: (u32, u32),
     scale: f32,
     z_index: f32,
@@ -302,11 +325,11 @@ pub struct Text {
 }
 
 impl Text {
-    pub fn new(x: i32, y: i32, content: String, max_width: Option<u32>, scale: f32, z_index: f32, color: (u8, u8, u8, u8)) -> Self {
+    pub fn new(x: i32, y: i32, content: &str, bounds: Bounds, scale: f32, z_index: f32, color: (u8, u8, u8, u8)) -> Self {
         Self {
             position: (x, y),
             content,
-            max_width,
+            bounds,
             size: (0, 0),
             scale,
             z_index,
@@ -324,9 +347,7 @@ impl Text {
 impl Component for Text {
     fn update(&mut self, app: &mut App) {
 
-
-
-        app.font_handler.style_flagged(self.styles).draw_text(app, self.position.0, self.position.1, &self.content, self.scale, self.max_width.or(Some(u32::MAX)), Some(u32::MAX), self.z_index, self.color, self.styles)
+        app.font_handler.style_flagged(self.styles).draw_text(app, self.position.0, self.position.1, &self.content, self.scale, self.bounds, self.z_index, self.color, self.styles)
     }
 
     fn destroy(self) {

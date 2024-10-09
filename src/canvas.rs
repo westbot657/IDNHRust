@@ -6,6 +6,7 @@ use enigo::Mouse;
 use crate::{app::App, component::Component};
 use crate::component::setup_gl_pos_tex;
 use crate::macros::collides;
+use crate::object_tree::ObjectTree;
 
 pub struct Canvas {
     pub position: (i32, i32),
@@ -15,6 +16,7 @@ pub struct Canvas {
     pub rotation: f32,
     pub scroll_offset: (i64, i64),
     pub children: Vec<Box<dyn Component>>,
+    pub object_tree: ObjectTree,
     pub color: (u8, u8, u8, u8),
     vao: u32
 }
@@ -43,6 +45,7 @@ impl Canvas {
             rotation: 0.0,
             scroll_offset: (0, 0),
             children: Vec::new(),
+            object_tree: ObjectTree::new(),
             vao,
             color
         }

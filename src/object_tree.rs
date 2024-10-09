@@ -1,8 +1,9 @@
-use std::collections::HashMap;
+use crate::app::App;
+use crate::component::Component;
 use crate::shelf_tile::ShelfTile;
 
 pub struct ObjectTree {
-    pub shelf_tiles: HashMap<String, Vec<ShelfTile>>
+    pub shelf_tiles: Vec<(String, ShelfTile)>
 }
 
 impl ObjectTree {
@@ -10,8 +11,18 @@ impl ObjectTree {
 
 
         Self {
-            shelf_tiles: HashMap::new()
+            shelf_tiles: Vec::new()
         }
     }
 
 }
+
+impl Component for ObjectTree {
+    fn update(&mut self, app: &mut App) {
+
+    }
+
+    fn destroy(self) {
+    }
+}
+

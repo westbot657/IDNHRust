@@ -28,6 +28,7 @@ mod texture_atlas;
 mod text_input_handler;
 mod window_frame;
 mod platform;
+mod text_box;
 
 use std::{collections::VecDeque, env, time::Instant};
 
