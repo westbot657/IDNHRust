@@ -1,6 +1,5 @@
 use std::collections::HashMap;
-
-
+use crate::settings::Settings;
 
 pub struct Keybinds {
     pub bindings: HashMap<String, String>,
@@ -9,7 +8,9 @@ pub struct Keybinds {
 
 impl Keybinds {
 
-    pub fn new() -> Self {
+    pub fn new(settings: &Settings) -> Self {
+
+        // settings.get("")
 
         Self {
             bindings: HashMap::new(),
@@ -28,8 +29,20 @@ impl Keybinds {
         self.bind = self.bind.replace(&(key.to_string() + "+"), "");
     }
 
+    pub fn matches_any(&self) -> bool {
+        println!("{:?}", self.bindings);
+        for (k, v) in &self.bindings {
+            println!("{}: {}", k, v);
+            if self.check_binding(k) {
+                return true
+            }
+        }
+        false
+    }
+
     pub fn check_binding(&self, binding: &str) -> bool {
         if self.bindings.contains_key(binding) {
+            println!("Contains key");
             let bind = self.bindings.get(binding).unwrap();
 
             let mut pattern = self.bind.strip_suffix("+").unwrap_or(&self.bind.to_string()).to_string();
@@ -44,11 +57,15 @@ impl Keybinds {
             ));
 
             for p in pattern.split(" | ") {
-                if bind == p {
-                    return true
+                for b in bind.strip_suffix("+").unwrap_or(&bind.to_string()).split(" | ") {
+                    if p == b {
+                        return true
+                    }
                 }
             }
             false
+
+
         }
         else {
             false

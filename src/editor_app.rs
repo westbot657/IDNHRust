@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use crate::{canvas::Canvas, component::Component, rectangle::Rectangle};
 use crate::es3::style_flags;
 use crate::text::Text;
+use crate::text_box::Textbox;
 use crate::visibility_toggle::VisibilityToggle;
 
 pub struct EditorApp {
@@ -29,6 +30,18 @@ impl EditorApp {
         let mut children: Vec<Box<dyn Component>> = Vec::new();
 
         children.push(Box::new(Text::new(50, 20, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz", (None, None, None, None), 16.0/50.0, 1.0, (255, 255, 255, 255))));
+
+        let mut text_box = Textbox::new(
+            (50, 90), (300, 20),
+            "",
+            true, None, true,
+            1.0, (255, 255, 255, 255)
+        );
+        
+        text_box.set_bg_color((10, 10, 10, 255));
+
+        children.push(Box::new(text_box));
+
         // let mut txt = Text::new(50, 60, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz", None, 16.0/50.0, 1.0, (255, 255, 255, 255));
         // txt.set_styles(style_flags::ITALIC);
         // children.push(Box::new(txt));

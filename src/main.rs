@@ -435,6 +435,7 @@ fn main_app() {
         app.camera.project(window_width, window_height);
 
         app.camera.push();
+        app.camera.viewport = (0, 0, app.window_size.0, app.window_size.1);
 
         unsafe {
             gl::ClearColor(bgr, bgg, bgb, bga);

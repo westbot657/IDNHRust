@@ -88,10 +88,25 @@ impl TextInputHandler {
 
     pub fn process(&mut self, app: &mut App) {
         for key in &app.keyboard.triggered_keys {
-            if key.len() == 1 {
-                self.content += key.as_str();
+
+            if app.keybinds.matches_any() {
+                println!("Keybind");
+                // do nothing because keybinds
+            }
+            else if key.len() == 1 {
+                println!("Type '{}'", key);
+                self.insert_at_cursor(key.to_string());
+            }
+            else if key == "Backspace" {
+                println!("Backspace");
+                self.backspace_at_cursor();
+            }
+            else if key == "Delete" {
+                println!("Delete");
+                self.delete_at_cursor();
             }
         }
+
     }
 
     /// Removes additional cursors and deselects all text, moves the cursor to the specified position (clamped to the length of the text)
@@ -130,7 +145,11 @@ impl TextInputHandler {
 
         for index in indexes {
             if self.get_selection_at_index(index).is_none() {
-                regions.push(((index-1).max(0), index));
+                if index == 0 {
+                    regions.push((index, index));
+                } else {
+                    regions.push(((index - 1).max(0), index));
+                }
             }
         }
 

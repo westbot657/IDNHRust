@@ -28,7 +28,7 @@ impl Textbox {
             size,
             selected: false,
             hovered: false,
-            text: Text::new(0, 0, "", (Some(position.0), Some(position.1), Some(size.0), Some(size.1)), 16.0/50.0, z_index, color),
+            text: Text::new(0, 0, "", (Some(0), Some(0), Some(size.0 - 5), Some(size.1)), 16.0/50.0, z_index, color),
             children: Vec::new(),
             background_object: None,
             z_index
@@ -39,7 +39,7 @@ impl Textbox {
         
         self.background_object = Some(
             Box::new(
-                Rectangle::new(self.position.0, self.position.1, self.size.0, self.size.1, color, self.z_index)
+                Rectangle::new(self.position.0, self.position.1, self.size.0, self.size.1, color, self.z_index - 0.000001)
             )
         );
     }
@@ -76,7 +76,11 @@ impl Component for Textbox {
         for child in &mut self.children {
             child.update(app);
         }
-        
+
+
+        self.text.position = (self.position.0 + 5, self.position.1);
+
+        app.camera.viewport = (self.position.0, self.position.1, (self.position.0 + self.size.0 as i32 + 25) as u32, (self.position.1 + self.size.1 as i32) as u32);
         self.text.update(app);
 
         app.camera.pop();

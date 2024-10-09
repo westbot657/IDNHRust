@@ -248,7 +248,7 @@ impl CharAtlas {
 
             for character in text.split("") {
                 if character == "" {continue}
-                if draw_x > max_width.unwrap_or(u32::MAX) || (draw_y as i32 + (scale * CONST!(text height) as f32) as i32) < min_height.unwrap_or(i32::MAX) || (draw_x as i32 + (scale * CONST!(text height) as f32) as i32) < min_width.unwrap_or(i32::MAX) {
+                if draw_x > max_width.unwrap_or(u32::MAX) || (draw_y as i32 + (scale * CONST!(text height) as f32) as i32) < min_height.unwrap_or(0) || (draw_x as i32 + (scale * CONST!(text height) as f32) as i32) < min_width.unwrap_or(0) {
                     self.skip_char(&mut draw_x, &mut draw_y, character, scale);
                 } else {
                     self.render_char(app, x, y, &mut draw_x, &mut draw_y, character, z_index, scale);

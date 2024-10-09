@@ -188,7 +188,7 @@ impl<'a> App<'a> {
             pre_fullscreen_pos: (0, 0),
             pre_fullscreen_size: (0, 0),
             monitors,
-            keybinds: Keybinds::new(),
+            keybinds: Keybinds::new(&settings),
             settings
         };
 

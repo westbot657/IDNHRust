@@ -10,7 +10,7 @@ scroll-sensitivity = 3.0
 [Keybinds]
 Save = "Ctrl+S"
 Undo = "Ctrl+Z"
-Redo = "Ctrl+Shift+Z|Ctrl+Y"
+Redo = "Ctrl+Shift+Z | Ctrl+Y"
 Cut = "Ctrl+X"
 Copy = "Ctrl+C"
 Paste = "Ctrl+V"
