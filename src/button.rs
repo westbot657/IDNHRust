@@ -27,7 +27,7 @@ impl Component for Button {
     fn update(&mut self, app: &mut crate::app::App) {
         
         if app.collides((self.position.0, self.position.1, self.size.0, self.size.1), app.mouse.position) {
-            if app.mouse.left_down {
+            if app.mouse.left_down && !app.last_mouse.left_down {
                 self.pressed = true;
             }
             self.hovered = true;

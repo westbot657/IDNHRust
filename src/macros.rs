@@ -70,8 +70,8 @@ macro_rules! collides {
 }
 
 macro_rules! font_size {
-    ( $sz:expr px ) => {
-        $sz as f32 / 50.0
+    ( $sz:expr ) => {
+        $sz as f32 / CONST!(text height) as f32
     };
 }
 

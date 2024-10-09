@@ -87,7 +87,7 @@ impl TextInputHandler {
     }
 
     pub fn process(&mut self, app: &mut App) {
-        for key in app.keyboard.triggered_keys {
+        for key in &app.keyboard.triggered_keys {
             if key.len() == 1 {
                 self.content += key.as_str();
             }

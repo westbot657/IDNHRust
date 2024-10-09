@@ -2,10 +2,11 @@ use std::collections::HashMap;
 use crate::{canvas::Canvas, component::Component, rectangle::Rectangle};
 use crate::es3::style_flags;
 use crate::text::Text;
+use crate::visibility_toggle::VisibilityToggle;
 
 pub struct EditorApp {
     canvas: Canvas,
-    visibility_toggles: HashMap<String, bool>,
+    visibility_toggles: Vec<VisibilityToggle>,
     children: Vec<Box<dyn Component>>,
 }
 
@@ -21,23 +22,25 @@ impl EditorApp {
             )
         );
 
-        let mut visibility_toggles = HashMap::new();
+        let mut visibility_toggles = vec![
+            VisibilityToggle::new("weapons"),
+        ];
 
         let mut children: Vec<Box<dyn Component>> = Vec::new();
 
-        children.push(Box::new(Text::new(50, 20, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz", None, 16.0/50.0, 1.0, (255, 255, 255, 255))));
-        let mut txt = Text::new(50, 60, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz", None, 16.0/50.0, 1.0, (255, 255, 255, 255));
-        txt.set_styles(style_flags::ITALIC);
-        children.push(Box::new(txt));
-
-        let mut txt = Text::new(50, 100, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz", None, 16.0/50.0, 1.0, (255, 255, 255, 255));
-        txt.set_styles(style_flags::BOLD);
-        children.push(Box::new(txt));
-
-
-        let mut txt = Text::new(50, 140, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz", None, 16.0/50.0, 1.0, (255, 255, 255, 255));
-        txt.set_styles(style_flags::BOLD | style_flags::ITALIC);
-        children.push(Box::new(txt));
+        children.push(Box::new(Text::new(50, 20, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz", (None, None, None, None), 16.0/50.0, 1.0, (255, 255, 255, 255))));
+        // let mut txt = Text::new(50, 60, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz", None, 16.0/50.0, 1.0, (255, 255, 255, 255));
+        // txt.set_styles(style_flags::ITALIC);
+        // children.push(Box::new(txt));
+        //
+        // let mut txt = Text::new(50, 100, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz", None, 16.0/50.0, 1.0, (255, 255, 255, 255));
+        // txt.set_styles(style_flags::BOLD);
+        // children.push(Box::new(txt));
+        //
+        //
+        // let mut txt = Text::new(50, 140, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz", None, 16.0/50.0, 1.0, (255, 255, 255, 255));
+        // txt.set_styles(style_flags::BOLD | style_flags::ITALIC);
+        // children.push(Box::new(txt));
 
         Self {
             canvas,

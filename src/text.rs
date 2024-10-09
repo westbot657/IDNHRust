@@ -14,7 +14,7 @@ pub struct CharAtlas {
     vao: u32
 }
 
-type Bounds = (Option<u32>, Option<u32>, Option<u32>, Option<u32>);
+type Bounds = (Option<i32>, Option<i32>, Option<u32>, Option<u32>);
 
 impl CharAtlas {
     pub fn new(font_path: &str) -> Self {
@@ -248,7 +248,7 @@ impl CharAtlas {
 
             for character in text.split("") {
                 if character == "" {continue}
-                if draw_x > max_width.unwrap_or(u32::MAX) || (draw_y + (scale * CONST!(text height) as f32) as u32) < min_height.unwrap_or(u32::MAX) || (draw_x + (scale * CONST!(text height) as f32) as u32) < min_width.unwrap_or(u32::MAX) {
+                if draw_x > max_width.unwrap_or(u32::MAX) || (draw_y as i32 + (scale * CONST!(text height) as f32) as i32) < min_height.unwrap_or(i32::MAX) || (draw_x as i32 + (scale * CONST!(text height) as f32) as i32) < min_width.unwrap_or(i32::MAX) {
                     self.skip_char(&mut draw_x, &mut draw_y, character, scale);
                 } else {
                     self.render_char(app, x, y, &mut draw_x, &mut draw_y, character, z_index, scale);
@@ -315,7 +315,7 @@ impl FontHandler {
 
 pub struct Text {
     pub position: (i32, i32),
-    pub content: &'static str,
+    pub content: String,
     pub bounds: Bounds,
     size: (u32, u32),
     scale: f32,
@@ -328,7 +328,7 @@ impl Text {
     pub fn new(x: i32, y: i32, content: &str, bounds: Bounds, scale: f32, z_index: f32, color: (u8, u8, u8, u8)) -> Self {
         Self {
             position: (x, y),
-            content,
+            content: content.to_string(),
             bounds,
             size: (0, 0),
             scale,
@@ -341,7 +341,7 @@ impl Text {
     pub fn set_styles(&mut self, styles: u8) {
         self.styles = styles;
     }
-
+    
 }
 
 impl Component for Text {

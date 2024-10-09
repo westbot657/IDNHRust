@@ -1,5 +1,5 @@
 use std::{collections::HashMap, time};
-
+use std::ops::Deref;
 use cgmath::{Matrix4, SquareMatrix, Vector4};
 use enigo::{Enigo, Mouse as eMouse, Settings};
 use sdl2::{event::Event, video::Window};
@@ -66,6 +66,25 @@ impl Mouse {
             active_cursor_style: None,
         }
     }
+    
+    pub fn copy_state(&mut self, other: &Mouse) {
+        self.left_down = other.left_down;
+        self.left_up = other.left_up;
+        self.left_held = other.left_held;
+        
+        self.middle_down = other.middle_down;
+        self.middle_up = other.middle_up;
+        self.middle_held = other.middle_held;
+        
+        self.right_down = other.right_down;
+        self.right_up = other.right_up;
+        self.right_held = other.right_held;
+        
+        self.scroll_x = other.scroll_x;
+        self.scroll_y = other.scroll_y;
+        self.position = other.position.clone();
+    }
+    
 }
 
 pub struct Keyboard {
@@ -120,6 +139,7 @@ pub struct App<'a> {
     children: Vec<Box<dyn Component>>,
 
     pub mouse: Mouse,
+    pub last_mouse: Mouse,
     pub keyboard: Keyboard,
     pub enigo: Enigo,
     pub window: &'a mut Window,
@@ -159,6 +179,7 @@ impl<'a> App<'a> {
             camera: Camera::new(window_width, window_height),
             children: Vec::new(),
             mouse: Mouse::new(),
+            last_mouse: Mouse::new(),
             keyboard: Keyboard::new(),
             enigo: Enigo::new(&Settings::default()).unwrap(),
             window,
@@ -181,7 +202,7 @@ impl<'a> App<'a> {
                 &app
             )),
 
-            Box::new(Text::new(0, 0, "FPS", None, 0.3, 1.0, SETTINGS!(text color 4 u8))),
+            Box::new(Text::new(0, 0, "FPS", (None, None, None, None), 0.3, 1.0, SETTINGS!(text color 4 u8))),
 
 
             Box::new(app_selector)
@@ -234,8 +255,9 @@ impl<'a> App<'a> {
         let fps = dt.elapsed().as_secs_f64();
         
         let fps_counter = cast_component!(children.get_mut(1).unwrap() => mut Text);
-        fps_counter.content = format!("{}", 1.0/fps);
-        fps_counter.content = format!("FPS: {}", fps_counter.content[0..8.min(fps_counter.content.len()-1)].to_string());
+        let mut c = format!("{}", 1.0/fps);
+        c = format!("FPS: {}", c[0..8.min(c.len()-1)].to_string());
+        fps_counter.content = c;
         fps_counter.position = (5, (self.window_size.1 - 20) as i32);
         
         fps_counter.update(self);

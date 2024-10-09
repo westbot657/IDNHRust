@@ -14,11 +14,7 @@ rect_packer = "0.2.1"
 rusttype = { version = "0.9.3", features = ["gpu_cache"] }
 sdl2 = { version = "0.37.0", features = ["bundled", "image", "mixer", "unsafe_textures"] }
 toml = { version = "0.8.19", features = ["preserve_order"] }
-tower-lsp = "0.20.0"
-tokio = { version = "1.40.0", features = ["rt", "rt-multi-thread", "macros", "io-std"] }
 serde_json = "1.0.128"
-reqwest = { version = "0.12.7", features = ["json"] }
-zip = "2.2.0"
 fancy-regex = "0.13.0"
 
 [target.'cfg(target_os = "windows")'.dependencies]

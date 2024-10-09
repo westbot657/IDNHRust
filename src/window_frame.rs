@@ -90,7 +90,7 @@ impl WindowFrame {
 
                 Box::new(icon),
                 Box::new(
-                    Text::new(26, 2, title, None, 16.0/50.0, 0.91, (255, 255, 255, 255))
+                    Text::new(26, 2, title, (None, None, None, None), 16.0/50.0, 0.91, (255, 255, 255, 255))
                 )
             ],
             grab_delta: (0, 0),
