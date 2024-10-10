@@ -7,7 +7,7 @@ use crate::app::App;
 pub type IdxSize = usize;
 
 #[derive(Eq)]
-struct Cursor {
+pub struct Cursor {
     pub idx: IdxSize,
     pub selection_idx: Option<IdxSize>,
     pub preferred_column: IdxSize
@@ -21,6 +21,14 @@ impl Cursor {
             preferred_column: 0
         }
     }
+
+    pub fn selection(idx: IdxSize, selection_idx: IdxSize) -> Self {
+        Self {
+            idx,
+            selection_idx: Some(selection_idx),
+            preferred_column: 0
+        }
+    }
     
     pub fn get_range(&self) -> (IdxSize, IdxSize) {
         if self.selection_idx.is_some() {
@@ -29,6 +37,34 @@ impl Cursor {
             (i[0], i[1])
         } else {
             (self.idx, self.idx)
+        }
+    }
+
+    pub fn get_backspace_range(&self) -> (IdxSize, IdxSize) {
+        if self.selection_idx.is_some() {
+            let mut i = vec![self.selection_idx.unwrap(), self.idx];
+            i.sort();
+            (i[0], i[1])
+        } else {
+            if self.idx == 0 {
+                (self.idx, self.idx)
+            } else {
+                (self.idx - 1, self.idx)
+            }
+        }
+    }
+
+    pub fn get_delete_range(&self, content_length: IdxSize) -> (IdxSize, IdxSize) {
+        if self.selection_idx.is_some() {
+            let mut i = vec![self.selection_idx.unwrap(), self.idx];
+            i.sort();
+            (i[0], i[1])
+        } else {
+            if self.idx == content_length {
+                (self.idx, self.idx)
+            } else {
+                (self.idx, self.idx + 1)
+            }
         }
     }
     
@@ -121,8 +157,29 @@ impl TextInputHandler {
 
         Some(idx)
     }
+
+    // /// Splits the current cursors vec into a vec of cursors with selections, and a vec of cursors without selections.
+    // /// The cursors vec will be left empty after this call, so be sure to re-populate it after.
+    // fn split_cursors(&mut self) -> (Vec<Cursor>, Vec<Cursor>) {
+    //     let mut cursors = Vec::new();
+    //     mem::swap(&mut self.cursors, &mut cursors);
+    //
+    //     let mut selections = Vec::new();
+    //     let mut plain = Vec::new();
+    //
+    //     for cur in cursors {
+    //         if cur.selection_idx.is_some() {
+    //             selections.push(cur);
+    //         } else {
+    //             plain.push(cur);
+    //         }
+    //     }
+    //
+    //     (selections, plain)
+    // }
     
     fn merge_groups(ranges: &mut Vec<(IdxSize, IdxSize)>) {
+
         
         let rc1 = ranges.clone();
         let mut rc2 = Vec::new();
@@ -132,6 +189,7 @@ impl TextInputHandler {
         
         for r in rc1 {
             let mut should_add = true;
+            j = 0;
             for r2 in ranges.clone() {
                 if i != j && r2.0 <= r.0 && r.1 <= r2.1 {
                     should_add = false;
@@ -148,7 +206,7 @@ impl TextInputHandler {
         }
         
         i = 0;
-        while i < rc2.len()-2 {
+        while rc2.len() >= 2 && i <= rc2.len()-2 {
             j = i+1;
             if rc2[i].1 >= rc2[j].0 {
                 let r1 = rc2.remove(i);
@@ -159,7 +217,7 @@ impl TextInputHandler {
         }
         
         *ranges = rc2;
-        
+
     }
 
     /// removes duplicate cursor positions
@@ -408,124 +466,112 @@ impl TextInputHandler {
     pub fn collapse_selections(&mut self) {
         let mut regions: Vec<(IdxSize, IdxSize)> = Vec::new();
 
-        regions.push(self.cursor.get_range());
+        let mut offset = 0;
+        let r = self.cursor.get_range();
+        regions.push(r);
 
-        for cursor in &self.cursors {
-            regions.push(cursor.get_range());
+        offset += r.1-r.0;
+        self.cursor.idx = r.0;
+        self.cursor.selection_idx = None;
+
+        for cursor in &mut self.cursors {
+            let r= cursor.get_range();
+            regions.push(r);
+            offset += r.1-r.0;
+            cursor.idx = r.0 - offset;
+            cursor.selection_idx = None;
         }
 
         regions.sort();
         regions.dedup();
 
-        let mut offset = 0;
+        offset = 0;
 
         TextInputHandler::merge_groups(&mut regions);
 
+        for region in regions {
+            self.content = self.content[0..region.0-offset].to_string() + &self.content[region.1-offset..];
+
+            offset += region.1-region.0;
+        }
 
     }
 
     /// does a backspace, accounting for selected text and multiple cursors
     pub fn backspace_at_cursor(&mut self) {
-        let mut indexes = self.secondary_cursors.clone();
-        indexes.push(self.cursor_idx);
-        indexes.sort();
 
-        // thing to account for shifting since we're removing content, which de-syncs the indices
-        let mut idx_mod = 0;
 
         let mut regions: Vec<(IdxSize, IdxSize)> = Vec::new();
 
-        for index in indexes {
-            if self.get_selection_at_index(index).is_none() {
-                if index == 0 {
-                    regions.push((index, index));
-                } else {
-                    regions.push(((index - 1).max(0), index));
-                }
-            }
-        }
+        let mut offset = 0;
+        let r = self.cursor.get_backspace_range();
+        regions.push(r);
+        offset += r.1-r.0;
+        self.cursor.idx = r.0;
+        self.cursor.selection_idx = None;
 
-        for sel in &self.selections {
-            regions.push((sel.start_index+1, sel.end_index))
+        for cursor in &mut self.cursors {
+            let r = cursor.get_backspace_range();
+            regions.push(r);
+            offset += r.1-r.0;
+            cursor.idx = r.0 - offset;
+            cursor.selection_idx = None;
         }
 
         regions.sort();
+        regions.dedup();
 
-        let mut new_cursor_positions: Vec<IdxSize> = Vec::new();
+        offset = 0;
+
+        TextInputHandler::merge_groups(&mut regions);
+
 
         for region in regions {
-
-            let i = (region.0 as i128 - idx_mod as i128).max(0) as IdxSize;
-            let i2 = (region.1 as i128 - idx_mod as i128).max(0) as IdxSize;
-
-            new_cursor_positions.push(i);
-            self.content = self.content[0..i].to_string() + &self.content[i2..];
-            idx_mod += region.1 - region.0;
+            self.content = self.content[0..region.0-offset].to_string() + &self.content[region.1-offset..];
+            offset += region.1-region.0;
         }
 
-        self.cursor_idx = new_cursor_positions[0];
-        self.secondary_cursors.append(&mut new_cursor_positions[1..].to_vec());
-        self.selections.clear();
-
-    }
-
-    pub fn get_selection_at_index(&self, index: IdxSize) -> Option<Selection> {
-        for sel in &self.selections {
-            if (sel.start_index..sel.end_index).contains(&index) {
-                return Some(sel.clone())
-            }
-        }
-
-        None
     }
 
     /// same as backspace_at_cursor, but with delete behavior
     pub fn delete_at_cursor(&mut self) {
-        let mut indexes = self.secondary_cursors.clone();
-        indexes.push(self.cursor_idx);
-        indexes.sort();
-
-        // thing to account for shifting since we're removing content, which de-syncs the indices
-        let mut idx_mod = 0;
 
         let mut regions: Vec<(IdxSize, IdxSize)> = Vec::new();
+        let mut offset = 0;
 
-        for index in indexes {
-            if self.get_selection_at_index(index).is_none() {
-                regions.push((index, (index).min(self.content.len())));
-            }
-        }
+        let r = self.cursor.get_delete_range(self.content.len());
+        regions.push(r);
+        offset += r.1-r.0;
+        self.cursor.selection_idx = None;
 
-        for sel in &self.selections {
-            regions.push((sel.start_index+1, sel.end_index))
+        for cursor in &mut self.cursors {
+            regions.push(cursor.get_delete_range(self.content.len()));
+            cursor.idx = r.0 - offset;
+            offset += r.1-r.0;
+            cursor.selection_idx = None;
         }
 
         regions.sort();
+        regions.dedup();
 
-        let mut new_cursor_positions: Vec<IdxSize> = Vec::new();
+
+        TextInputHandler::merge_groups(&mut regions);
+
+        offset = 0;
 
         for region in regions {
-            new_cursor_positions.push(region.0-idx_mod);
-            self.content = self.content[0..region.0-idx_mod].to_string() + &self.content[region.1-idx_mod..];
-            idx_mod += region.1 - region.0;
+            self.content = self.content[0..region.0-offset].to_string() + &self.content[region.1-offset..];
+            offset += region.1-region.0;
         }
 
-        self.cursor_idx = new_cursor_positions[0];
-        self.secondary_cursors.append(&mut new_cursor_positions[1..].to_vec());
-        self.selections.clear();
-
     }
 
-    /// Returns a Vec of all Selections. This Vec will be empty if no text is selected. Selections will be given in order
-    pub fn get_selections(&self) -> Vec<Selection> {
-        self.selections.clone()
-    }
 }
 
 
 #[cfg(test)]
 mod handler_tests {
-    use crate::text_input_handler::{Selection, TextInputHandler};
+    use crate::text_input_handler::{Cursor, TextInputHandler};
 
     #[test]
     pub fn test_sorting() {
@@ -547,7 +593,7 @@ mod handler_tests {
         let mut handler: TextInputHandler = TextInputHandler::new("This is test ##1".to_string(), true, None, true);
         //                                                                      ^
 
-        handler.cursor_idx = 14;
+        handler.cursor.idx = 14;
 
         handler.backspace_at_cursor();
 
@@ -561,8 +607,8 @@ mod handler_tests {
         let mut handler: TextInputHandler = TextInputHandler::new("This is tesxt ##2".to_string(), true, None, true);
         //                                                                    ^  ^
 
-        handler.cursor_idx = 12;
-        handler.secondary_cursors.push(15);
+        handler.cursor.idx = 12;
+        handler.cursors.push(Cursor::new(15));
 
         handler.backspace_at_cursor();
 
@@ -576,8 +622,8 @@ mod handler_tests {
         let mut handler: TextInputHandler = TextInputHandler::new("This is tesxadt #3".to_string(), true, None, true);
         //                                                                    ^~^
 
-        handler.cursor_idx = 14;
-        handler.selections.push(Selection::new(11, 14, "xad".to_string()));
+        handler.cursor.idx = 14;
+        handler.cursors.push(Cursor::selection(11, 14));
 
         handler.backspace_at_cursor();
 
@@ -589,12 +635,11 @@ mod handler_tests {
         let mut handler: TextInputHandler = TextInputHandler::new("This is tesaddxadt #4".to_string(), true, None, true);
         //                                                                    ^~~~~^
 
-        handler.cursor_idx = 17;
-        handler.secondary_cursors.push(14);
+        handler.cursor.idx = 17;
+        handler.cursors.push(Cursor::new(14));
 
-        handler.selections.push(
-            Selection::new(11, 17, "addxad".to_string())
-        );
+        handler.cursors.push(Cursor::selection(11, 17));
+
 
         handler.backspace_at_cursor();
 

@@ -97,12 +97,12 @@ impl Component for Textbox {
         if self.selected {
             let d = self.cursor_blink_delta.elapsed().as_secs_f64();
             if d % 1.0 <= 0.5 {
-                let p = self.text.get_draw_offset(app, self.handler.cursor_idx).unwrap();
+                let p = self.text.get_draw_offset(app, self.handler.cursor.idx).unwrap();
                 self.cursor_rectangle.position = (p.0 as i32 + 5 + self.position.0, p.1 as i32 + 2 + self.position.1);
                 self.cursor_rectangle.update(app);
                 
-                for cursor in &self.handler.secondary_cursors {
-                    let p = self.text.get_draw_offset(app, *cursor).unwrap();
+                for cursor in &self.handler.cursors {
+                    let p = self.text.get_draw_offset(app, cursor.idx).unwrap();
                     self.cursor_rectangle.position = (p.0 as i32 + 5 + self.position.0, p.1 as i32 + 2 + self.position.1);
                     self.cursor_rectangle.update(app);
                 }
