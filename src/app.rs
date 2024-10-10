@@ -1,4 +1,5 @@
 use std::{collections::HashMap, time};
+use std::collections::VecDeque;
 use std::ops::Deref;
 use cgmath::{Matrix4, SquareMatrix, Vector4};
 use enigo::{Enigo, Mouse as eMouse, Settings};
@@ -149,7 +150,10 @@ pub struct App<'a> {
     pub pre_fullscreen_size: (u32, u32),
     pub monitors: Vec<(i32, i32, u32, u32)>,
     pub keybinds: Keybinds,
-    pub settings: crate::settings::Settings
+    pub settings: crate::settings::Settings,
+
+    pub uid: String
+
 }
 
 
@@ -189,7 +193,8 @@ impl<'a> App<'a> {
             pre_fullscreen_size: (0, 0),
             monitors,
             keybinds: Keybinds::new(&settings),
-            settings
+            settings,
+            uid: "App".to_string(),
         };
 
         let app_selector = AppSelector::new(&app);
@@ -211,6 +216,24 @@ impl<'a> App<'a> {
 
 
         app
+    }
+
+    pub fn get_named_child(&mut self, name: &str) -> Option<&mut dyn Component> {
+        let mut path = name.split('/').collect::<VecDeque<&str>>();
+
+        let p = path.pop_front();
+
+        if p.is_some() {
+            if p.unwrap() == "app" {
+                Some(self)
+            }
+            else {
+                None
+            }
+        } else {
+            None
+        }
+
     }
 
     pub fn set_cursor(&mut self, cursor: String) {
