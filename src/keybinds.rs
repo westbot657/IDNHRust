@@ -1,4 +1,6 @@
 use std::collections::HashMap;
+use toml::map::Map;
+use toml::Value;
 use crate::settings::Settings;
 
 pub struct Keybinds {
@@ -10,16 +12,28 @@ impl Keybinds {
 
     pub fn new(settings: &Settings) -> Self {
 
-        // settings.get("")
+        let bindings_raw = settings.get::<String>("Keybinds").unwrap();
+        
+        let bindings_toml1: toml::Table = toml::from_str(&("A = ".to_string() + &bindings_raw)).unwrap();
+        let bindings_toml = bindings_toml1.get("A").unwrap().as_table().unwrap();
+        
+        let mut bindings: HashMap<String, String> = HashMap::new();
+        
+        for (k, v) in bindings_toml {
+            if v.is_str() {
+                bindings.insert(k.to_string(), v.as_str().unwrap().to_string());
+            }
+        }
+            
 
         Self {
-            bindings: HashMap::new(),
+            bindings,
             bind: "".to_string()
         }
     }
 
     pub fn push_key(&mut self, key: &str) {
-        if self.bind.contains(key) {
+        if self.bind.contains(&(key.to_string() + "+")) {
             return
         }
         self.bind += &(key.to_string() + "+");
@@ -30,9 +44,8 @@ impl Keybinds {
     }
 
     pub fn matches_any(&self) -> bool {
-        println!("{:?}", self.bindings);
+        // println!("Testing if any keybind matches '{}'", self.bind);
         for (k, v) in &self.bindings {
-            println!("{}: {}", k, v);
             if self.check_binding(k) {
                 return true
             }
@@ -42,7 +55,6 @@ impl Keybinds {
 
     pub fn check_binding(&self, binding: &str) -> bool {
         if self.bindings.contains_key(binding) {
-            println!("Contains key");
             let bind = self.bindings.get(binding).unwrap();
 
             let mut pattern = self.bind.strip_suffix("+").unwrap_or(&self.bind.to_string()).to_string();

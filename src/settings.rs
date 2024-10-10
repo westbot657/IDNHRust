@@ -1,5 +1,5 @@
 use std::{fs, str::FromStr};
-
+use std::any::type_name_of_val;
 use toml::{Table, Value};
 
 pub struct Settings {
@@ -57,22 +57,23 @@ impl Settings {
 
     }
 
+    /// setting_value uses '/' to separate nested paths
     pub fn get<T>(&self, setting_value: &str) -> Result<T, String>
     where
         T: FromStr,
-        T::Err: std::fmt::Display,
+        T::Err: std::fmt::Display, <T as FromStr>::Err: std::fmt::Debug
     {
         let setting = Vec::from_iter(setting_value.split("/"));
         // Attempt to traverse the TOML table and retrieve the value
         let result = self.traverse_table(&setting)
             .and_then(|value| {
-                value
-                    .as_str()
-                    .ok_or(format!("Key '{}' is not a string", setting.last().unwrap_or(&"")))
-                    .and_then(|s| {
-                        s.parse::<T>()
-                            .map_err(|e| format!("Failed to parse value: {}", e))
-                    })
+                let res = value.to_string().parse::<T>();
+                
+                if res.is_ok() {
+                    Ok(res.unwrap())
+                } else {
+                    Err("Value is not of requested type".to_string())
+                }
             });
 
         // If traversal or parsing fails, return the default value
@@ -96,7 +97,7 @@ impl Settings {
     pub fn get_default<T>(&self, setting: Vec<&str>) -> Result<T, String>
     where
         T: FromStr,
-        T::Err: std::fmt::Display,
+        T::Err: std::fmt::Display, <T as FromStr>::Err: std::fmt::Debug
     {
         let mut current = &self.default_table;
 
@@ -110,13 +111,13 @@ impl Settings {
         let last_key = setting.last().ok_or("Empty setting path")?;
         match current.get(*last_key) {
             Some(value) => {
-                value
-                    .as_str()
-                    .ok_or(format!("Key '{}' is not a string", last_key))
-                    .and_then(|s| {
-                        s.parse::<T>()
-                            .map_err(|e| format!("Failed to parse value: {}", e))
-                    })
+                let res = value.to_string().parse::<T>();
+
+                if res.is_ok() {
+                    Ok(res.unwrap())
+                } else {
+                    Err("Value is not of requested type".to_string())
+                }
             }
             None => Err(format!("Key '{}' not found", last_key)),
         }

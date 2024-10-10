@@ -7,6 +7,7 @@ use sdl2::image::SaveSurface;
 use crate::{app::App, component::Component, texture_atlas::convert_tex_to_gl, macros::CONST};
 use crate::component::setup_gl_pos_tex;
 use crate::es3::style_flags;
+use crate::text_input_handler::IdxSize;
 
 pub struct CharAtlas {
     chars: HashMap<String, ((u32, u32, u32, u32), i32)>,
@@ -340,6 +341,22 @@ impl Text {
 
     pub fn set_styles(&mut self, styles: u8) {
         self.styles = styles;
+    }
+    
+    pub fn get_draw_offset(&self, app: &App, index: IdxSize) -> Option<(u32, u32)> {
+        
+        if index <= self.content.len() {
+            let mut x: u32 = 0;
+            let mut y: u32 = 0;
+            for c in self.content[0..index].split("") {
+                if c == "" {continue}
+                let font = app.font_handler.style_flagged(self.styles);
+                font.skip_char(&mut x, &mut y, c, self.scale);
+            }
+            return Some((x, y))
+        }
+        
+        None
     }
     
 }

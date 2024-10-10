@@ -1,4 +1,5 @@
 use std::mem;
+use std::time::Instant;
 use crate::app::App;
 use crate::component::Component;
 use crate::macros::collides;
@@ -15,7 +16,9 @@ pub struct Textbox {
     text: Text,
     pub children: Vec<Box<dyn Component>>,
     background_object: Option<Box<dyn Component>>,
-    z_index: f32
+    z_index: f32,
+    cursor_blink_delta: Instant,
+    cursor_rectangle: Rectangle
 }
 
 
@@ -31,7 +34,9 @@ impl Textbox {
             text: Text::new(0, 0, "", (Some(0), Some(0), Some(size.0 - 5), Some(size.1)), 16.0/50.0, z_index, color),
             children: Vec::new(),
             background_object: None,
-            z_index
+            z_index,
+            cursor_blink_delta: Instant::now(),
+            cursor_rectangle: Rectangle::new(0, 0, 2, 16, (255, 255, 255, 255), (z_index + 0.01).min(1.0))
         }
     }
     
@@ -39,7 +44,7 @@ impl Textbox {
         
         self.background_object = Some(
             Box::new(
-                Rectangle::new(self.position.0, self.position.1, self.size.0, self.size.1, color, self.z_index - 0.000001)
+                Rectangle::new(self.position.0, self.position.1, self.size.0, self.size.1, color, self.z_index - 0.0001)
             )
         );
     }
@@ -57,10 +62,13 @@ impl Component for Textbox {
 
         if app.mouse.left_down {
             self.selected = self.hovered;
+            self.cursor_blink_delta = Instant::now();
         }
 
         if self.selected {
-            self.handler.process(app);
+            if self.handler.process(app) {
+                self.cursor_blink_delta = Instant::now();
+            }
         }
 
         self.text.content = self.handler.content.to_string();
@@ -80,8 +88,27 @@ impl Component for Textbox {
 
         self.text.position = (self.position.0 + 5, self.position.1);
 
+        // app.camera.push();
         app.camera.viewport = (self.position.0, self.position.1, (self.position.0 + self.size.0 as i32 + 25) as u32, (self.position.1 + self.size.1 as i32) as u32);
         self.text.update(app);
+        // app.camera.pop();
+        
+        
+        if self.selected {
+            let d = self.cursor_blink_delta.elapsed().as_secs_f64();
+            if d % 1.0 <= 0.5 {
+                let p = self.text.get_draw_offset(app, self.handler.cursor_idx).unwrap();
+                self.cursor_rectangle.position = (p.0 as i32 + 5 + self.position.0, p.1 as i32 + 2 + self.position.1);
+                self.cursor_rectangle.update(app);
+                
+                for cursor in &self.handler.secondary_cursors {
+                    let p = self.text.get_draw_offset(app, *cursor).unwrap();
+                    self.cursor_rectangle.position = (p.0 as i32 + 5 + self.position.0, p.1 as i32 + 2 + self.position.1);
+                    self.cursor_rectangle.update(app);
+                }
+                        
+            }
+        }
 
         app.camera.pop();
 
