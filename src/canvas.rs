@@ -1,3 +1,4 @@
+use std::collections::VecDeque;
 use std::ffi::CString;
 
 use cgmath::{Matrix, Rad};
@@ -18,7 +19,8 @@ pub struct Canvas {
     pub children: Vec<Box<dyn Component>>,
     pub object_tree: ObjectTree,
     pub color: (u8, u8, u8, u8),
-    vao: u32
+    vao: u32,
+    uid: String
 }
 
 impl Canvas {
@@ -47,7 +49,8 @@ impl Canvas {
             children: Vec::new(),
             object_tree: ObjectTree::new(),
             vao,
-            color
+            color,
+            uid: "canvas".to_string(),
         }
     }
 
@@ -204,6 +207,15 @@ impl Component for Canvas {
         app.camera.pop();
 
     }
+
+    fn get_named_child<T>(&self, path: VecDeque<&str>) -> Option<&mut T> {
+        None
+    }
+
+    fn get_element_name(&self) -> &str {
+        &self.uid
+    }
+
 
     fn destroy(self) {
     }

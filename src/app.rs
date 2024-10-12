@@ -6,6 +6,7 @@ use enigo::{Enigo, Mouse as eMouse, Settings};
 use sdl2::{event::Event, video::Window};
 
 use crate::{app_selector::AppSelector, camera::Camera, component::Component, image::Image, keybinds::Keybinds, macros::{cast_component, SETTINGS}, shaders::Shaders, text::{CharAtlas, Text}, texture_atlas::{convert_tex_to_gl, TextureAtlas}, window_frame::WindowFrame};
+use crate::game_app::GameApp;
 use crate::text::FontHandler;
 
 pub struct Mouse {
@@ -152,7 +153,9 @@ pub struct App<'a> {
     pub keybinds: Keybinds,
     pub settings: crate::settings::Settings,
 
-    pub uid: String
+    pub uid: String,
+
+    path: Vec<String>
 
 }
 
@@ -195,6 +198,7 @@ impl<'a> App<'a> {
             keybinds: Keybinds::new(&settings),
             settings,
             uid: "App".to_string(),
+            path: Vec::new(),
         };
 
         let app_selector = AppSelector::new(&app);
@@ -218,7 +222,7 @@ impl<'a> App<'a> {
         app
     }
 
-    pub fn get_named_child(&mut self, name: &str) -> Option<&mut dyn Component> {
+    pub fn get_named_child<T>(&mut self, name: &str) -> Option<&mut T> {
         let mut path = name.split('/').collect::<VecDeque<&str>>();
 
         let p = path.pop_front();
@@ -227,6 +231,22 @@ impl<'a> App<'a> {
             if p.unwrap() == "app" {
                 Some(self)
             }
+            else if p.unwrap() == "frame" {
+                let mut out = self.children.get_mut(0).unwrap();
+                if path.is_empty() {
+                    Some(out)
+                } else {
+                    out.get_named_child(path)
+                }
+            }
+            else if p.unwrap() == "game" {
+                let sel = cast_component!(self.children.get_mut(2) => mut AppSelector);
+                Some(&mut sel.game_app)
+            }
+            else if p.unwrap() == "editor" {
+                let sel = cast_component!(self.children.get_mut(2) => mut AppSelector);
+                Some(&mut sel.editor_app)
+            }
             else {
                 None
             }
@@ -234,6 +254,18 @@ impl<'a> App<'a> {
             None
         }
 
+    }
+
+    pub fn push_child_name(&mut self, name: &str) {
+        self.path.push(name.to_string());
+    }
+
+    pub fn pop_child_name(&mut self) -> Option<String> {
+        self.path.pop()
+    }
+
+    pub fn get_child_path(&self) -> String {
+        self.path.join("/")
     }
 
     pub fn set_cursor(&mut self, cursor: String) {

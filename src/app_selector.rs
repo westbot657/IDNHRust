@@ -1,3 +1,4 @@
+use std::collections::VecDeque;
 use crate::{app::App, component::Component, editor_app::EditorApp, game_app::GameApp, image::Image};
 
 
@@ -13,6 +14,8 @@ pub struct AppSelector {
     
     game_app_unselected: Box<Image>,
     game_app_selected: Box<Image>,
+
+    uid: String,
 }
 
 impl AppSelector {
@@ -42,6 +45,8 @@ impl AppSelector {
                 0, 0, 50, 50, "assets/textures/button/game_app_selected.png".to_string(),
                 (0, 0, 50, 50), 0.91
             )),
+
+            uid: "app_selector".to_string(),
         }
 
     }
@@ -102,6 +107,16 @@ impl Component for AppSelector {
         }
 
     }
+
+    /// App struct bypasses the methods in this struct
+    fn get_named_child<T>(&self, path: VecDeque<&str>) -> Option<&mut T> {
+        None
+    }
+
+    fn get_element_name(&self) -> &str {
+        &self.uid
+    }
+
 
     fn destroy(self) {
     }
