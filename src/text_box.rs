@@ -1,8 +1,8 @@
-use std::mem;
+use std::collections::VecDeque;
 use std::time::Instant;
 use crate::app::App;
 use crate::component::Component;
-use crate::macros::collides;
+use crate::macros::{collides, font_size};
 use crate::rectangle::Rectangle;
 use crate::text::Text;
 use crate::text_input_handler::{IdxSize, TextInputHandler};
@@ -18,7 +18,8 @@ pub struct Textbox {
     background_object: Option<Box<dyn Component>>,
     z_index: f32,
     cursor_blink_delta: Instant,
-    cursor_rectangle: Rectangle
+    cursor_rectangle: Rectangle,
+    pub uid: String
 }
 
 
@@ -31,12 +32,13 @@ impl Textbox {
             size,
             selected: false,
             hovered: false,
-            text: Text::new(0, 0, "", (Some(0), Some(0), Some(size.0 - 5), Some(size.1)), 16.0/50.0, z_index, color),
+            text: Text::new(0, 0, "", (Some(0), Some(0), Some(size.0 - 5), Some(size.1)), font_size!(16.0), z_index, color),
             children: Vec::new(),
             background_object: None,
             z_index,
             cursor_blink_delta: Instant::now(),
-            cursor_rectangle: Rectangle::new(0, 0, 2, 16, (255, 255, 255, 255), (z_index + 0.01).min(1.0))
+            cursor_rectangle: Rectangle::new(0, 0, 2, 16, (255, 255, 255, 255), (z_index + 0.01).min(1.0)),
+            uid: "".to_string()
         }
     }
     
@@ -113,6 +115,15 @@ impl Component for Textbox {
         app.camera.pop();
 
     }
+
+    fn get_named_child(&self, path: VecDeque<&str>) -> Option<&mut dyn Component> {
+        None
+    }
+
+    fn get_element_name(&self) -> &str {
+        &self.uid
+    }
+
 
     fn destroy(self) {
     }

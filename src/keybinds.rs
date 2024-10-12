@@ -1,6 +1,4 @@
 use std::collections::HashMap;
-use toml::map::Map;
-use toml::Value;
 use crate::settings::Settings;
 
 pub struct Keybinds {

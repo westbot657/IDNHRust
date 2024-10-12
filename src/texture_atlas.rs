@@ -6,7 +6,6 @@ use gl::types::GLuint;
 use glob::glob;
 use rect_packer::{Config, Packer};
 use sdl2::{image::LoadSurface, rect::Rect, surface::Surface};
-use sdl2::image::SaveSurface;
 use crate::macros::CONST;
 
 

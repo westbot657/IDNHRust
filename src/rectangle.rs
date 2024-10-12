@@ -1,3 +1,4 @@
+use std::collections::VecDeque;
 use std::ffi::CString;
 
 use cgmath::Matrix;
@@ -5,14 +6,15 @@ use enigo::Mouse;
 use gl::types::GLuint;
 
 use crate::{app::App, component::Component};
-use crate::component::{setup_gl_pos, setup_gl_pos_tex};
+use crate::component::setup_gl_pos;
 
 pub struct Rectangle {
     pub position: (i32, i32),
     pub size: (u32, u32),
     color: (u8, u8, u8, u8),
     vao: GLuint,
-    shader: Option<u32>
+    shader: Option<u32>,
+    pub uid: String
 }
 
 impl Rectangle {
@@ -35,7 +37,8 @@ impl Rectangle {
             size: (width, height),
             color,
             vao,
-            shader: None
+            shader: None,
+            uid: "".to_string() // Most rectangles don't need this so it can be set after creation
         }
     }
 
@@ -116,6 +119,15 @@ impl Component for Rectangle {
     fn update(&mut self, app: &mut App) {
         self.render(app);
     }
+
+    fn get_named_child(&self, path: VecDeque<&str>) -> Option<&mut dyn Component> {
+        None
+    }
+
+    fn get_element_name(&self) -> &str {
+        &self.uid
+    }
+
 
     fn destroy(self) {
     }

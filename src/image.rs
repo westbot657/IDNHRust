@@ -1,3 +1,4 @@
+use std::collections::VecDeque;
 use std::ffi::CString;
 
 use cgmath::Matrix;
@@ -12,7 +13,8 @@ pub struct Image {
     pub src: String,
     pub uv: (u32, u32, u32, u32),
     vao: u32,
-    shader: Option<u32>
+    shader: Option<u32>,
+    pub uid: String
 }
 
 impl Image {
@@ -36,7 +38,8 @@ impl Image {
             src: src.replace("/", "\\"),
             uv,
             vao,
-            shader: None
+            shader: None,
+            uid: "".to_string()
         }
     }
 
@@ -77,10 +80,10 @@ impl Image {
             let uv_loc = gl::GetUniformLocation(shader_program, uv_str.as_ptr());
 
             gl::Uniform4f(uv_loc,
-                (rect.0 + self.uv.0) as f32 / CONST!(atlas) as f32,
-                (rect.1 + self.uv.1) as f32 / CONST!(atlas) as f32,
-                (self.uv.2) as f32 / CONST!(atlas) as f32,
-                (self.uv.3) as f32 / CONST!(atlas) as f32
+                (rect.0 + self.uv.0) as f32 / CONST!(atlas f32),
+                (rect.1 + self.uv.1) as f32 / CONST!(atlas f32),
+                (self.uv.2) as f32 / CONST!(atlas f32),
+                (self.uv.3) as f32 / CONST!(atlas f32)
             );
 
             let cam_str = CString::new("camera").unwrap();
@@ -126,7 +129,16 @@ impl Component for Image {
     fn update(&mut self, app: &mut App) {
         self.render(app);
     }
-    
+
+    fn get_named_child(&self, path: VecDeque<&str>) -> Option<&mut dyn Component> {
+        None
+    }
+
+    fn get_element_name(&self) -> &str {
+        &self.uid
+    }
+
+
     fn destroy(self) {
     }
 }

@@ -26,7 +26,7 @@ pub enum Token {
     Error(String)
 }
 
-struct CompileContext {}
+pub struct CompileContext {}
 
 pub trait Node {
     fn compile(&self, compile_context: &mut CompileContext) -> Value {
@@ -167,7 +167,7 @@ impl TokenStyle {
 }
 
 #[derive(Debug)]
-struct PositionedToken {
+pub struct PositionedToken {
     token: Token,
     index: usize,
     line: usize,
@@ -206,26 +206,26 @@ impl ES3Compiler {
 
     pub fn new() -> Self {
 
-        let mut patterns = Vec::new();
-
-        patterns.push((r"\/\/.*", "COMMENT"));
-        patterns.push((r"(?<!\/)\/\*(\*[^/]|[^*])+\*\/", "COMMENT"));
-        patterns.push((r"\#\![^\n;]*;?", "CONTEXT"));
-        patterns.push(("(\"(\\\\.|[^\"\\\\])*\"|\'(\\\\.|[^\'\\\\])*\')", "STRING"));
-        patterns.push((r"=>[^ ]*", "TAG"));
-        patterns.push((r"\$[a-zA-Z_][a-zA-Z0-9_]*", "MACRO"));
-        patterns.push((r"\b(true|false)\b", "BOOLEAN"));
-        patterns.push((r"(<[^\<\> ]+>)", "OBJECT"));
-        patterns.push((r"(<=|>=|<|>|==|!=)", "COMP"));
-        patterns.push((r"(\.\.|::)", "CONCAT"));
-        patterns.push((r"\b(new|move)\b", "COMMAND"));
-        patterns.push((r"\b(if|elif|else|while|for|in|and|not|or|none|match|case|class|def|break|continue)\b", "KEYWORD"));
-        patterns.push((r"[a-zA-Z_][a-zA-Z0-9_]*", "WORD"));
-        patterns.push((r"(\d+(\.\d+)?|\.\d+)", "NUMBER"));
-        patterns.push((r"[=\-+*/()&\[\]{},#%:|^\.\$;~`]", "LITERAL"));
-        patterns.push((r"\n+", "NEWLINE"));
-        patterns.push((r"[\t ]+", "ignore"));
-        patterns.push((r".", "ERROR"));
+        let patterns = vec![
+            (r"\/\/.*", "COMMENT"),
+            (r"(?<!\/)\/\*(\*[^/]|[^*])+\*\/", "COMMENT"),
+            (r"\#\![^\n;]*;?", "CONTEXT"),
+            ("(\"(\\\\.|[^\"\\\\])*\"|\'(\\\\.|[^\'\\\\])*\')", "STRING"),
+            (r"=>[^ ]*", "TAG"),
+            (r"\$[a-zA-Z_][a-zA-Z0-9_]*", "MACRO"),
+            (r"\b(true|false)\b", "BOOLEAN"),
+            (r"(<[^\<\> ]+>)", "OBJECT"),
+            (r"(<=|>=|<|>|==|!=)", "COMP"),
+            (r"(\.\.|::)", "CONCAT"),
+            (r"\b(new|move)\b", "COMMAND"),
+            (r"\b(if|elif|else|while|for|in|and|not|or|none|match|case|class|def|break|continue)\b", "KEYWORD"),
+            (r"[a-zA-Z_][a-zA-Z0-9_]*", "WORD"),
+            (r"(\d+(\.\d+)?|\.\d+)", "NUMBER"),
+            (r"[=\-+*/()&\[\]{},#%:|^\.\$;~`]", "LITERAL"),
+            (r"\n+", "NEWLINE"),
+            (r"[\t ]+", "ignore"),
+            (r".", "ERROR")
+        ];
 
 
         Self {

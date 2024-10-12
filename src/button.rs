@@ -52,7 +52,7 @@ impl Component for Button {
         app.pop_child_name();
     }
 
-    fn get_named_child<T>(&self, path: VecDeque<&str>) -> Option<&mut T> {
+    fn get_named_child(&self, path: VecDeque<&str>) -> Option<&mut dyn Component> {
         None
     }
 

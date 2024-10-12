@@ -1,5 +1,4 @@
 use std::cmp::Ordering;
-use std::collections::HashMap;
 use std::mem;
 use crate::app::App;
 
@@ -32,7 +31,7 @@ impl Cursor {
     
     pub fn get_range(&self) -> (IdxSize, IdxSize) {
         if self.selection_idx.is_some() {
-            let mut i = vec![self.selection_idx.unwrap(), self.idx];
+            let mut i = [self.selection_idx.unwrap(), self.idx];
             i.sort();
             (i[0], i[1])
         } else {
@@ -42,29 +41,25 @@ impl Cursor {
 
     pub fn get_backspace_range(&self) -> (IdxSize, IdxSize) {
         if self.selection_idx.is_some() {
-            let mut i = vec![self.selection_idx.unwrap(), self.idx];
+            let mut i = [self.selection_idx.unwrap(), self.idx];
             i.sort();
             (i[0], i[1])
+        } else if self.idx == 0 {
+            (self.idx, self.idx)
         } else {
-            if self.idx == 0 {
-                (self.idx, self.idx)
-            } else {
-                (self.idx - 1, self.idx)
-            }
+            (self.idx - 1, self.idx)
         }
     }
 
     pub fn get_delete_range(&self, content_length: IdxSize) -> (IdxSize, IdxSize) {
         if self.selection_idx.is_some() {
-            let mut i = vec![self.selection_idx.unwrap(), self.idx];
+            let mut i = [self.selection_idx.unwrap(), self.idx];
             i.sort();
             (i[0], i[1])
+        } else if self.idx == content_length {
+            (self.idx, self.idx)
         } else {
-            if self.idx == content_length {
-                (self.idx, self.idx)
-            } else {
-                (self.idx, self.idx + 1)
-            }
+            (self.idx, self.idx + 1)
         }
     }
     
@@ -78,7 +73,7 @@ impl PartialEq for Cursor {
 
 impl PartialOrd for Cursor {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        self.idx.partial_cmp(&other.idx)
+        Some(self.cmp(other))
     }
 }
 
@@ -185,7 +180,7 @@ impl TextInputHandler {
         let mut rc2 = Vec::new();
         
         let mut i = 0;
-        let mut j = 0;
+        let mut j;
         
         for r in rc1 {
             let mut should_add = true;

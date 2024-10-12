@@ -1,5 +1,4 @@
 use std::{fs, str::FromStr};
-use std::any::type_name_of_val;
 use toml::{Table, Value};
 
 pub struct Settings {
@@ -69,8 +68,8 @@ impl Settings {
             .and_then(|value| {
                 let res = value.to_string().parse::<T>();
                 
-                if res.is_ok() {
-                    Ok(res.unwrap())
+                if let Ok(r) = res {
+                    Ok(r)
                 } else {
                     Err("Value is not of requested type".to_string())
                 }
@@ -113,8 +112,8 @@ impl Settings {
             Some(value) => {
                 let res = value.to_string().parse::<T>();
 
-                if res.is_ok() {
-                    Ok(res.unwrap())
+                if let Ok(r) = res {
+                    Ok(r)
                 } else {
                     Err("Value is not of requested type".to_string())
                 }

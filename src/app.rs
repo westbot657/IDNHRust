@@ -1,12 +1,11 @@
 use std::{collections::HashMap, time};
 use std::collections::VecDeque;
-use std::ops::Deref;
 use cgmath::{Matrix4, SquareMatrix, Vector4};
 use enigo::{Enigo, Mouse as eMouse, Settings};
 use sdl2::{event::Event, video::Window};
 
-use crate::{app_selector::AppSelector, camera::Camera, component::Component, image::Image, keybinds::Keybinds, macros::{cast_component, SETTINGS}, shaders::Shaders, text::{CharAtlas, Text}, texture_atlas::{convert_tex_to_gl, TextureAtlas}, window_frame::WindowFrame};
-use crate::game_app::GameApp;
+use crate::{app_selector::AppSelector, camera::Camera, component::Component, image::Image, keybinds::Keybinds, macros::{cast_component, SETTINGS}, shaders::Shaders, text::Text, texture_atlas::{convert_tex_to_gl, TextureAtlas}, window_frame::WindowFrame};
+use crate::macros::font_size;
 use crate::text::FontHandler;
 
 pub struct Mouse {
@@ -84,7 +83,7 @@ impl Mouse {
         
         self.scroll_x = other.scroll_x;
         self.scroll_y = other.scroll_y;
-        self.position = other.position.clone();
+        self.position = other.position;
     }
     
 }
@@ -211,7 +210,7 @@ impl<'a> App<'a> {
                 &app
             )),
 
-            Box::new(Text::new(0, 0, "FPS", (None, None, None, None), 0.3, 1.0, SETTINGS!(text color 4 u8))),
+            Box::new(Text::new(0, 0, "FPS", (None, None, None, None), font_size!(15.0), 1.0, SETTINGS!(text color 4 u8))),
 
 
             Box::new(app_selector)
@@ -222,29 +221,26 @@ impl<'a> App<'a> {
         app
     }
 
-    pub fn get_named_child<T>(&mut self, name: &str) -> Option<&mut T> {
+    pub fn get_named_child(&mut self, name: &str) -> Option<&mut dyn Component> {
         let mut path = name.split('/').collect::<VecDeque<&str>>();
 
         let p = path.pop_front();
 
         if p.is_some() {
-            if p.unwrap() == "app" {
-                Some(self)
-            }
-            else if p.unwrap() == "frame" {
+            if p.unwrap() == "frame" {
                 let mut out = self.children.get_mut(0).unwrap();
                 if path.is_empty() {
-                    Some(out)
+                    Some(out.as_mut())
                 } else {
                     out.get_named_child(path)
                 }
             }
             else if p.unwrap() == "game" {
-                let sel = cast_component!(self.children.get_mut(2) => mut AppSelector);
+                let sel = cast_component!(self.children.get_mut(2).unwrap() => mut AppSelector);
                 Some(&mut sel.game_app)
             }
             else if p.unwrap() == "editor" {
-                let sel = cast_component!(self.children.get_mut(2) => mut AppSelector);
+                let sel = cast_component!(self.children.get_mut(2).unwrap() => mut AppSelector);
                 Some(&mut sel.editor_app)
             }
             else {
@@ -311,7 +307,7 @@ impl<'a> App<'a> {
         
         let fps_counter = cast_component!(children.get_mut(1).unwrap() => mut Text);
         let mut c = format!("{}", 1.0/fps);
-        c = format!("FPS: {}", c[0..8.min(c.len()-1)].to_string());
+        c = format!("FPS: {}", &c[0..8.min(c.len()-1)]);
         fps_counter.content = c;
         fps_counter.position = (5, (self.window_size.1 - 20) as i32);
         

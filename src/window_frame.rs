@@ -1,3 +1,4 @@
+use std::collections::VecDeque;
 use std::process::{Child, Command};
 
 use enigo::Mouse;
@@ -13,7 +14,7 @@ use crate::{
     storage_component::StorageComponent,
     text::Text
 };
-
+use crate::macros::font_size;
 
 pub struct WindowFrame {
     children: Vec<Box<dyn Component>>,
@@ -52,7 +53,8 @@ impl WindowFrame {
                         )
                         .with_shader(app.shaders.prox_fade_red)
                         ),
-                    ]
+                    ],
+                    "close_window"
                 )),
 
                 Box::new(Button::new(
@@ -64,7 +66,8 @@ impl WindowFrame {
                         )
                         .with_shader(app.shaders.prox_fade_texture)
                         )
-                    ]
+                    ],
+                    "fullscreen"
                 )),
 
                 Box::new(Button::new(
@@ -76,7 +79,8 @@ impl WindowFrame {
                         )
                         .with_shader(app.shaders.prox_fade_texture)
                         )
-                    ]
+                    ],
+                    "minimize"
                 )),
 
                 Box::new(StorageComponent::new(vec![
@@ -86,11 +90,12 @@ impl WindowFrame {
                     )
                     .with_shader(app.shaders.prox_fade_texture)
                     )
-                ])),
+                ], "windowing_storage"
+                )),
 
                 Box::new(icon),
                 Box::new(
-                    Text::new(26, 2, title, (None, None, None, None), 16.0/50.0, 0.91, (255, 255, 255, 255))
+                    Text::new(26, 2, title, (None, None, None, None), font_size!(16.0), 0.91, (255, 255, 255, 255))
                 )
             ],
             grab_delta: (0, 0),
@@ -167,7 +172,7 @@ impl Component for WindowFrame {
         let top_bar = cast_component!(self.children.get_mut(0).unwrap() => mut Rectangle);
         top_bar.set_size(app.window_size.0, 25);
 
-        let top_bar = cast_component!(self.children.get(0).unwrap() => Rectangle);
+        let top_bar = cast_component!(self.children.first().unwrap() => Rectangle);
 
 
         let exit_button = cast_component!(self.children.get(4).unwrap() => Button);
@@ -440,6 +445,15 @@ impl Component for WindowFrame {
 
 
     }
+
+    fn get_named_child(&self, path: VecDeque<&str>) -> Option<&mut dyn Component> {
+        None
+    }
+
+    fn get_element_name(&self) -> &str {
+        "frame"
+    }
+
 
     fn destroy(self) {
     }

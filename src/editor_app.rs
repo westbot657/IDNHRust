@@ -1,6 +1,6 @@
-use std::collections::HashMap;
+use std::collections::VecDeque;
 use crate::{canvas::Canvas, component::Component, rectangle::Rectangle};
-use crate::es3::style_flags;
+use crate::macros::font_size;
 use crate::text::Text;
 use crate::text_box::Textbox;
 use crate::visibility_toggle::VisibilityToggle;
@@ -29,7 +29,7 @@ impl EditorApp {
 
         let mut children: Vec<Box<dyn Component>> = Vec::new();
 
-        children.push(Box::new(Text::new(50, 20, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz", (None, None, None, None), 16.0/50.0, 0.99, (255, 255, 255, 255))));
+        children.push(Box::new(Text::new(50, 20, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz", (None, None, None, None), font_size!(16.0), 0.99, (255, 255, 255, 255))));
 
         let mut text_box = Textbox::new(
             (50, 90), (300, 20),
@@ -42,16 +42,16 @@ impl EditorApp {
 
         children.push(Box::new(text_box));
 
-        // let mut txt = Text::new(50, 60, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz", None, 16.0/50.0, 1.0, (255, 255, 255, 255));
+        // let mut txt = Text::new(50, 60, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz", None, font_size!(16.0), 1.0, (255, 255, 255, 255));
         // txt.set_styles(style_flags::ITALIC);
         // children.push(Box::new(txt));
         //
-        // let mut txt = Text::new(50, 100, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz", None, 16.0/50.0, 1.0, (255, 255, 255, 255));
+        // let mut txt = Text::new(50, 100, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz", None, font_size!(16.0), 1.0, (255, 255, 255, 255));
         // txt.set_styles(style_flags::BOLD);
         // children.push(Box::new(txt));
         //
         //
-        // let mut txt = Text::new(50, 140, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz", None, 16.0/50.0, 1.0, (255, 255, 255, 255));
+        // let mut txt = Text::new(50, 140, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz", None, font_size!(16.0), 1.0, (255, 255, 255, 255));
         // txt.set_styles(style_flags::BOLD | style_flags::ITALIC);
         // children.push(Box::new(txt));
 
@@ -76,6 +76,15 @@ impl Component for EditorApp {
         }
 
     }
+
+    fn get_named_child(&self, path: VecDeque<&str>) -> Option<&mut dyn Component> {
+        None
+    }
+
+    fn get_element_name(&self) -> &str {
+        "editor"
+    }
+
 
     fn destroy(self) {
     }

@@ -1,9 +1,8 @@
 use std::{collections::HashMap, ffi::CString, panic};
-
+use std::collections::VecDeque;
 use cgmath::Matrix;
 use rect_packer::{Config, Packer};
 use rusttype::{point, Font, GlyphId, Scale};
-use sdl2::image::SaveSurface;
 use crate::{app::App, component::Component, texture_atlas::convert_tex_to_gl, macros::CONST};
 use crate::component::setup_gl_pos_tex;
 use crate::es3::style_flags;
@@ -36,13 +35,13 @@ impl CharAtlas {
 
         let mut chars: HashMap<String, ((u32, u32, u32, u32), i32)> = HashMap::new();
 
-        let data = std::fs::read(font_path).expect(&format!("Cannot find font {}", font_path).as_str());
+        let data = std::fs::read(font_path).unwrap_or_else(|_| panic!("Cannot find font {}", font_path));
 
         let font = Font::try_from_vec(data).unwrap_or_else(|| {
             panic!("Error loading font data from '{:?}'", font_path);
         });
 
-        let height: f32 = CONST!(text height) as f32;
+        let height: f32 = CONST!(text height f32);
 
         let scale = Scale {
             x: height * 2.0,
@@ -140,10 +139,7 @@ impl CharAtlas {
             *draw_y += ((HEIGHT as f32 * scale) + (4.0 * scale)) as u32;
             *draw_x = 0;
         }
-        else if character == " " {
-            *draw_x += ((HEIGHT as f32 / 2.0 * scale) + (4.0 * scale)) as u32;
-        }
-        else if self.chars.contains_key(character) {
+        else if character == " " || self.chars.contains_key(character) {
             *draw_x += ((HEIGHT as f32 / 2.0 * scale) + (4.0 * scale)) as u32;
         }
     }
@@ -186,10 +182,10 @@ impl CharAtlas {
                 let uv_loc = gl::GetUniformLocation(app.shaders.text_program, uv_str.as_ptr());
     
                 gl::Uniform4f(uv_loc,
-                    rect.0.0 as f32 / CONST!(text atlas) as f32,
-                    rect.0.1 as f32 / CONST!(text atlas) as f32,
-                    rect.0.2 as f32 / CONST!(text atlas) as f32,
-                    rect.0.3 as f32 / CONST!(text atlas) as f32
+                    rect.0.0 as f32 / CONST!(text atlas f32),
+                    rect.0.1 as f32 / CONST!(text atlas f32),
+                    rect.0.2 as f32 / CONST!(text atlas f32),
+                    rect.0.3 as f32 / CONST!(text atlas f32)
                 );
 
                 gl::DrawArrays(gl::TRIANGLES, 0, 6);
@@ -248,8 +244,8 @@ impl CharAtlas {
             gl::BindVertexArray(self.vao);
 
             for character in text.split("") {
-                if character == "" {continue}
-                if draw_x > max_width.unwrap_or(u32::MAX) || (draw_y as i32 + (scale * CONST!(text height) as f32) as i32) < min_height.unwrap_or(0) || (draw_x as i32 + (scale * CONST!(text height) as f32) as i32) < min_width.unwrap_or(0) {
+                if character.is_empty() {continue}
+                if draw_x > max_width.unwrap_or(u32::MAX) || (draw_y as i32 + (scale * CONST!(text height f32)) as i32) < min_height.unwrap_or(0) || (draw_x as i32 + (scale * CONST!(text height f32)) as i32) < min_width.unwrap_or(0) {
                     self.skip_char(&mut draw_x, &mut draw_y, character, scale);
                 } else {
                     self.render_char(app, x, y, &mut draw_x, &mut draw_y, character, z_index, scale);
@@ -322,7 +318,8 @@ pub struct Text {
     scale: f32,
     z_index: f32,
     color: (u8, u8, u8, u8),
-    styles: u8
+    styles: u8,
+    pub uid: String
 }
 
 impl Text {
@@ -335,7 +332,8 @@ impl Text {
             scale,
             z_index,
             color,
-            styles: 0
+            styles: 0,
+            uid: "".to_string()
         }
     }
 
@@ -349,7 +347,7 @@ impl Text {
             let mut x: u32 = 0;
             let mut y: u32 = 0;
             for c in self.content[0..index].split("") {
-                if c == "" {continue}
+                if c.is_empty() {continue}
                 let font = app.font_handler.style_flagged(self.styles);
                 font.skip_char(&mut x, &mut y, c, self.scale);
             }
@@ -366,6 +364,15 @@ impl Component for Text {
 
         app.font_handler.style_flagged(self.styles).draw_text(app, self.position.0, self.position.1, &self.content, self.scale, self.bounds, self.z_index, self.color, self.styles)
     }
+
+    fn get_named_child(&self, path: VecDeque<&str>) -> Option<&mut dyn Component> {
+        None
+    }
+
+    fn get_element_name(&self) -> &str {
+        &self.uid
+    }
+
 
     fn destroy(self) {
     }

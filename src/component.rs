@@ -20,7 +20,7 @@ impl<T: 'static> ComponentToAny for T {
 pub trait Component: ComponentToAny {
     fn update(&mut self, app: &mut App);
 
-    fn get_named_child<T>(&self, path: VecDeque<&str>) -> Option<&mut T>;
+    fn get_named_child(&self, path: VecDeque<&str>) -> Option<&mut dyn Component>;
 
     fn get_element_name(&self) -> &str;
 

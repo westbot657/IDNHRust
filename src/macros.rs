@@ -55,11 +55,20 @@ macro_rules! CONST {
     ( text height ) => {
         50
     };
+    ( text height f32 ) => {
+        50.0
+    };
     ( atlas ) => {
         4096
     };
+    ( atlas f32 ) => {
+        4096.0
+    };
     ( text atlas ) => {
         2048
+    };
+    ( text atlas f32 ) => {
+        2048.0
     };
 }
 
@@ -71,7 +80,7 @@ macro_rules! collides {
 
 macro_rules! font_size {
     ( $sz:expr ) => {
-        $sz as f32 / CONST!(text height) as f32
+        $sz / 50.0
     };
 }
 
