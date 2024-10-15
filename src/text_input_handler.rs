@@ -300,7 +300,7 @@ impl TextInputHandler {
                 // do nothing because keybinds
             }
             else if key.len() == 1 {
-                println!("Type '{}'", key);
+                // println!("Type '{}'", key);
                 self.insert_at_cursor(app, key.to_string());
                 out = true;
             }
@@ -329,18 +329,18 @@ impl TextInputHandler {
             else if key == "Left" {
                 self.deselect_all_directional(true, true);
                 self.truncate_cursors();
+                self.set_cursor_preference();
             }
             else if key == "Right" {
                 self.deselect_all_directional(false, true);
                 self.truncate_cursors();
+                self.set_cursor_preference();
             }
             else if key == "Up" {
                 self.deselect_all_directional(true, false);
-                self.set_cursor_preference();
             }
             else if key == "Down" {
                 self.deselect_all_directional(false, false);
-                self.set_cursor_preference();
                 
             }
             else {
@@ -359,7 +359,7 @@ impl TextInputHandler {
             let mut line = 0;
             let mut dx = idx;
             for l in self.content.split_inclusive('\n') {
-                if dx < l.len() {
+                if dx <= l.len() {
                     return Some((line, dx))
                 } else {
                     line += 1;
@@ -599,7 +599,7 @@ mod handler_tests {
 
     #[test]
     pub fn test_backspace_2_cursors() {
-        let mut handler: TextInputHandler = TextInputHandler::new("This is tesxt ##2".to_string(), true, None, true);
+        let mut handler: TextInputHandler = TextInputHandler::new("This is tes t ##2".to_string(), true, None, true);
         //                                                                    ^  ^
 
         handler.cursor.idx = 12;
@@ -614,7 +614,7 @@ mod handler_tests {
     #[test]
     pub fn test_backspace_selection_edge() {
 
-        let mut handler: TextInputHandler = TextInputHandler::new("This is tesxadt #3".to_string(), true, None, true);
+        let mut handler: TextInputHandler = TextInputHandler::new("This is tes   t #3".to_string(), true, None, true);
         //                                                                    ^~^
 
         handler.cursor.idx = 14;
@@ -627,7 +627,7 @@ mod handler_tests {
 
     #[test]
     pub fn test_backspace_selection_2_cursors() {
-        let mut handler: TextInputHandler = TextInputHandler::new("This is tesaddxadt #4".to_string(), true, None, true);
+        let mut handler: TextInputHandler = TextInputHandler::new("This is tes      t #4".to_string(), true, None, true);
         //                                                                    ^~~~~^
 
         handler.cursor.idx = 17;
