@@ -207,7 +207,12 @@ fn main_app() {
 
     video_subsystem.gl_set_swap_interval(0).unwrap();
 
-    let font_handler = FontHandler::new("assets/fonts/Hack-Regular.ttf", "assets/fonts/Hack-Italic.ttf", "assets/fonts/Hack-Bold.ttf", "assets/fonts/Hack-BoldItalic.ttf");
+    let font_handler = FontHandler::new(
+        "assets/fonts/SourceCodePro-Regular.ttf",
+        "assets/fonts/SourceCodePro-It.ttf",
+        "assets/fonts/SourceCodePro-Bold.ttf",
+        "assets/fonts/SourceCodePro-BoldIt.ttf"
+    );
 
     let shader = Shaders::new();
 

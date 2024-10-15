@@ -30,11 +30,10 @@ impl EditorApp {
         let mut children: Vec<Box<dyn Component>> = Vec::new();
 
         children.push(Box::new(Text::new(50, 20, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz", (None, None, None, None), font_size!(16.0), 0.99, (255, 255, 255, 255))));
-
         let mut text_box = Textbox::new(
             (50, 90), (300, 20),
             "",
-            true, None, true,
+            false, None, true,
             1.0, (255, 255, 255, 255)
         );
         

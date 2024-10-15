@@ -37,7 +37,7 @@ impl Textbox {
             background_object: None,
             z_index,
             cursor_blink_delta: Instant::now(),
-            cursor_rectangle: Rectangle::new(0, 0, 2, 16, (255, 255, 255, 255), (z_index + 0.01).min(1.0)),
+            cursor_rectangle: Rectangle::new(0, 0, 1, 16, (255, 255, 255, 255), (z_index + 0.01).min(1.0)),
             uid: "".to_string()
         }
     }
@@ -100,12 +100,12 @@ impl Component for Textbox {
             let d = self.cursor_blink_delta.elapsed().as_secs_f64();
             if d % 1.0 <= 0.5 {
                 let p = self.text.get_draw_offset(app, self.handler.cursor.idx).unwrap();
-                self.cursor_rectangle.position = (p.0 as i32 + 5 + self.position.0, p.1 as i32 + 2 + self.position.1);
+                self.cursor_rectangle.position = (p.0 as i32 + 3 + self.position.0, p.1 as i32 + 2 + self.position.1);
                 self.cursor_rectangle.update(app);
                 
                 for cursor in &self.handler.cursors {
                     let p = self.text.get_draw_offset(app, cursor.idx).unwrap();
-                    self.cursor_rectangle.position = (p.0 as i32 + 5 + self.position.0, p.1 as i32 + 2 + self.position.1);
+                    self.cursor_rectangle.position = (p.0 as i32 + 3 + self.position.0, p.1 as i32 + 2 + self.position.1);
                     self.cursor_rectangle.update(app);
                 }
                         
