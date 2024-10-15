@@ -23,7 +23,7 @@ impl EditorApp {
             )
         );
 
-        let mut visibility_toggles = vec![
+        let visibility_toggles = vec![
             VisibilityToggle::new("weapons"),
         ];
 
@@ -69,6 +69,8 @@ impl Component for EditorApp {
         self.canvas.size = (app.window_size.0 - 360, app.window_size.1 - 100);
 
         // self.canvas.update(app);
+        
+        
 
         for child in &mut self.children {
             child.update(app);

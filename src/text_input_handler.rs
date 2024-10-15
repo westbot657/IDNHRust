@@ -102,7 +102,8 @@ pub struct TextInputHandler {
     enforce_max_length: bool,
     allow_editing: bool,
     pub cursor: Cursor,
-    pub cursors: Vec<Cursor>
+    pub cursors: Vec<Cursor>,
+    pub flags: u8
 }
 
 
@@ -122,7 +123,25 @@ impl TextInputHandler {
             enforce_max_length: max_length.is_some(),
             allow_editing,
             cursor: Cursor::new(0),
-            cursors: Vec::new()
+            cursors: Vec::new(),
+            flags: 0b_0000_0000
+        }
+    }
+    
+    /// returns whether the cursor was updated in a way that would cause a traditional editor to focus on it.
+    /// The flag is set to false after querying
+    pub fn should_focus_cursor(&mut self) -> bool {
+        
+        let out = self.flags & 0b_0000_0001 != 0;
+        self.set_focus_cursor(false);
+        out
+    }
+    
+    fn set_focus_cursor(&mut self, val: bool) {
+        if val {
+            self.flags |= 0b_0000_0001;
+        } else {
+            self.flags &= !0b_0000_0001;
         }
     }
 
@@ -363,12 +382,13 @@ impl TextInputHandler {
             if app.keybinds.check_binding("Copy") {
                 self.copy_at_cursor();
                 self.set_cursor_preference();
+                self.set_focus_cursor(true);
 
             }
             else if app.keybinds.check_binding("Cut") {
                 self.cut_at_cursor();
                 self.set_cursor_preference();
-
+                self.set_focus_cursor(true);
             }
             else if app.keybinds.check_binding("Paste") {
                 if self.enforce_max_length && self.content.len() >= self.max_length { continue }
@@ -377,6 +397,7 @@ impl TextInputHandler {
                     self.content = self.content[0..self.max_length].to_owned();
                 }
                 self.set_cursor_preference();
+                self.set_focus_cursor(true);
             }
             else if app.keybinds.check_binding("Select-All") {
                 self.cursor.idx = self.content.len();
@@ -393,26 +414,26 @@ impl TextInputHandler {
                 self.insert_at_cursor(app, key.to_string());
                 out = true;
                 self.set_cursor_preference();
-
+                self.set_focus_cursor(true);
             }
             else if key == "Space" {
                 if self.enforce_max_length && self.content.len() >= self.max_length { continue }
                 self.insert_at_cursor(app, " ".to_string());
                 out = true;
                 self.set_cursor_preference();
-
+                self.set_focus_cursor(true);
             }
             else if key == "Backspace" {
                 self.backspace_at_cursor();
                 out = true;
                 self.set_cursor_preference();
-
+                self.set_focus_cursor(true);
             }
             else if key == "Delete" {
                 self.delete_at_cursor();
                 out = true;
                 self.set_cursor_preference();
-
+                self.set_focus_cursor(true);
             }
             else if key == "Return" || key == "Keypad Enter" {
                 if self.allow_newlines {
@@ -421,6 +442,7 @@ impl TextInputHandler {
                     out = true;
                     self.set_cursor_preference();
                 }
+                self.set_focus_cursor(true);
             }
             else if key.starts_with("Keypad") {
                 if self.enforce_max_length && self.content.len() >= self.max_length { continue }
@@ -428,6 +450,7 @@ impl TextInputHandler {
                     self.insert_at_cursor(app, key[key.len()-2..].to_string());
                     out = true;
                     self.set_cursor_preference();
+                    self.set_focus_cursor(true);
                 }
             }
             else if key == "Left" {
@@ -448,6 +471,7 @@ impl TextInputHandler {
                 self.truncate_cursors();
                 self.set_cursor_preference();
                 out = true;
+                self.set_focus_cursor(true);
             }
             else if key == "Right" {
                 if app.keyboard.shift_held {
@@ -467,6 +491,7 @@ impl TextInputHandler {
                 self.truncate_cursors();
                 self.set_cursor_preference();
                 out = true;
+                self.set_focus_cursor(true);
             }
             else if key == "Up" {
                 if app.keyboard.shift_held {
@@ -485,6 +510,7 @@ impl TextInputHandler {
                 self.move_cursors(true);
                 self.truncate_cursors();
                 out = true;
+                self.set_focus_cursor(true);
             }
             else if key == "Down" {
                 if app.keyboard.shift_held {
@@ -503,6 +529,7 @@ impl TextInputHandler {
                 self.move_cursors(false);
                 self.truncate_cursors();
                 out = true;
+                self.set_focus_cursor(true);
             }
             else {
                 println!("Unprocessed event: {}", key);

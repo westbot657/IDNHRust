@@ -315,10 +315,10 @@ pub struct Text {
     pub content: String,
     pub bounds: Bounds,
     size: (u32, u32),
-    scale: f32,
+    pub scale: f32,
     z_index: f32,
     color: (u8, u8, u8, u8),
-    styles: u8,
+    pub styles: u8,
     pub uid: String
 }
 

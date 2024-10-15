@@ -19,7 +19,8 @@ pub struct Textbox {
     z_index: f32,
     cursor_blink_delta: Instant,
     cursor_rectangle: Rectangle,
-    pub uid: String
+    pub uid: String,
+    offset: (i32, i32),
 }
 
 
@@ -38,7 +39,8 @@ impl Textbox {
             z_index,
             cursor_blink_delta: Instant::now(),
             cursor_rectangle: Rectangle::new(0, 0, 1, 16, (255, 255, 255, 255), (z_index + 0.01).min(1.0)),
-            uid: "".to_string()
+            uid: "".to_string(),
+            offset: (0, 0),
         }
     }
     
@@ -55,6 +57,16 @@ impl Textbox {
         self.background_object = None;
     }
     
+    pub fn set_offset(&mut self, offset: (i32, i32)) {
+        self.offset = offset;
+    }
+    
+    /// Sets the offset to the nearest offset that contains `region` in the text-box's bounding box
+    /// if a dimension of region is larger than the bounding box, that axis will be centered
+    pub fn encapsulate_region(&mut self, region: (i32, i32, u32, u32), padding: u32) {
+        
+    }
+    
 }
 
 
@@ -62,6 +74,12 @@ impl Component for Textbox {
     fn update(&mut self, app: &mut App) {
         self.hovered = collides!(app, self, app.mouse.position);
 
+        self.set_offset(app.mouse.position);
+        
+        if self.hovered {
+            app.set_cursor("IBeam".to_string());
+        }
+        
         if app.mouse.left_down {
             self.selected = self.hovered;
             self.cursor_blink_delta = Instant::now();
@@ -71,6 +89,23 @@ impl Component for Textbox {
             if self.handler.process(app) {
                 self.cursor_blink_delta = Instant::now();
             }
+            
+            if self.handler.should_focus_cursor() {
+                let (mut dx, mut dy) = self.handler.get_text_pos(self.handler.cursor.idx).unwrap();
+                
+                let mut w = 0;
+                let mut h = 0;
+                
+                app.font_handler.style_flagged(self.text.styles).skip_char(&mut w, &mut 0, " ", self.text.scale);
+                app.font_handler.style_flagged(self.text.styles).skip_char(&mut 0, &mut h, "\n", self.text.scale);
+                
+                dx *= w as IdxSize;
+                dy *= h as IdxSize;
+                
+                
+                
+            }
+            
         }
 
         self.text.content = self.handler.content.to_string();
@@ -90,10 +125,10 @@ impl Component for Textbox {
 
         self.text.position = (self.position.0 + 5, self.position.1);
 
-        // app.camera.push();
         app.camera.viewport = (self.position.0, self.position.1, (self.position.0 + self.size.0 as i32 + 25) as u32, (self.position.1 + self.size.1 as i32) as u32);
+        app.camera.push();
+        app.camera.set_ipos(self.offset.0, self.offset.1);
         self.text.update(app);
-        // app.camera.pop();
         
         
         if self.selected {
@@ -111,7 +146,7 @@ impl Component for Textbox {
                         
             }
         }
-
+        app.camera.pop();
         app.camera.pop();
 
     }
