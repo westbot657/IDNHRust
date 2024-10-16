@@ -292,11 +292,11 @@ fn main_app() {
                             app.keyboard.triggered_keys.push(key);
                         }
                         else {
-                            if key == "Left Control" {
+                            if key == "Left Ctrl" {
                                 app.keyboard.lctrl_held = true;
                                 app.keyboard.ctrl_held = true;
                             }
-                            else if key == "Right Control" {
+                            else if key == "Right Ctrl" {
                                 app.keyboard.rctrl_held = true;
                                 app.keyboard.ctrl_held = true;
 
@@ -319,7 +319,9 @@ fn main_app() {
                                 app.keyboard.alt_held = true;
                             }
 
-                            app.keyboard.triggered_keys.push(key.clone());
+                            if key.chars().count() > 1 {
+                                app.keyboard.triggered_keys.push(key.clone());
+                            }
                             app.keybinds.push_key(&key);
                             app.keyboard.newly_pressed_keys.push(key.clone());
                             app.keyboard.held_keys.push(key);
@@ -333,11 +335,11 @@ fn main_app() {
                     if scancode.is_some() {
                         let key = scancode.unwrap().name().to_string();
 
-                        if key == "Left Control" {
+                        if key == "Left Ctrl" {
                             app.keyboard.lctrl_held = false;
                             app.keyboard.ctrl_held = app.keyboard.rctrl_held;
                         }
-                        else if key == "Right Control" {
+                        else if key == "Right Ctrl" {
                             app.keyboard.rctrl_held = false;
                             app.keyboard.ctrl_held = app.keyboard.lctrl_held;
 
@@ -388,10 +390,16 @@ fn main_app() {
                     app.mouse.scroll_y = sy;
 
                 }
-                sdl2::event::Event::Window {timestamp: _, window_id: _, win_event} => {
+                sdl2::event::Event::Window { timestamp: _, window_id: _, win_event } => {
                     if win_event == WindowEvent::FocusGained {
                         app.window.restore();
                         app.window.raise();
+                    }
+                }
+                sdl2::event::Event::TextInput { timestamp: _, window_id: _, ref text } => {
+                    println!("{:?}", event);
+                    if !app.keyboard.triggered_keys.contains(text) {
+                        app.keyboard.triggered_keys.push(text.clone());
                     }
                 }
                 _ => {

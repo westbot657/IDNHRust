@@ -307,7 +307,9 @@ impl<'a> App<'a> {
         
         let fps_counter = cast_component!(children.get_mut(1).unwrap() => mut Text);
         let mut c = format!("{}", 1.0/fps);
-        c = format!("FPS: {}", &c[0..8.min(c.len()-1)]);
+        c = format!("FPS: {}",
+            &c[0..8.min(c.len()-1)],
+        );
         fps_counter.content = c;
         fps_counter.position = (5, (self.window_size.1 - 20) as i32);
         

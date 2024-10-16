@@ -1,5 +1,6 @@
 use std::cmp::Ordering;
 use std::mem;
+use fancy_regex::Regex;
 use crate::app::App;
 
 // Using this ensures that all text edit indexing uses the same type
@@ -103,7 +104,8 @@ pub struct TextInputHandler {
     allow_editing: bool,
     pub cursor: Cursor,
     pub cursors: Vec<Cursor>,
-    pub flags: u8
+    pub flags: u8,
+    alt_buffer: u8
 }
 
 
@@ -124,7 +126,8 @@ impl TextInputHandler {
             allow_editing,
             cursor: Cursor::new(0),
             cursors: Vec::new(),
-            flags: 0b_0000_0000
+            flags: 0b_0000_0000,
+            alt_buffer: 0
         }
     }
     
@@ -164,7 +167,7 @@ impl TextInputHandler {
         while l > 0 {
             if let Some(s) = lines.next() {
                 l -= 1;
-                idx += s.len();
+                idx += s.chars().count();
             } else {
                 return None
             }
@@ -268,7 +271,7 @@ impl TextInputHandler {
             }
             
         } else {
-            let l = self.content.len();
+            let l = self.content.chars().count();
             if self.cursor.selection_idx.is_some() {
                 self.cursor.idx = self.cursor.idx.min(self.cursor.selection_idx.unwrap());
             } else if self.cursor.idx < l && move_cursors {
@@ -298,10 +301,89 @@ impl TextInputHandler {
     }
 
     pub fn ctrl_move(&mut self, left: bool) {
+        println!("Ctrl move");
         if left {
+            let pattern = Regex::new(r"(\w+ *|. *)").unwrap();
+            let (l, c) = self.get_text_pos(self.cursor.idx).unwrap();
+            let mut line = self.get_line(l).unwrap().to_string();
+            let mut offset = 0;
+            
+            for mat in pattern.find_iter(&line) {
+                println!("{:?}", mat);
+                if let Ok(m) = mat {
+                    println!("match left: {:?}", m);
+                    if c <= m.end() {
+                        offset = m.start();
+                        self.cursor.idx -= c-offset;
+                        break
+                    }
+                }
+            }
+            
+            let mut cursors = Vec::new();
+            
+            mem::swap(&mut cursors, &mut self.cursors);
+            
+            for cursor in &mut cursors {
+                let (l, c) = self.get_text_pos(cursor.idx).unwrap();
+                line = self.get_line(l).unwrap().to_string();
+                let mut offset = 0;
+
+                for mat in pattern.find_iter(&line) {
+                    println!("{:?}", mat);
+                    if let Ok(m) = mat {
+                        if c <= m.end() {
+                            offset = m.start();
+                            cursor.idx -= c-offset;
+                            break
+                        }
+                    }
+                }
+            }
+            
+            mem::swap(&mut cursors, &mut self.cursors);
+            
+            
 
         } else {
+            let pattern = Regex::new(r"( *\w+| *.)").unwrap();
+            let (l, c) = self.get_text_pos(self.cursor.idx).unwrap();
+            let mut line = self.get_line(l).unwrap().to_string();
+           
+            let mut offset = 0;
 
+            for mat in pattern.find_iter(&line) {
+                println!("{:?}", mat);
+                if let Ok(m) = mat {
+                    if m.start() <= c && c < m.end() {
+                        offset = m.end();
+                        self.cursor.idx += offset-c;
+                    }
+                }
+            }
+
+            let mut cursors = Vec::new();
+
+            mem::swap(&mut cursors, &mut self.cursors);
+
+            for cursor in &mut cursors {
+                let (l, c) = self.get_text_pos(cursor.idx).unwrap();
+                line = self.get_line(l).unwrap().to_string();
+                let mut offset = 0;
+
+                for mat in pattern.find_iter(&line) {
+                    println!("{:?}", mat);
+                    if let Ok(m) = mat {
+                        if m.start() <= c && c < m.end() {
+                            offset = m.end();
+                            self.cursor.idx += offset-c;
+                        }
+                    }
+                }
+            }
+
+            mem::swap(&mut cursors, &mut self.cursors);
+            
         }
     }
 
@@ -315,7 +397,7 @@ impl TextInputHandler {
                 self.cursor.preferred_column = 0;
             } else {
                 let ln = self.get_line(line - 1).unwrap();
-                let col = ln.len().min(self.cursor.preferred_column);
+                let col = ln.chars().count().min(self.cursor.preferred_column);
                 self.cursor.idx = self.get_index(line-1, col).unwrap();
             }
 
@@ -329,7 +411,7 @@ impl TextInputHandler {
                     cursor.preferred_column = 0;
                 } else {
                     let ln = self.get_line(line - 1).unwrap();
-                    let col = ln.len().min(cursor.preferred_column);
+                    let col = ln.chars().count().min(cursor.preferred_column);
                     cursor.idx = self.get_index(line-1, col).unwrap();
                 }
             }
@@ -343,10 +425,10 @@ impl TextInputHandler {
             let next_line = self.get_line(line + 1);
 
             if next_line.is_none() {
-                self.cursor.idx = self.content.len();
-                self.cursor.preferred_column = self.get_line(line).unwrap().len();
+                self.cursor.idx = self.content.chars().count();
+                self.cursor.preferred_column = self.get_line(line).unwrap().chars().count();
             } else {
-                let col = next_line.unwrap().len().min(self.cursor.preferred_column);
+                let col = next_line.unwrap().chars().count().min(self.cursor.preferred_column);
                 self.cursor.idx = self.get_index(line+1, col).unwrap();
             }
 
@@ -358,10 +440,10 @@ impl TextInputHandler {
                 let next_line = self.get_line(line + 1);
 
                 if next_line.is_none() {
-                    cursor.idx = self.content.len();
-                    cursor.preferred_column = self.get_line(line).unwrap().len();
+                    cursor.idx = self.content.chars().count();
+                    cursor.preferred_column = self.get_line(line).unwrap().chars().count();
                 } else {
-                    let col = next_line.unwrap().len().min(cursor.preferred_column);
+                    let col = next_line.unwrap().chars().count().min(cursor.preferred_column);
                     cursor.idx = self.get_index(line+1, col).unwrap();
                 }
             }
@@ -377,52 +459,56 @@ impl TextInputHandler {
             return false;
         }
         let mut out = false;
-        for key in &app.keyboard.triggered_keys {
 
-            if app.keybinds.check_binding("Copy") {
-                self.copy_at_cursor();
-                self.set_cursor_preference();
-                self.set_focus_cursor(true);
+        if app.keybinds.check_binding("Copy") {
+            self.copy_at_cursor();
+            self.set_cursor_preference();
+            self.set_focus_cursor(true);
 
-            }
-            else if app.keybinds.check_binding("Cut") {
-                self.cut_at_cursor();
-                self.set_cursor_preference();
-                self.set_focus_cursor(true);
-            }
-            else if app.keybinds.check_binding("Paste") {
-                if self.enforce_max_length && self.content.len() >= self.max_length { continue }
+        }
+        else if app.keybinds.check_binding("Cut") {
+            self.cut_at_cursor();
+            self.set_cursor_preference();
+            self.set_focus_cursor(true);
+        }
+        else if app.keybinds.check_binding("Paste") {
+            if !(self.enforce_max_length && self.content.chars().count() >= self.max_length) {
                 self.paste_at_cursor();
-                if self.content.len() > self.max_length {
-                    self.content = self.content[0..self.max_length].to_owned();
+                if self.content.chars().count() > self.max_length {
+                    // self.content = self.content[0..self.max_length].to_owned();
+                    self.content = self.content.chars().take(self.max_length).collect::<String>()
                 }
                 self.set_cursor_preference();
                 self.set_focus_cursor(true);
             }
-            else if app.keybinds.check_binding("Select-All") {
-                self.cursor.idx = self.content.len();
-                self.cursor.selection_idx = Some(0);
-                self.cursors.clear();
-            }
-            else if app.keybinds.matches_any() {
+        }
+        else if app.keybinds.check_binding("Select-All") {
+            self.cursor.idx = self.content.chars().count();
+            self.cursor.selection_idx = Some(0);
+            self.cursors.clear();
+        }
+        
+        for key in &app.keyboard.triggered_keys {
+            
+            if app.keybinds.matches_any() || app.keyboard.alt_held {
                 // println!("Keybind");
                 // do nothing because keybinds
             }
-            else if key.len() == 1 {
-                if self.enforce_max_length && self.content.len() >= self.max_length { continue }
+            else if key.chars().count() == 1 {
+                if self.enforce_max_length && self.content.chars().count() >= self.max_length { continue }
                 // println!("Type '{}'", key);
                 self.insert_at_cursor(app, key.to_string());
                 out = true;
                 self.set_cursor_preference();
                 self.set_focus_cursor(true);
             }
-            else if key == "Space" {
-                if self.enforce_max_length && self.content.len() >= self.max_length { continue }
-                self.insert_at_cursor(app, " ".to_string());
-                out = true;
-                self.set_cursor_preference();
-                self.set_focus_cursor(true);
-            }
+            // else if key == "Space" {
+            //     if self.enforce_max_length && self.content.chars().count() >= self.max_length { continue }
+            //     self.insert_at_cursor(app, " ".to_string());
+            //     out = true;
+            //     self.set_cursor_preference();
+            //     self.set_focus_cursor(true);
+            // }
             else if key == "Backspace" {
                 self.backspace_at_cursor();
                 out = true;
@@ -437,37 +523,55 @@ impl TextInputHandler {
             }
             else if key == "Return" || key == "Keypad Enter" {
                 if self.allow_newlines {
-                    if self.enforce_max_length && self.content.len() >= self.max_length { continue; }
+                    if self.enforce_max_length && self.content.chars().count() >= self.max_length { continue; }
                     self.insert_at_cursor(app, "\n".to_string());
                     out = true;
                     self.set_cursor_preference();
                 }
                 self.set_focus_cursor(true);
             }
-            else if key.starts_with("Keypad") {
-                if self.enforce_max_length && self.content.len() >= self.max_length { continue }
-                if key.rsplit_once(" ").is_some_and(|x| { x.1.len() == 1 }) {
-                    self.insert_at_cursor(app, key[key.len()-2..].to_string());
-                    out = true;
-                    self.set_cursor_preference();
-                    self.set_focus_cursor(true);
-                }
-            }
+            // else if key.starts_with("Keypad") {
+            //     if self.enforce_max_length && self.content.chars().count() >= self.max_length { continue }
+            //     if key.rsplit_once(" ").is_some_and(|x| { x.1.chars().count() == 1 }) {
+            //         self.insert_at_cursor(app, key[key.chars().count()-1..].to_string());
+            //         out = true;
+            //         self.set_cursor_preference();
+            //         self.set_focus_cursor(true);
+            //     }
+            // }
             else if key == "Left" {
                 if app.keyboard.shift_held {
                     if self.cursor.selection_idx.is_none() {
                         self.cursor.selection_idx = Some(self.cursor.idx);
                     }
+                    if !app.keyboard.ctrl_held {
+                        if self.cursor.idx > 0 {
+                            self.cursor.idx -= 1;
+                        }
+                    }
+                    
                     for cursor in &mut self.cursors {
                         if cursor.selection_idx.is_none() {
                             cursor.selection_idx = Some(cursor.idx);
                         }
+                        if !app.keyboard.ctrl_held {
+                            if cursor.idx > 0 {
+                                cursor.idx -= 1;
+                            }
+                        }
                     }
 
+                    if app.keyboard.ctrl_held {
+                        self.ctrl_move(true);
+                    }
+                    
                 } else {
-                    self.deselect_all_directional(true, true);
+                    if app.keyboard.ctrl_held {
+                        self.ctrl_move(true);
+                    } else {
+                        self.deselect_all_directional(true, true);
+                    }
                 }
-                if app.keyboard.ctrl_held { self.ctrl_move(true) };
                 self.truncate_cursors();
                 self.set_cursor_preference();
                 out = true;
@@ -478,16 +582,31 @@ impl TextInputHandler {
                     if self.cursor.selection_idx.is_none() {
                         self.cursor.selection_idx = Some(self.cursor.idx);
                     }
+                    if !app.keyboard.ctrl_held {
+                        self.cursor.idx = self.content.chars().count().min(self.cursor.idx + 1);
+                    }
+                    
                     for cursor in &mut self.cursors {
                         if cursor.selection_idx.is_none() {
                             cursor.selection_idx = Some(cursor.idx);
                         }
+                        if !app.keyboard.ctrl_held {
+                            cursor.idx = self.content.chars().count().min(cursor.idx + 1);
+                        }
                     }
+                    
+                    if app.keyboard.ctrl_held {
+                        self.ctrl_move(false);
+                    }
+                    
 
                 } else {
-                    self.deselect_all_directional(false, true);
+                    if app.keyboard.ctrl_held {
+                        self.ctrl_move(false)
+                    } else {
+                        self.deselect_all_directional(false, true);
+                    }
                 }
-                if app.keyboard.ctrl_held { self.ctrl_move(false) };
                 self.truncate_cursors();
                 self.set_cursor_preference();
                 out = true;
@@ -505,7 +624,11 @@ impl TextInputHandler {
                     }
                     
                 } else {
-                    self.deselect_all_directional(true, false);
+                    if app.keyboard.ctrl_held {
+                        self.ctrl_move(false)
+                    } else {
+                        self.deselect_all_directional(false, true);
+                    }
                 }
                 self.move_cursors(true);
                 self.truncate_cursors();
@@ -543,18 +666,18 @@ impl TextInputHandler {
     /// The index of self.content.len() is considered valid
     /// line and column start at 0
     pub fn get_text_pos(&self, idx: IdxSize) -> Option<(IdxSize, IdxSize)> {
-        if self.content.len() == 0 {
+        if self.content.chars().count() == 0 {
             return Some((0, 0))
         }
-        if idx <= self.content.len() {
+        if idx <= self.content.chars().count() {
             let mut line = 0;
             let mut dx = idx;
             for l in self.content.split_inclusive('\n') {
-                if dx <= l.len() {
+                if dx <= l.chars().count() {
                     return Some((line, dx))
                 } else {
                     line += 1;
-                    dx -= l.len();
+                    dx -= l.chars().count();
                 }
             }
         }
@@ -570,7 +693,7 @@ impl TextInputHandler {
                 idx += column;
                 return Some(idx)
             }
-            idx += ln.len();
+            idx += ln.chars().count();
             i += 1;
         }
 
@@ -580,7 +703,7 @@ impl TextInputHandler {
     /// Removes additional cursors and deselects all text, moves the cursor to the specified position (clamped to the length of the text)
     pub fn set_cursor_index(&mut self, idx: IdxSize) {
         self.cursors.clear();
-        self.cursor.idx = idx;
+        self.cursor.idx = idx.min(self.content.chars().count());
         self.cursor.selection_idx = None;
 
     }
@@ -588,7 +711,7 @@ impl TextInputHandler {
     pub fn mod_char(&self, app: &App, c: &str) -> String {
         if app.keyboard.shift_held {
             {
-                if c == "`" { "~" }
+                if c == "`" {"~"}
                 else if c == "1" {"!"}
                 else if c == "2" {"@"}
                 else if c == "3" {"#"}
@@ -633,11 +756,14 @@ impl TextInputHandler {
         cursors.sort();
 
         for cursor in cursors {
-            self.content = self.content[0..cursor].to_string() + &self.mod_char(app, &content) + &self.content[cursor..];
+            // self.content = self.content[0..cursor].to_string() + &self.mod_char(app, &content) + &self.content[cursor..];
+            self.content = self.content.chars().take(cursor - offset).collect::<String>()
+                + &self.mod_char(app, &content)
+                + &self.content.chars().skip(cursor - offset).collect::<String>();
             if cursor + offset <= self.cursor.idx {
-                self.cursor.idx += content.len();
+                self.cursor.idx += content.chars().count();
             }
-            offset += content.len();
+            offset += content.chars().count();
         }
 
 
@@ -691,7 +817,8 @@ impl TextInputHandler {
         TextInputHandler::merge_groups(&mut regions);
 
         for region in regions {
-            self.content = self.content[0..region.0-offset].to_string() + &self.content[region.1-offset..];
+            self.content = self.content.chars().take(region.0 - offset).collect::<String>()
+                + &self.content.chars().skip(region.1 - offset).collect::<String>();
 
             offset += region.1-region.0;
         }
@@ -728,7 +855,8 @@ impl TextInputHandler {
 
 
         for region in regions {
-            self.content = self.content[0..region.0-offset].to_string() + &self.content[region.1-offset..];
+            self.content = self.content.chars().take(region.0 - offset).collect::<String>()
+                + &self.content.chars().skip(region.1 - offset).collect::<String>();
             offset += region.1-region.0;
         }
 
@@ -740,13 +868,13 @@ impl TextInputHandler {
         let mut regions: Vec<(IdxSize, IdxSize)> = Vec::new();
         let mut offset = 0;
 
-        let r = self.cursor.get_delete_range(self.content.len());
+        let r = self.cursor.get_delete_range(self.content.chars().count());
         regions.push(r);
         offset += r.1-r.0;
         self.cursor.selection_idx = None;
 
         for cursor in &mut self.cursors {
-            regions.push(cursor.get_delete_range(self.content.len()));
+            regions.push(cursor.get_delete_range(self.content.chars().count()));
             cursor.idx = r.0 - offset;
             offset += r.1-r.0;
             cursor.selection_idx = None;
@@ -761,7 +889,8 @@ impl TextInputHandler {
         offset = 0;
 
         for region in regions {
-            self.content = self.content[0..region.0-offset].to_string() + &self.content[region.1-offset..];
+            self.content = self.content.chars().take(region.0 - offset).collect::<String>()
+                + &self.content.chars().skip(region.1 - offset).collect::<String>();
             offset += region.1-region.0;
         }
 
@@ -847,5 +976,6 @@ mod handler_tests {
         assert_eq!(handler.content, "This is test #4");
     }
 
+    
 }
 

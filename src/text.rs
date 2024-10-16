@@ -342,14 +342,13 @@ impl Text {
     }
     
     pub fn get_draw_offset(&self, app: &App, index: IdxSize) -> Option<(u32, u32)> {
-        
-        if index <= self.content.len() {
+        // println!("Get draw of index {} (content: {:?})", index, self.content);
+        if index <= self.content.chars().count() {
             let mut x: u32 = 0;
             let mut y: u32 = 0;
-            for c in self.content[0..index].split("") {
-                if c.is_empty() {continue}
+            for c in self.content.chars().take(index) {
                 let font = app.font_handler.style_flagged(self.styles);
-                font.skip_char(&mut x, &mut y, c, self.scale);
+                font.skip_char(&mut x, &mut y, &c.to_string(), self.scale);
             }
             return Some((x, y))
         }
