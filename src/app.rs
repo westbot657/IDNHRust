@@ -5,6 +5,7 @@ use enigo::{Enigo, Mouse as eMouse, Settings};
 use sdl2::{event::Event, video::Window};
 
 use crate::{app_selector::AppSelector, camera::Camera, component::Component, image::Image, keybinds::Keybinds, macros::{cast_component, SETTINGS}, shaders::Shaders, text::Text, texture_atlas::{convert_tex_to_gl, TextureAtlas}, window_frame::WindowFrame};
+use crate::histroy_manager::HistoryManager;
 use crate::macros::font_size;
 use crate::text::FontHandler;
 
@@ -151,6 +152,7 @@ pub struct App<'a> {
     pub monitors: Vec<(i32, i32, u32, u32)>,
     pub keybinds: Keybinds,
     pub settings: crate::settings::Settings,
+    pub history: HistoryManager,
 
     pub uid: String,
 
@@ -196,6 +198,7 @@ impl<'a> App<'a> {
             monitors,
             keybinds: Keybinds::new(&settings),
             settings,
+            history: HistoryManager::new(),
             uid: "App".to_string(),
             path: Vec::new(),
         };
@@ -220,8 +223,9 @@ impl<'a> App<'a> {
 
         app
     }
-
-    pub fn get_named_child(&mut self, name: &str) -> Option<&mut dyn Component> {
+    
+    pub fn get_named_child(&mut self, name: impl ToString) -> Option<&mut dyn Component> {
+        let name = name.to_string();
         let mut path = name.split('/').collect::<VecDeque<&str>>();
 
         let p = path.pop_front();

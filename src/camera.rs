@@ -63,16 +63,20 @@ impl Camera {
         let mut dy = 0;
         let mut x = 0;
         let mut y = 0;
+        let mut vmx = u32::MAX;
+        let mut vmy = u32::MAX;
 
         for mat in &self.stack {
             mat_out = mat_out * mat.0;
             dx += mat.1.0;
             dy += mat.1.1;
+            vmx = vmx.min(mat.1.2);
+            vmy = vmy.min(mat.1.3);
             x += mat.2.0;
             y += mat.2.1;
         }
         mat_out = mat_out * self.matrix;
-        (mat_out, (self.viewport.0 + dx, self.viewport.1 + dy, self.viewport.2, self.viewport.3), (x + self.position.0, y + self.position.1))
+        (mat_out, (self.viewport.0 + dx + x, self.viewport.1 + dy + y, self.viewport.2.min(vmx), self.viewport.3.min(vmy)), (x + self.position.0, y + self.position.1))
     }
 
     pub fn apply_transform(&mut self, transform: Matrix4<f32>) {

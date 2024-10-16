@@ -1,11 +1,39 @@
 use std::collections::VecDeque;
+use std::mem;
 use std::time::Instant;
 use crate::app::App;
 use crate::component::Component;
-use crate::macros::{collides, font_size};
+use crate::histroy_manager::HistoryEvent;
+use crate::macros::{cast_component, collides, font_size};
 use crate::rectangle::Rectangle;
 use crate::text::Text;
 use crate::text_input_handler::{IdxSize, TextInputHandler};
+
+pub struct TextTypeHistory {
+    uid: String,
+    data: String,
+}
+
+impl TextTypeHistory {
+    pub fn new(uid: impl ToString, data: impl ToString) -> Self {
+        Self {
+            uid: uid.to_string(),
+            data: data.to_string()
+        }
+    }
+}
+
+impl HistoryEvent for TextTypeHistory {
+    fn redo(&mut self, app: &mut App) {
+        let text_box = cast_component!(app.get_named_child(&self.uid).unwrap() => mut Textbox);
+        
+        mem::swap(&mut text_box.handler.content, &mut self.data);
+    }
+
+    fn undo(&mut self, app: &mut App) {
+        self.redo(app)
+    }
+}
 
 pub struct Textbox {
     handler: TextInputHandler,
@@ -101,9 +129,12 @@ impl Component for Textbox {
                 
                 dx *= w as IdxSize;
                 dy *= h as IdxSize;
+            }
+            
+            if self.handler.should_update_history() {
+                let hist = TextTypeHistory::new(app.get_child_path(), &self.handler.content);
                 
-                
-                
+                app.history.add_history(hist);
             }
             
         }
@@ -125,7 +156,7 @@ impl Component for Textbox {
 
         self.text.position = (self.position.0 + 5, self.position.1);
 
-        app.camera.viewport = (self.position.0, self.position.1, (self.position.0 + self.size.0 as i32 + 25) as u32, (self.position.1 + self.size.1 as i32) as u32);
+        // app.camera.viewport = (self.position.0, self.position.1, (self.position.0 + self.size.0 as i32 + 25) as u32, (self.position.1 + self.size.1 as i32) as u32);
         app.camera.push();
         app.camera.set_ipos(self.offset.0, self.offset.1);
         self.text.update(app);

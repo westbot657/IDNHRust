@@ -1,5 +1,6 @@
 use std::cmp::Ordering;
 use std::mem;
+use std::str::FromStr;
 use fancy_regex::Regex;
 use crate::app::App;
 
@@ -105,7 +106,8 @@ pub struct TextInputHandler {
     pub cursor: Cursor,
     pub cursors: Vec<Cursor>,
     pub flags: u8,
-    alt_buffer: u8
+    // flags are: ANS- --HC
+    // A: alpha   N: numeric   S: special chars   H: should push to history   C: should focus cursor
 }
 
 
@@ -126,8 +128,7 @@ impl TextInputHandler {
             allow_editing,
             cursor: Cursor::new(0),
             cursors: Vec::new(),
-            flags: 0b_0000_0000,
-            alt_buffer: 0
+            flags: 0b_0000_0000
         }
     }
     
@@ -136,7 +137,9 @@ impl TextInputHandler {
     pub fn should_focus_cursor(&mut self) -> bool {
         
         let out = self.flags & 0b_0000_0001 != 0;
-        self.set_focus_cursor(false);
+        if out {
+            self.set_focus_cursor(false);
+        }
         out
     }
     
@@ -147,6 +150,41 @@ impl TextInputHandler {
             self.flags &= !0b_0000_0001;
         }
     }
+    
+    /// Use to query whether to push to history. Sets the flag to false after being called
+    pub fn should_update_history(&mut self) -> bool {
+        let out = self.flags & 0b_0000_0010 != 0;
+        if out {
+            self.set_update_history(false);
+        }
+        out
+    }
+    
+    fn set_update_history(&mut self, val: bool) {
+        if val {
+            self.flags |= 0b_0000_0010;
+        } else {
+            self.flags &= !0b_0000_0010;
+        }
+    }
+    
+    fn set_typing_flags(&mut self, c: char) {
+        let f = self.flags;
+        self.flags &= !0b_1110_0000;
+        if c.is_alphabetic() {
+            self.flags |= 0b_1000_0000;
+        }
+        else if c.is_numeric() {
+            self.flags |= 0b_0100_0000;
+        }
+        else {
+            self.flags |= 0b_0010_0000;
+        }
+        if f != self.flags {
+            self.set_update_history(true);
+        }
+    }
+    
 
     /// returns the specified line if it exists. Trailing newline is not included
     pub fn get_line(&self, line: IdxSize) -> Option<&str> {
@@ -470,6 +508,7 @@ impl TextInputHandler {
             self.cut_at_cursor();
             self.set_cursor_preference();
             self.set_focus_cursor(true);
+            self.set_update_history(true);
         }
         else if app.keybinds.check_binding("Paste") {
             if !(self.enforce_max_length && self.content.chars().count() >= self.max_length) {
@@ -480,6 +519,7 @@ impl TextInputHandler {
                 }
                 self.set_cursor_preference();
                 self.set_focus_cursor(true);
+                self.set_update_history(true);
             }
         }
         else if app.keybinds.check_binding("Select-All") {
@@ -501,6 +541,9 @@ impl TextInputHandler {
                 out = true;
                 self.set_cursor_preference();
                 self.set_focus_cursor(true);
+                if let Ok(c) = key.parse::<char>() {
+                    self.set_typing_flags(c);
+                }
             }
             // else if key == "Space" {
             //     if self.enforce_max_length && self.content.chars().count() >= self.max_length { continue }
@@ -529,6 +572,7 @@ impl TextInputHandler {
                     self.set_cursor_preference();
                 }
                 self.set_focus_cursor(true);
+                self.set_update_history(true);
             }
             // else if key.starts_with("Keypad") {
             //     if self.enforce_max_length && self.content.chars().count() >= self.max_length { continue }
@@ -855,6 +899,11 @@ impl TextInputHandler {
 
 
         for region in regions {
+            
+            if let Ok(c) = char::from_str(&self.content.chars().skip(region.0 - offset).take(1).collect::<String>()[0..1]) {
+                self.set_typing_flags(c);
+            }
+            
             self.content = self.content.chars().take(region.0 - offset).collect::<String>()
                 + &self.content.chars().skip(region.1 - offset).collect::<String>();
             offset += region.1-region.0;

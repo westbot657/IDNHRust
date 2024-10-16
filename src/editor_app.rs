@@ -30,6 +30,8 @@ impl EditorApp {
         let mut children: Vec<Box<dyn Component>> = Vec::new();
 
         children.push(Box::new(Text::new(50, 20, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz", (None, None, None, None), font_size!(16.0), 0.99, (255, 255, 255, 255))));
+        
+        
         let mut text_box = Textbox::new(
             (50, 90), (500, 500),
             "",
@@ -39,7 +41,7 @@ impl EditorApp {
         
         text_box.set_bg_color((10, 10, 10, 255));
 
-        children.push(Box::new(text_box));
+        canvas.children.push(Box::new(text_box));
 
         // let mut txt = Text::new(50, 60, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz", None, font_size!(16.0), 1.0, (255, 255, 255, 255));
         // txt.set_styles(style_flags::ITALIC);
@@ -68,7 +70,7 @@ impl Component for EditorApp {
 
         self.canvas.size = (app.window_size.0 - 360, app.window_size.1 - 100);
 
-        // self.canvas.update(app);
+        self.canvas.update(app);
         
         
 

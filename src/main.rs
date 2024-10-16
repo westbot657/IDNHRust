@@ -30,6 +30,7 @@ mod window_frame;
 mod platform;
 mod visibility_toggle;
 mod text_box;
+mod histroy_manager;
 
 use std::{collections::VecDeque, env, time::Instant};
 
@@ -397,7 +398,7 @@ fn main_app() {
                     }
                 }
                 sdl2::event::Event::TextInput { timestamp: _, window_id: _, ref text } => {
-                    println!("{:?}", event);
+                    
                     if !app.keyboard.triggered_keys.contains(text) {
                         app.keyboard.triggered_keys.push(text.clone());
                     }

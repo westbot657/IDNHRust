@@ -198,7 +198,7 @@ impl Component for Canvas {
         app.camera.set_rotation(Rad(-self.rotation));
 
 
-        // app.camera.viewport = (self.position.0, self.position.1, self.size.0, self.size.1);
+        app.camera.viewport = (self.position.0, self.position.1, self.size.0, self.size.1);
 
         for child in &mut self.children {
             child.update(app);
