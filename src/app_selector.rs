@@ -69,6 +69,7 @@ impl Component for AppSelector {
 
             app.camera.set_ipos(50, 0);
             app.camera.translate(cam_pos.0 as f32, cam_pos.1 as f32, app.window_size);
+            app.camera.viewport = (45, 0, app.window_size.0 - 45, app.window_size.1);
 
             self.game_app.update(app);
             app.camera.pop();
@@ -88,6 +89,8 @@ impl Component for AppSelector {
 
             app.camera.translate(cam_pos.0 as f32, cam_pos.1 as f32, app.window_size);
 
+            app.camera.viewport = (45, 0, app.window_size.0 - 45, app.window_size.1);
+            
             self.editor_app.update(app);
             app.camera.pop();
 

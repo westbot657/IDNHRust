@@ -325,7 +325,7 @@ impl TextInputHandler {
             }
         }
     }
-    
+
     fn set_cursor_preference(&mut self) {
         self.cursor.preferred_column = self.get_text_pos(self.cursor.idx).unwrap().1;
         
@@ -365,7 +365,7 @@ impl TextInputHandler {
             for cursor in &mut cursors {
                 let (l, c) = self.get_text_pos(cursor.idx).unwrap();
                 line = self.get_line(l).unwrap().to_string();
-                let mut offset = 0;
+                let offset;
 
                 for mat in pattern.find_iter(&line) {
                     println!("{:?}", mat);
@@ -545,6 +545,16 @@ impl TextInputHandler {
                     self.set_typing_flags(c);
                 }
             }
+            else if key == "Tab" {
+                if self.enforce_max_length && self.content.chars().count() >= self.max_length { continue }
+                
+                self.tab_at_cursor(app);
+                
+                out = true;
+                self.set_cursor_preference();
+                self.set_focus_cursor(true);
+                self.set_typing_flags(' ');
+            }
             // else if key == "Space" {
             //     if self.enforce_max_length && self.content.chars().count() >= self.max_length { continue }
             //     self.insert_at_cursor(app, " ".to_string());
@@ -668,11 +678,7 @@ impl TextInputHandler {
                     }
                     
                 } else {
-                    if app.keyboard.ctrl_held {
-                        self.ctrl_move(false)
-                    } else {
-                        self.deselect_all_directional(false, true);
-                    }
+                    self.deselect_all_directional(false, true);
                 }
                 self.move_cursors(true);
                 self.truncate_cursors();
@@ -716,9 +722,18 @@ impl TextInputHandler {
         if idx <= self.content.chars().count() {
             let mut line = 0;
             let mut dx = idx;
-            for l in self.content.split_inclusive('\n') {
-                if dx <= l.chars().count() {
-                    return Some((line, dx))
+            let mut lines = self.content.split_inclusive('\n').peekable();
+            println!("Searching for: {}", idx);
+            while let Some(l) = lines.next() {
+                if dx < l.chars().count() {
+                    println!("Found {}, {}", line, dx);
+                    return Some((line, dx));
+                } else if dx == l.chars().count() && lines.peek().is_none() {
+                    return if l.ends_with('\n') {
+                        Some((line + 1, 0))
+                    } else {
+                        Some((line, dx.min(l.chars().count())))
+                    }
                 } else {
                     line += 1;
                     dx -= l.chars().count();
@@ -732,16 +747,16 @@ impl TextInputHandler {
     pub fn get_index(&self, line: IdxSize, column: IdxSize) -> Option<IdxSize> {
         let mut idx = 0;
         let mut i = 0;
-        for ln in self.content.split_inclusive('\n') {
+        for ln in self.content.split('\n') {
             if i == line {
-                idx += column;
-                return Some(idx)
+                idx += column.min(ln.chars().count());
+                return Some(idx + i)
             }
             idx += ln.chars().count();
             i += 1;
         }
 
-        Some(idx)
+        None
     }
     
     /// Removes additional cursors and deselects all text, moves the cursor to the specified position (clamped to the length of the text)
@@ -790,27 +805,60 @@ impl TextInputHandler {
         let mut offset = 0;
         let mut cursors = Vec::new();
 
-        cursors.push(self.cursor.idx);
+        let mod_c = &self.mod_char(app, &content);
+        
+        cursors.push(&mut self.cursor.idx);
 
-        for idx in &self.cursors {
-            if !cursors.contains(&idx.idx) {
-                cursors.push(idx.idx);
+        for idx in &mut self.cursors {
+            if !cursors.contains(&&mut idx.idx) {
+                cursors.push(&mut idx.idx);
             }
         }
         cursors.sort();
 
-        for cursor in cursors {
+        for cursor in &mut cursors {
             // self.content = self.content[0..cursor].to_string() + &self.mod_char(app, &content) + &self.content[cursor..];
-            self.content = self.content.chars().take(cursor - offset).collect::<String>()
-                + &self.mod_char(app, &content)
-                + &self.content.chars().skip(cursor - offset).collect::<String>();
-            if cursor + offset <= self.cursor.idx {
-                self.cursor.idx += content.chars().count();
-            }
+            self.content = self.content.chars().take(**cursor - offset).collect::<String>()
+                + mod_c
+                + &self.content.chars().skip(**cursor - offset).collect::<String>();
+            
+            **cursor += content.chars().count();
             offset += content.chars().count();
         }
-
-
+    }
+    
+    pub fn tab_at_cursor(&mut self, app: &App) {
+        self.collapse_selections();
+        
+        let mut offset = 0;
+        let mut cursors = Vec::new();
+        
+        let mut curs = Cursor::new(0);
+        
+        mem::swap(&mut curs, &mut self.cursor);
+        let mut crs = mem::take(&mut self.cursors);
+        
+        cursors.push(&mut curs.idx);
+        for idx in &mut crs {
+            if !cursors.contains(&&mut idx.idx) {
+                cursors.push(&mut idx.idx);
+            }
+        }
+        cursors.sort();
+        
+        for cursor in &mut cursors {
+            let (_, c) = self.get_text_pos(**cursor).unwrap();
+            let spaces = (3 - (((c as isize % 4) - 1) % 4)) as usize;
+            self.content = self.content.chars().take(**cursor - offset).collect::<String>()
+                + " ".repeat(spaces).as_str()
+                + &self.content.chars().skip(**cursor - offset).collect::<String>();
+            **cursor += spaces;
+            offset += spaces;
+        }
+        
+        self.cursors = crs;
+        self.cursor = curs;
+        
     }
 
     /// Copies selected text. if no text is selected then copies the line the cursor is on. if there are multiple cursors, the selections are joined with a newline
@@ -900,10 +948,11 @@ impl TextInputHandler {
 
         for region in regions {
             
-            if let Ok(c) = char::from_str(&self.content.chars().skip(region.0 - offset).take(1).collect::<String>()[0..1]) {
-                self.set_typing_flags(c);
+            if self.content.len() > 0 {
+                if let Ok(c) = char::from_str(&self.content.chars().skip(region.0 - offset).take(1).collect::<String>()[0..1]) {
+                    self.set_typing_flags(c);
+                }
             }
-            
             self.content = self.content.chars().take(region.0 - offset).collect::<String>()
                 + &self.content.chars().skip(region.1 - offset).collect::<String>();
             offset += region.1-region.0;

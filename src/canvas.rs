@@ -165,7 +165,7 @@ impl Component for Canvas {
             if app.keyboard.held_keys.contains(&"Left Alt".to_string()) {
                 self.scroll_offset = (
                     self.scroll_offset.0 - app.mouse.scroll_x as i64,
-                    self.scroll_offset.1 - app.mouse.scroll_y as i64
+                    self.scroll_offset.1 + app.mouse.scroll_y as i64
                 )
             } else {
                 self.zoom += app.mouse.scroll_y as f32 / 100.0;
@@ -190,15 +190,14 @@ impl Component for Canvas {
         let oy = -(self.scroll_offset.1 as f32 / 2.0);
         
         app.camera.translate(dx + ox, dy + oy, app.window_size);
-
+        app.camera.set_ipos(self.position.0, self.position.1);
 
         app.camera.set_scale(self.zoom, self.zoom);
 
         // TODO: add another translation to compensate for rotation
         app.camera.set_rotation(Rad(-self.rotation));
-
-
-        app.camera.viewport = (self.position.0, self.position.1, self.size.0, self.size.1);
+        
+        app.camera.viewport = (self.position.0, self.position.1, self.size.0+1, self.size.1+1);
 
         for child in &mut self.children {
             child.update(app);

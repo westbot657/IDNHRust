@@ -143,7 +143,7 @@ impl Component for Textbox {
 
         app.camera.push();
 
-        app.camera.set_ipos(self.position.0, self.position.1);
+        // app.camera.set_ipos(self.position.0, self.position.1);
 
         if let Some(bg) = &mut self.background_object {
             bg.update(app);
