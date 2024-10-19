@@ -1,6 +1,7 @@
 use std::cmp::Ordering;
 use std::mem;
 use std::str::FromStr;
+use clipboard::{ClipboardContext, ClipboardProvider};
 use fancy_regex::Regex;
 use crate::app::App;
 
@@ -490,6 +491,22 @@ impl TextInputHandler {
 
         }
     }
+    
+    /// clamps all cursors to be within the bounds of the content.
+    pub fn clamp_cursors(&mut self) {
+        let c = self.content.chars().count();
+        self.cursor.idx = self.cursor.idx.min(c);
+        if self.cursor.selection_idx.is_some() && self.cursor.selection_idx.unwrap() > c {
+            self.cursor.selection_idx = None;
+        }
+        
+        for cursor in &mut self.cursors {
+            cursor.idx = self.cursor.idx.min(c);
+            if self.cursor.selection_idx.is_some() && cursor.selection_idx.unwrap() > c {
+                self.cursor.selection_idx = None;
+            }
+        }
+    }
 
     /// processes typing events, arrow key movement, copy/paste, and other relevant keybinds
     pub fn process(&mut self, app: &mut App) -> bool {
@@ -499,23 +516,26 @@ impl TextInputHandler {
         let mut out = false;
 
         if app.keybinds.check_binding("Copy") {
+            app.keybinds.accept(&app.keybinds.last("Copy").unwrap().clone());
             self.copy_at_cursor();
             self.set_cursor_preference();
             self.set_focus_cursor(true);
-
         }
         else if app.keybinds.check_binding("Cut") {
+            app.keybinds.accept(&app.keybinds.last("Cut").unwrap().clone());
             self.cut_at_cursor();
             self.set_cursor_preference();
             self.set_focus_cursor(true);
             self.set_update_history(true);
         }
         else if app.keybinds.check_binding("Paste") {
+            app.keybinds.accept(&app.keybinds.last("Paste").unwrap().clone());
             if !(self.enforce_max_length && self.content.chars().count() >= self.max_length) {
-                self.paste_at_cursor();
-                if self.content.chars().count() > self.max_length {
+                self.paste_at_cursor(app);
+                if self.enforce_max_length && self.content.chars().count() > self.max_length {
                     // self.content = self.content[0..self.max_length].to_owned();
-                    self.content = self.content.chars().take(self.max_length).collect::<String>()
+                    self.content = self.content.chars().take(self.max_length).collect::<String>();
+                    self.clamp_cursors();
                 }
                 self.set_cursor_preference();
                 self.set_focus_cursor(true);
@@ -523,6 +543,7 @@ impl TextInputHandler {
             }
         }
         else if app.keybinds.check_binding("Select-All") {
+            app.keybinds.accept(&Vec::<String>::new());
             self.cursor.idx = self.content.chars().count();
             self.cursor.selection_idx = Some(0);
             self.cursors.clear();
@@ -548,7 +569,7 @@ impl TextInputHandler {
             else if key == "Tab" {
                 if self.enforce_max_length && self.content.chars().count() >= self.max_length { continue }
                 
-                self.tab_at_cursor(app);
+                self.tab_at_cursor();
                 
                 out = true;
                 self.set_cursor_preference();
@@ -827,7 +848,7 @@ impl TextInputHandler {
         }
     }
     
-    pub fn tab_at_cursor(&mut self, app: &App) {
+    pub fn tab_at_cursor(&mut self) {
         self.collapse_selections();
         
         let mut offset = 0;
@@ -863,22 +884,58 @@ impl TextInputHandler {
 
     /// Copies selected text. if no text is selected then copies the line the cursor is on. if there are multiple cursors, the selections are joined with a newline
     /// content is automatically put into the clipboard and then returned
+    /// (If content is empty, then the clipboard is not changed)
     pub fn copy_at_cursor(&self) -> String {
 
-        "".to_string()
+        let mut clip = Vec::new();
+        
+        let mut c: ClipboardContext = clipboard::ClipboardProvider::new().unwrap();
+        
+        let mut ranges = Vec::new();
+        
+        if self.cursor.selection_idx.is_some() {
+            ranges.push(self.cursor.get_range());
+        }
+        
+        for cursor in &self.cursors {
+            if cursor.selection_idx.is_some() {
+                ranges.push(cursor.get_range());
+            }
+        }
+        
+        ranges.sort();
+        
+        TextInputHandler::merge_groups(&mut ranges);
+        
+        for r in ranges {
+            clip.push(self.content[r.0..r.1].to_string())
+        }
+        
+        if !clip.is_empty() {
+            println!("Copied {:?} to clipboard", clip.join("\n").clone());
+            c.set_contents(clip.join("\n").clone()).unwrap();
+            clip.join("\n").to_string()
+        } else {
+            "".to_string()
+        }
     }
 
     /// pastes content. Follows a variety of rules for pasting based
     /// off what is being pasted and how many cursors exist at the time
-    pub fn paste_at_cursor(&mut self) {
-
+    pub fn paste_at_cursor(&mut self, app: &App) {
+        let mut c: ClipboardContext = clipboard::ClipboardProvider::new().unwrap();
+        
+        if let Ok(clip) = c.get_contents() {
+            println!("Pasted {:?}", clip);
+            self.insert_at_cursor(app, clip);
+        }
     }
 
     /// Cuts selections or lines if there are no selections. Automatically puts content into the clipboard and then returns it
     pub fn cut_at_cursor(&mut self) -> String {
-
-
-        "".to_string()
+        let res= self.copy_at_cursor();
+        self.collapse_selections();
+        res
     }
 
     /// Removes selected text. Any cursors that end up in the same place collapse into one cursor.

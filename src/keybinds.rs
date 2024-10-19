@@ -3,7 +3,8 @@ use crate::settings::Settings;
 
 pub struct Keybinds {
     pub bindings: HashMap<String, String>,
-    bind: String
+    bind: String,
+    last_keys: HashMap<String, Vec<String>>,
 }
 
 impl Keybinds {
@@ -16,25 +17,52 @@ impl Keybinds {
         let bindings_toml = bindings_toml1.get("A").unwrap().as_table().unwrap();
         
         let mut bindings: HashMap<String, String> = HashMap::new();
+        let mut last_keys: HashMap<String, Vec<String>> = HashMap::new();
         
         for (k, v) in bindings_toml {
             if v.is_str() {
                 bindings.insert(k.to_string(), v.as_str().unwrap().to_string());
+                let mut lasts = Vec::new();
+                for sequence in v.as_str().unwrap().split(" | ") {
+                    let last = sequence.rsplit_once('+').unwrap().1;
+                    if !lasts.contains(&last.to_string()) {
+                        lasts.push(last.to_string())
+                    }
+                }
+                last_keys.insert(k.to_string(), lasts);
             }
         }
-            
+        
+        
+        
 
         Self {
             bindings,
-            bind: "".to_string()
+            bind: "".to_string(),
+            last_keys,
         }
     }
 
-    pub fn push_key(&mut self, key: &str) {
-        if self.bind.contains(&(key.to_string() + "+")) {
-            return
+    pub fn last(&self, key: &str) -> Option<&Vec<String>> {
+        self.last_keys.get(key).clone().to_owned()
+    }
+    
+    /// clears the keybind so that it doesn't trigger repeatedly every frame
+    pub fn accept(&mut self, remove_chars: &Vec<impl ToString>) {
+        if remove_chars.is_empty() {
+            self.bind.clear();
         }
-        self.bind += &(key.to_string() + "+");
+        else {
+            for c in remove_chars {
+                self.bind = self.bind.replace(&(c.to_string() + "+"), "");
+            }
+        }
+    }
+    
+    pub fn push_key(&mut self, key: &str) {
+        if !self.bind.contains(&(key.to_string() + "+")) {
+            self.bind += &(key.to_string() + "+");
+        }
     }
 
     pub fn pop_key(&mut self, key: &str) {

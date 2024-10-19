@@ -1,11 +1,13 @@
 [Game-Settings]
+enable-color = true
+
 
 [Editor-Settings]
 undo-history-limit = 200
 master-volume = 0.5
 seen-tutorial = false
-allow-grid-rotation = false # sane people probably don't care about rotating the grid
 scroll-sensitivity = 3.0
+zoom-sensitivity = 1.0
 
 # keybinds can have multiple options, seperated with " | "
 [Keybinds]

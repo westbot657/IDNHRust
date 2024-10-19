@@ -40,7 +40,6 @@ use enigo::{Enigo, Mouse, Settings};
 use macros::SETTINGS;
 use shaders::Shaders;
 use sdl2::{event::WindowEvent, image::LoadSurface, mouse::{MouseButton, MouseWheelDirection}, video::GLProfile};
-use text::CharAtlas;
 use crate::platform::is_wsl;
 use crate::text::FontHandler;
 
@@ -290,6 +289,7 @@ fn main_app() {
                         let key = scancode.unwrap().name().to_string();
 
                         if repeat {
+                            app.keybinds.push_key(&key);
                             app.keyboard.triggered_keys.push(key);
                         }
                         else {

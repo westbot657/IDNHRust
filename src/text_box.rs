@@ -174,7 +174,6 @@ impl Component for Textbox {
                     self.cursor_rectangle.position = (p.0 as i32 + 3 + self.position.0, p.1 as i32 + 2 + self.position.1);
                     self.cursor_rectangle.update(app);
                 }
-                        
             }
         }
         app.camera.pop();
