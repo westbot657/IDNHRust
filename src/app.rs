@@ -1,13 +1,14 @@
-use std::{collections::HashMap, time};
+use std::{collections::HashMap, mem, time};
 use std::collections::VecDeque;
 use cgmath::{Matrix4, SquareMatrix, Vector4};
 use enigo::{Enigo, Mouse as eMouse, Settings};
 use sdl2::{event::Event, video::Window};
 
 use crate::{app_selector::AppSelector, camera::Camera, component::Component, image::Image, keybinds::Keybinds, macros::{cast_component, SETTINGS}, shaders::Shaders, text::Text, texture_atlas::{convert_tex_to_gl, TextureAtlas}, window_frame::WindowFrame};
-use crate::histroy_manager::HistoryManager;
+use crate::history_manager::HistoryManager;
 use crate::macros::font_size;
 use crate::text::FontHandler;
+use crate::toast_system::ToastSystem;
 
 pub struct Mouse {
     pub left_down: bool,
@@ -156,7 +157,10 @@ pub struct App<'a> {
 
     pub uid: String,
 
-    path: Vec<String>
+    path: Vec<String>,
+    
+    toasts: ToastSystem,
+    _toasts: Option<ToastSystem>
 
 }
 
@@ -201,7 +205,12 @@ impl<'a> App<'a> {
             history: HistoryManager::new(),
             uid: "App".to_string(),
             path: Vec::new(),
+            toasts: ToastSystem::blank(),
+            _toasts: None,
         };
+        let mut tsts = ToastSystem::new(&app, 300, 50);
+        mem::swap(&mut tsts, &mut app.toasts);
+        app._toasts = Some(tsts);
 
         let app_selector = AppSelector::new(&app);
 
@@ -297,6 +306,13 @@ impl<'a> App<'a> {
         for child in &mut children[2..] {
             child.update(self);
         }
+        let mut tst = mem::take(&mut self._toasts).unwrap();
+        mem::swap(&mut tst, &mut self.toasts);
+        
+        tst.update(self);
+
+        mem::swap(&mut tst, &mut self.toasts);
+        self._toasts = Some(tst);
 
         self.camera.pop();
 
@@ -306,6 +322,10 @@ impl<'a> App<'a> {
             self.mouse.cursors.get("Arrow").unwrap().set();
         }
 
+        // if self.keybinds.check_binding("Save") {
+        //     self.keybinds.accept(&vec!["S"]);
+        //     self.toasts.push("Keybind Ctrl+S", Vec::new(), None, None);
+        // }
 
         let fps = dt.elapsed().as_secs_f64();
         

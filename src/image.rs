@@ -18,7 +18,7 @@ pub struct Image {
 }
 
 impl Image {
-    pub fn new(x: i32, y: i32, width: u32, height: u32, src: String, uv: (u32, u32, u32, u32), z_index: f32) -> Image {
+    pub fn new(x: i32, y: i32, width: u32, height: u32, src: impl ToString, uv: (u32, u32, u32, u32), z_index: f32) -> Image {
         const LOWER_BOUND: f32 = -0.5;
         const UPPER_BOUND: f32 = 0.5;
         let vertices: [f32; 30] = [
@@ -35,7 +35,7 @@ impl Image {
         Image {
             position: (x, y),
             size: (width, height),
-            src: src.replace("/", "\\"),
+            src: src.to_string().replace("/", "\\"),
             uv,
             vao,
             shader: None,

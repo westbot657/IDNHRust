@@ -3,7 +3,7 @@ use std::mem;
 use std::time::Instant;
 use crate::app::App;
 use crate::component::Component;
-use crate::histroy_manager::HistoryEvent;
+use crate::history_manager::HistoryEvent;
 use crate::macros::{cast_component, collides, font_size};
 use crate::rectangle::Rectangle;
 use crate::text::Text;

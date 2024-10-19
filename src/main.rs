@@ -13,6 +13,7 @@ mod editor_app;
 mod es3;
 mod es3_text_editor;
 mod game_app;
+mod history_manager;
 mod image;
 mod keybinds;
 mod macros;
@@ -25,12 +26,12 @@ mod shelf_tile;
 mod storage_component;
 mod text;
 mod texture_atlas;
+mod text_box;
 mod text_input_handler;
+mod toast_system;
 mod window_frame;
 mod platform;
 mod visibility_toggle;
-mod text_box;
-mod histroy_manager;
 
 use std::{collections::VecDeque, env, time::Instant};
 
