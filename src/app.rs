@@ -158,7 +158,7 @@ pub struct App<'a> {
     pub uid: String,
 
     path: Vec<String>,
-    
+
     toasts: ToastSystem,
     _toasts: Option<ToastSystem>
 
@@ -299,17 +299,17 @@ impl<'a> App<'a> {
 
         self.camera.push();
 
-        self.camera.set_ipos(10, 25);
+        self.camera.set_ipos(5, 25);
         self.camera.translate(5.0, 25.0, self.window_size);
         // self.camera.set_position(5.0 / self.window_size.0 as f32, 25.0 / self.window_size.1 as f32);
-        self.camera.viewport = (5, 25, self.window_size.0-5, self.window_size.1-20);
+        self.camera.viewport = (5, 25, self.window_size.0-5, self.window_size.1-25);
 
         for child in &mut children[2..] {
             child.update(self);
         }
         let mut tst = mem::take(&mut self._toasts).unwrap();
         mem::swap(&mut tst, &mut self.toasts);
-        
+
         tst.update(self);
 
         mem::swap(&mut tst, &mut self.toasts);

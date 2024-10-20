@@ -114,12 +114,17 @@ impl Camera {
         let (x, y, width, height) = rect_in;
         let (screen_width, screen_height) = screen_size;
 
-        let matrix = self.peek().0;
+        let aspect_ratio = screen_width as f32 / screen_height as f32;
 
-        let top_left = Vector4::new(x as f32, y as f32, 0.0, 1.0);
-        let top_right = Vector4::new((x + width as i32) as f32, y as f32, 0.0, 1.0);
-        let bottom_left = Vector4::new(x as f32, (y + height as i32) as f32, 0.0, 1.0);
-        let bottom_right = Vector4::new((x + width as i32) as f32, (y + height as i32) as f32, 0.0, 1.0);
+        let ndc_x = |pixel_x: f32| -> f32 { (pixel_x / screen_height as f32) * 2.0 - 1.0 };
+        let ndc_y = |pixel_y: f32| -> f32 { 1.0 - (pixel_y / screen_height as f32) * 2.0 };
+
+        let top_left = Vector4::new(ndc_x(x as f32 * aspect_ratio), ndc_y(y as f32), 0.0, 1.0);
+        let top_right = Vector4::new(ndc_x((x + width as i32) as f32 * aspect_ratio), ndc_y(y as f32), 0.0, 1.0);
+        let bottom_left = Vector4::new(ndc_x(x as f32 * aspect_ratio), ndc_y((y + height as i32) as f32), 0.0, 1.0);
+        let bottom_right = Vector4::new(ndc_x((x + width as i32) as f32 * aspect_ratio), ndc_y((y + height as i32) as f32), 0.0, 1.0);
+
+        let matrix = self.peek().0;
 
         let transformed_top_left = matrix * top_left;
         let transformed_top_right = matrix * top_right;
@@ -140,15 +145,25 @@ impl Camera {
             transformed_bottom_right.y / transformed_bottom_right.w,
         ];
 
-        let min_x = xs.iter().cloned().fold(f32::INFINITY, f32::min) as i32;
-        let max_x = xs.iter().cloned().fold(f32::NEG_INFINITY, f32::max) as i32;
-        let min_y = ys.iter().cloned().fold(f32::INFINITY, f32::min) as i32;
-        let max_y = ys.iter().cloned().fold(f32::NEG_INFINITY, f32::max) as i32;
+        let pixel_x = |ndc_x: f32| -> i32 { ((ndc_x + 1.0) / 2.0 * screen_height as f32) as i32 };
+        let pixel_y = |ndc_y: f32| -> i32 { (1.0 - (ndc_y) / 2.0 * screen_height as f32) as i32 };
 
-        let new_width = (max_x - min_x) as u32;
-        let new_height = (max_y - min_y) as u32;
+        let min_x = xs.iter().cloned().fold(f32::INFINITY, f32::min);
+        let max_x = xs.iter().cloned().fold(f32::NEG_INFINITY, f32::max);
+        let min_y = ys.iter().cloned().fold(f32::INFINITY, f32::min);
+        let max_y = ys.iter().cloned().fold(f32::NEG_INFINITY, f32::max);
 
-        (min_x, min_y, new_width, new_height)
+        let new_width = (pixel_x(max_x) - pixel_x(min_x)) as u32;
+        let new_height = (pixel_y(min_y) - pixel_y(max_y)) as u32;
+
+        (
+            pixel_x(min_x),
+            pixel_y(min_y),
+            new_width,
+            new_height,
+        )
     }
+
+
 
 }
