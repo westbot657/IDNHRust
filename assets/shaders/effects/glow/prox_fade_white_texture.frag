@@ -37,5 +37,9 @@ void main() {
         discard;
     }
     float dis = dist(mouse, ScreenPos);
-    FragColor = vec4(col.rgb * (1-clamp(dis*4, 0, 0.5)), col.a);
+    if (col.r == col.g && col.g == col.b) {
+        FragColor = vec4(col.rgb * (1 - clamp(dis * 4, 0, 0.5)), col.a);
+    } else {
+        FragColor = col;
+    }
 }

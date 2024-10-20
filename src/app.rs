@@ -208,7 +208,7 @@ impl<'a> App<'a> {
             toasts: ToastSystem::blank(),
             _toasts: None,
         };
-        let mut tsts = ToastSystem::new(&app, 300, 50);
+        let mut tsts = ToastSystem::new(&app, 300, 80);
         mem::swap(&mut tsts, &mut app.toasts);
         app._toasts = Some(tsts);
 
@@ -299,8 +299,9 @@ impl<'a> App<'a> {
 
         self.camera.push();
 
-        self.camera.set_ipos(5, 25);
-        self.camera.set_position(5.0 / self.window_size.0 as f32, 25.0 / self.window_size.1 as f32);
+        self.camera.set_ipos(10, 25);
+        self.camera.translate(5.0, 25.0, self.window_size);
+        // self.camera.set_position(5.0 / self.window_size.0 as f32, 25.0 / self.window_size.1 as f32);
         self.camera.viewport = (5, 25, self.window_size.0-5, self.window_size.1-20);
 
         for child in &mut children[2..] {
@@ -322,10 +323,10 @@ impl<'a> App<'a> {
             self.mouse.cursors.get("Arrow").unwrap().set();
         }
 
-        // if self.keybinds.check_binding("Save") {
-        //     self.keybinds.accept(&vec!["S"]);
-        //     self.toasts.push("Keybind Ctrl+S", Vec::new(), None, None);
-        // }
+        if self.keybinds.check_binding("Save") {
+            self.keybinds.accept(&vec!["S"]);
+            self.toasts.push("Testing a longer message\nwrapping has to be done\nmanually", Vec::new(), None, None);
+        }
 
         let fps = dt.elapsed().as_secs_f64();
         

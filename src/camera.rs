@@ -1,4 +1,4 @@
-use cgmath::{ortho, Matrix4, Rad, SquareMatrix, Vector3};
+use cgmath::{ortho, Matrix4, Rad, SquareMatrix, Vector3, Vector4};
 
 
 
@@ -106,6 +106,49 @@ impl Camera {
     pub fn translate(&mut self, dx: f32, dy: f32, window_size: (u32, u32)) {
         let translation = Matrix4::from_translation(Vector3::new(dx / window_size.1 as f32 * 2.0, -dy / window_size.1 as f32 * 2.0, 0.0));
         self.apply_transform(translation);
+    }
+    
+    /// Maps a camera-relative rectangle to a window-space rectangle
+    /// Useful for mapping the camera's viewport to an object's bounding box regardless of transformations (except rotations)
+    pub fn map_rect(&mut self, rect_in: (i32, i32, u32, u32), screen_size: (u32, u32)) -> (i32, i32, u32, u32) {
+        let (x, y, width, height) = rect_in;
+        let (screen_width, screen_height) = screen_size;
+
+        let matrix = self.peek().0;
+
+        let top_left = Vector4::new(x as f32, y as f32, 0.0, 1.0);
+        let top_right = Vector4::new((x + width as i32) as f32, y as f32, 0.0, 1.0);
+        let bottom_left = Vector4::new(x as f32, (y + height as i32) as f32, 0.0, 1.0);
+        let bottom_right = Vector4::new((x + width as i32) as f32, (y + height as i32) as f32, 0.0, 1.0);
+
+        let transformed_top_left = matrix * top_left;
+        let transformed_top_right = matrix * top_right;
+        let transformed_bottom_left = matrix * bottom_left;
+        let transformed_bottom_right = matrix * bottom_right;
+
+        let xs = [
+            transformed_top_left.x / transformed_top_left.w,
+            transformed_top_right.x / transformed_top_right.w,
+            transformed_bottom_left.x / transformed_bottom_left.w,
+            transformed_bottom_right.x / transformed_bottom_right.w,
+        ];
+
+        let ys = [
+            transformed_top_left.y / transformed_top_left.w,
+            transformed_top_right.y / transformed_top_right.w,
+            transformed_bottom_left.y / transformed_bottom_left.w,
+            transformed_bottom_right.y / transformed_bottom_right.w,
+        ];
+
+        let min_x = xs.iter().cloned().fold(f32::INFINITY, f32::min) as i32;
+        let max_x = xs.iter().cloned().fold(f32::NEG_INFINITY, f32::max) as i32;
+        let min_y = ys.iter().cloned().fold(f32::INFINITY, f32::min) as i32;
+        let max_y = ys.iter().cloned().fold(f32::NEG_INFINITY, f32::max) as i32;
+
+        let new_width = (max_x - min_x) as u32;
+        let new_height = (max_y - min_y) as u32;
+
+        (min_x, min_y, new_width, new_height)
     }
 
 }

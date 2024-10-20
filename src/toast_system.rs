@@ -30,8 +30,8 @@ impl ToastSystem {
             toasts: Vec::new(),
             width,
             toast_height,
-            toast_background: Image::new(0, 0, 300, 50, "assets/textures/toast_background.png", (0, 0, 300, 50), 0.99).with_shader(app.shaders.prox_fade_texture),
-            toast_text: Text::new(5, 2, "", (None, None, Some(300), None), font_size!(16.0), 0.999, (255, 255, 255, 255))
+            toast_background: Image::new(0, 0, 300, 80, "assets/textures/toast_background.png", (0, 0, 300, 80), 0.99).with_shader(app.shaders.prox_fade_texture_white),
+            toast_text: Text::new(5, 0, "", (None, None, Some(290), None), font_size!(16.0), 0.999, (255, 255, 255, 255))
         }
         
     }
@@ -41,8 +41,8 @@ impl ToastSystem {
             toasts: Vec::new(),
             width: 1,
             toast_height: 1,
-            toast_background: Image::new(0, 0, 300, 50, "assets/textures/toast_background.png", (0, 0, 300, 50), 0.99),
-            toast_text: Text::new(5, 2, "", (None, None, Some(300), None), font_size!(16.0), 0.999, (255, 255, 255, 255))
+            toast_background: Image::new(0, 0, 300, 80, "assets/textures/toast_background.png", (0, 0, 300, 80), 0.99),
+            toast_text: Text::new(5, 0, "", (None, None, Some(290), None), font_size!(16.0), 0.999, (255, 255, 255, 255))
         }
     }
     
@@ -82,8 +82,8 @@ impl Component for ToastSystem {
                 
                 // self.toast_background.position = (app.window_size.0 as i32 - dx, app.window_size.1 as i32 - (self.toast_height as i32 + 10) * (i as i32));
                 app.camera.push();
-                app.camera.set_ipos(app.window_size.0 as i32 - dx, app.window_size.1 as i32 - 80 - (self.toast_height as i32 + 10) * (i as i32));
-                app.camera.translate((app.window_size.0 as i32 - dx) as f32, (app.window_size.1 as i32 - 80 - (self.toast_height as i32 + 10) * (i as i32)) as f32, app.window_size);
+                app.camera.set_ipos(app.window_size.0 as i32 - dx, app.window_size.1 as i32 - 110 - (self.toast_height as i32 + 10) * (i as i32));
+                app.camera.translate((app.window_size.0 as i32 - dx) as f32, (app.window_size.1 as i32 - 110 - (self.toast_height as i32 + 10) * (i as i32)) as f32, app.window_size);
                 self.toast_background.update(app);
                 self.toast_text.content = toast.title.clone();
                 self.toast_text.update(app);

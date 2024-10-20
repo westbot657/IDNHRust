@@ -34,7 +34,7 @@ impl AppSelector {
             game_app_unselected: Image::new(
                 0, 0, 50, 50, "assets/textures/button/game_app_unselected.png".to_string(),
                 (0, 0, 50, 50), 0.91
-            ).with_shader(app.shaders.prox_fade_texture),
+            ).with_shader(app.shaders.prox_fade_texture_white),
             game_app_selected: Image::new(
                 0, 0, 50, 50, "assets/textures/button/game_app_selected.png".to_string(),
                 (0, 0, 50, 50), 0.91
@@ -43,7 +43,7 @@ impl AppSelector {
             editor_app_unselected: Image::new(
                 0, 50, 50, 50, "assets/textures/button/editor_app_unselected.png".to_string(),
                 (0, 0, 50, 50), 0.91
-            ).with_shader(app.shaders.prox_fade_texture),
+            ).with_shader(app.shaders.prox_fade_texture_white),
             editor_app_selected: Image::new(
                 0, 50, 50, 50, "assets/textures/button/editor_app_selected.png".to_string(),
                 (0, 0, 50, 50), 0.91
@@ -52,7 +52,7 @@ impl AppSelector {
             settings_app_unselected: Image::new(
                 0, app.window_size.1 as i32 - 90, 50, 50, "assets/textures/button/settings_app_icon_unselected.png".to_string(),
                 (0, 0, 50, 50), 0.91
-            ).with_shader(app.shaders.prox_fade_texture),
+            ).with_shader(app.shaders.prox_fade_texture_white),
             settings_app_selected: Image::new(
                 0, app.window_size.1 as i32 - 90, 50, 50, "assets/textures/button/settings_app_icon_selected.png".to_string(),
                 (0, 0, 50, 50), 0.91
@@ -111,8 +111,8 @@ impl Component for AppSelector {
             self.editor_app_unselected.update(app);
         }
 
-        self.settings_app_selected.set_position(0, app.window_size.1 as i32 - 90);
-        self.settings_app_unselected.set_position(0, app.window_size.1 as i32 - 90);
+        self.settings_app_selected.set_position(0, app.window_size.1 as i32 - 91);
+        self.settings_app_unselected.set_position(0, app.window_size.1 as i32 - 91);
 
         if self.selected_app == 2 {
             self.settings_app_selected.update(app);
@@ -142,7 +142,7 @@ impl Component for AppSelector {
             else if app.collides((0, 50, 50, 50), app.mouse.position) {
                 self.selected_app = 1;
             }
-            else if app.collides((0, app.window_size.1 as i32 - 90, 50, 50), app.mouse.position) {
+            else if app.collides((self.settings_app_selected.position.0, self.settings_app_selected.position.1, 50, 50), app.mouse.position) {
                 self.selected_app = 2;
             }
         }

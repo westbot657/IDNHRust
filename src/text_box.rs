@@ -104,13 +104,20 @@ impl Component for Textbox {
 
         self.set_offset(app.mouse.position);
         
+        self.text.bounds = (Some(-self.offset.0), Some(-self.offset.1), Some((self.size.0 as i32 - self.offset.0).max(0) as u32), Some((self.size.1 as i32 - self.offset.1).max(0) as u32));
+        
         if self.hovered {
             app.set_cursor("IBeam".to_string());
         }
         
         if app.mouse.left_down {
             self.selected = self.hovered;
-            self.cursor_blink_delta = Instant::now();
+            if self.hovered {
+                self.cursor_blink_delta = Instant::now();
+                
+                let dx = self.position.0;
+                
+            }
         }
 
         if self.selected {
@@ -159,6 +166,15 @@ impl Component for Textbox {
         // app.camera.viewport = (self.position.0, self.position.1, (self.position.0 + self.size.0 as i32 + 25) as u32, (self.position.1 + self.size.1 as i32) as u32);
         app.camera.push();
         app.camera.set_ipos(self.offset.0, self.offset.1);
+        app.camera.translate(self.offset.0 as f32, self.offset.1 as f32, app.window_size);
+        
+        // let (_, viewport, _) = app.camera.peek();
+        println!("text box rect: {:?}, {:?}", self.position, self.size);
+        let vp = app.camera.map_rect((self.position.0, self.position.1, self.size.0, self.size.1), app.window_size);
+        // app.camera.viewport = (self.position.0 - self.offset.0 + i_pos.0, self.position.1 - self.offset.1 + i_pos.1, self.size.0, self.size.1);
+        println!("Calculated viewport: {:?}", vp);
+        app.camera.viewport = (vp.0, vp.1, vp.2, vp.3);
+        
         self.text.update(app);
         
         

@@ -297,6 +297,7 @@ impl TextInputHandler {
         if left {
             if self.cursor.selection_idx.is_some() {
                 self.cursor.idx = self.cursor.idx.min(self.cursor.selection_idx.unwrap());
+                self.cursor.selection_idx = None;
             } else if self.cursor.idx > 0 && move_cursors {
                 self.cursor.idx -= 1;
             }
@@ -320,6 +321,7 @@ impl TextInputHandler {
             for cur in &mut self.cursors {
                 if cur.selection_idx.is_some() {
                     cur.idx = cur.idx.min(cur.selection_idx.unwrap());
+                    cur.selection_idx = None;
                 } else if cur.idx < l && move_cursors{
                     cur.idx += 1;
                 }

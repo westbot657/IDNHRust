@@ -204,7 +204,7 @@ impl CharAtlas {
         let mut draw_y: u32 = 0;
 
         let (min_width, min_height, max_width, max_height) = bounds;
-
+        
         let shader_program = app.shaders.text_program;
 
         unsafe {
@@ -218,7 +218,7 @@ impl CharAtlas {
             let (mat4, viewport, _) = app.camera.peek();
 
             gl::UniformMatrix4fv(cam_loc, 1, gl::FALSE, mat4.as_ptr());
-            gl::Uniform4f(view_loc, 
+            gl::Uniform4f(view_loc,
                 viewport.0 as f32 / app.window_size.0 as f32 - 1.0,
                 1.0 - (viewport.1 as f32 / app.window_size.1 as f32) - (viewport.3 as f32 / app.window_size.1 as f32 * 2.0),
                 viewport.2 as f32 / app.window_size.0 as f32 * 2.0,

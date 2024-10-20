@@ -64,7 +64,7 @@ impl WindowFrame {
                             0, 0, 40, 25, "assets/textures/button/fullscreen.png".to_string(),
                             (0, 0, 40, 25), 0.91
                         )
-                        .with_shader(app.shaders.prox_fade_texture)
+                        .with_shader(app.shaders.prox_fade_texture_white)
                         )
                     ],
                     "fullscreen"
@@ -77,7 +77,7 @@ impl WindowFrame {
                             0, 0, 40, 25, "assets/textures/button/minimize_app.png".to_string(),
                             (0, 0, 40, 25), 0.91
                         )
-                        .with_shader(app.shaders.prox_fade_texture)
+                        .with_shader(app.shaders.prox_fade_texture_white)
                         )
                     ],
                     "minimize"
@@ -88,7 +88,7 @@ impl WindowFrame {
                         0, 0, 40, 25, "assets/textures/button/windowed.png".to_string(),
                         (0, 0, 40, 25), 0.91
                     )
-                    .with_shader(app.shaders.prox_fade_texture)
+                    .with_shader(app.shaders.prox_fade_texture_white)
                     )
                 ], "windowing_storage"
                 )),

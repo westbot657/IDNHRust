@@ -33,7 +33,7 @@ impl EditorApp {
         
         
         let mut text_box = Textbox::new(
-            (50, 90), (500, 500),
+            (50, 100), (500, 500),
             "",
             true, None, true,
             1.0, (255, 255, 255, 255)
