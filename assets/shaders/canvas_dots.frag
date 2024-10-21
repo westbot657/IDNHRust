@@ -31,8 +31,9 @@ float dist(vec2 a, vec2 b) {
 }
 
 void main() {
+
     if (!(viewport.x <= ScreenPos.x && ScreenPos.x <= viewport.x + viewport.z &&
-          viewport.y <= ScreenPos.y && ScreenPos.y <= viewport.y + viewport.w)) {
+    viewport.y <= ScreenPos.y && ScreenPos.y <= viewport.y + viewport.w)) {
         discard;
     }
 
@@ -41,6 +42,7 @@ void main() {
     // if (dv >= 0.25) {
     //     discard;
     // }
+
 
     // Aspect ratio correction
     float aspectRatio = screen_size.x / screen_size.y;
@@ -73,9 +75,10 @@ void main() {
 
     vec2 cell_d = abs(cell_local - vec2(0.5, 0.5));
 
-    float final_dist = ease(ease(0.75 + (
-        abs(cell_local.x - 0.5) * abs(cell_local.y - 0.5)
-    )));
+    float final_dist = ease(
+        ease((0.75 + (abs(cell_local.x - 0.5) * abs(cell_local.y - 0.5)))
+
+    )) * (1-dist(mouse, ScreenPos)*4);
 
     FragColor = vec4(color.rgb, color.a * final_dist);// * ((0.25-dv)/0.25));
 }
