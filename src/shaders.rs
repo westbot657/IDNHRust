@@ -72,7 +72,8 @@ pub struct Shaders {
     pub prox_fade: u32,
     pub prox_fade_red: u32,
     pub prox_fade_texture_white: u32,
-    pub grid_shader: u32
+    pub canvas_grid_shader: u32,
+    pub canvas_dots_shader: u32
 }
 
 impl Shaders {
@@ -93,7 +94,8 @@ impl Shaders {
 
         let prox_fade_texture_frag = shader!(frag "effects/glow/prox_fade_white_texture.frag");
 
-        let grid_frag = shader!(frag "canvas.frag");
+        let canvas_frag_grid = shader!(frag "canvas_grid.frag");
+        let canvas_frag_dots = shader!(frag "canvas_dots.frag");
 
         Shaders {
             textured_program: link_program(texture_vert, frag1),
@@ -102,7 +104,8 @@ impl Shaders {
             prox_fade: link_program(colored_vert, prox_fade_frag),
             prox_fade_red: link_program(texture_vert, prox_fade_red_frag),
             prox_fade_texture_white: link_program(texture_vert, prox_fade_texture_frag),
-            grid_shader: link_program(colored_vert, grid_frag)
+            canvas_grid_shader: link_program(colored_vert, canvas_frag_grid),
+            canvas_dots_shader: link_program(colored_vert, canvas_frag_dots)
         }
     }
 

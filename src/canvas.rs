@@ -64,7 +64,7 @@ impl Canvas {
 
 
     pub fn render(&self, app: &App) {
-        let shader_program = app.shaders.grid_shader;
+        let shader_program = app.shaders.canvas_dots_shader;
         let pos = app.map_coords(&self.position);
         let sz = app.map_size(&self.size);
 

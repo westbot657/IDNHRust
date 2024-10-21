@@ -345,8 +345,19 @@ impl<'a> App<'a> {
     }
 
     pub fn map_coords(&self, pos: &(i32, i32)) -> (f32, f32) {
-        ((pos.0 as f32 * 2.0 / self.window_size.1 as f32) - (self.window_size.0 as f32 / self.window_size.1 as f32), 1.0 - (pos.1 as f32 * 2.0 / self.window_size.1 as f32))
+        (
+            (pos.0 as f32 * 2.0 / self.window_size.1 as f32) - (self.window_size.0 as f32 / self.window_size.1 as f32),
+            1.0 - (pos.1 as f32 * 2.0 / self.window_size.1 as f32)
+        )
     }
+
+    pub fn unmap_coords(&self, pos: &(f32, f32)) -> (i32, i32) {
+        (
+            (((pos.0 + (self.window_size.0 as f32 / self.window_size.1 as f32)) * self.window_size.1 as f32) / 2.0).round() as i32,
+            (((1.0 - pos.1) * self.window_size.1 as f32) / 2.0).round() as i32
+        )
+    }
+
 
     pub fn map_coordsi64(&self, pos: &(i64, i64)) -> (f32, f32) {
         ((pos.0 as f32 * 2.0 / self.window_size.1 as f32) - (self.window_size.0 as f32 / self.window_size.1 as f32), 1.0 - (pos.1 as f32 * 2.0 / self.window_size.1 as f32))
@@ -355,7 +366,17 @@ impl<'a> App<'a> {
 
 
     pub fn map_size(&self, size: &(u32, u32)) -> (f32, f32) {
-        (size.0 as f32 / self.window_size.1 as f32, size.1 as f32 / self.window_size.1 as f32)
+        (
+            size.0 as f32 / self.window_size.1 as f32,
+            size.1 as f32 / self.window_size.1 as f32
+        )
+    }
+    
+    pub fn unmap_size(&self, size: &(f32, f32)) -> (u32, u32) {
+        (
+            (size.0 * self.window_size.1 as f32) as u32,
+            (size.1 * self.window_size.1 as f32) as u32
+        )
     }
 
     pub fn set_pos(&mut self, x: i32, y: i32) {
@@ -380,33 +401,74 @@ impl<'a> App<'a> {
             Vector4::new(pos.0 + (sz.0), pos.1 - (sz.1), 0.0, 1.0),
         );
     
-        let (camera_matrix, viewport, _) = self.camera.peek();
+        let (camera_matrix, viewport, ipos) = self.camera.peek();
         let combined_matrix = camera_matrix * transform_matrix;
 
-        if !(viewport.0 <= point.0 && point.0 <= viewport.0 + viewport.2 as i32 &&
-            viewport.1 <= point.1 && point.1 <= viewport.1 + viewport.3 as i32) {
+        if !(viewport.0 - ipos.0 <= point.0 && point.0 <= viewport.0 + viewport.2 as i32 &&
+            viewport.1 - ipos.1 <= point.1 && point.1 <= viewport.1 + viewport.3 as i32) {
                 return false
             }
-    
-        let screen_coords = Vector4::new(
-            2.0 * (point.0 as f32 / self.window_size.0 as f32) - 1.0,
-            1.0 - 2.0 * (point.1 as f32 / self.window_size.1 as f32),
-            0.0,
-            1.0,
-        );
-    
+        
         if let Some(inv_combined_matrix) = combined_matrix.invert() {
+            let screen_coords = Vector4::new(
+                2.0 * (point.0 as f32 / self.window_size.0 as f32) - 1.0,
+                1.0 - 2.0 * (point.1 as f32 / self.window_size.1 as f32),
+                0.0,
+                1.0,
+            );
             let transformed_point = inv_combined_matrix * screen_coords;
             let world_x = transformed_point.x * 2.0;
             let world_y = transformed_point.y * 2.0;
 
-            (-1.0..=1.0).contains(&world_x) && (-1.0..=1.0).contains(&world_y)
+            (-1.0..1.0).contains(&world_x) && (-1.0..1.0).contains(&world_y)
         } else {
             false
         }
     }
 
-    
+    pub fn map_rect(&self, rect: (i32, i32, u32, u32)) -> (i32, i32, u32, u32) {
+        let pos = self.map_coords(&(rect.0, rect.1));
+        let sz = self.map_size(&(rect.2, rect.3));
+
+        let transform_matrix = Matrix4::from_cols(
+            Vector4::new(sz.0 * 2.0, 0.0, 0.0, 0.0),
+            Vector4::new(0.0, sz.1 * 2.0, 0.0, 0.0),
+            Vector4::new(0.0, 0.0, 1.0, 0.0),
+            Vector4::new(pos.0 + sz.0, pos.1 - sz.1, 0.0, 1.0),
+        );
+
+        let (camera_matrix, viewport, _) = self.camera.peek();
+        let combined_matrix = camera_matrix * transform_matrix;
+
+        let mut transformed_corners = Vec::new();
+
+        let corners = [
+            Vector4::new(-1.0, -1.0, 0.0, 1.0), // Top-left
+            Vector4::new(1.0, -1.0, 0.0, 1.0),  // Top-right
+            Vector4::new(-1.0, 1.0, 0.0, 1.0),  // Bottom-left
+            Vector4::new(1.0, 1.0, 0.0, 1.0),   // Bottom-right
+        ];
+
+        for corner in corners.iter() {
+            let transformed_corner = combined_matrix * *corner;
+            let (mx, my) = self.unmap_coords(&(transformed_corner.x, transformed_corner.y));
+            transformed_corners.push((
+                mx, my
+            ));
+        }
+
+        let min_x = transformed_corners.iter().map(|(x, _)| *x).min().unwrap_or(0);
+        let max_x = transformed_corners.iter().map(|(x, _)| *x).max().unwrap_or(0);
+        let min_y = transformed_corners.iter().map(|(_, y)| *y).min().unwrap_or(0);
+        let max_y = transformed_corners.iter().map(|(_, y)| *y).max().unwrap_or(0);
+
+        let width = (max_x - min_x).abs() as u32;
+        let height = (max_y - min_y).abs() as u32;
+
+        println!("output rect: {}, {}, {}, {}", min_x, min_y, width, height);
+        (min_x, min_y, width, height)
+    }
+
 
     /// In theory this function should only ever return Some()
     pub fn get_monitor_with_cursor(&self) -> Option<(i32, i32, u32, u32)> {
