@@ -22,11 +22,11 @@ void main() {
     vec4 draw_c = vec4(draw_clip.xy, 0.0, 1.0) * (camera * transform);
     vec4 draw_s = vec4(draw_clip.zw, 0.0, 1.0) * (camera * transform);
 
-    draw_c = vec4(draw_c.xy, draw_s.xy);
-    if (!(draw_c.x <= ScreenPos.x && ScreenPos.x <= draw_c.x+draw_c.z && draw_c.y <= ScreenPos.y && ScreenPos.y <= draw_c.y+draw_c.w)) {
-        FragColor = vec4(1, 0, 0, 1);
-        return;
-    }
+//    draw_c = vec4(draw_c.xy, draw_s.xy);
+//    if (!(draw_c.x <= ScreenPos.x && ScreenPos.x <= draw_c.x+draw_c.z && draw_c.y <= ScreenPos.y && ScreenPos.y <= draw_c.y+draw_c.w)) {
+//        FragColor = vec4(1, 0, 0, 1);
+//        return;
+//    }
 
     vec2 atlasTexCoord = vec2(
         uv.x + TexCoord.x * uv.z,
