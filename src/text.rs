@@ -144,7 +144,7 @@ impl CharAtlas {
         }
     }
 
-    pub fn render_char(&self, app: &App, x: i32, y: i32, draw_x: &mut u32, draw_y: &mut u32, character: &str, z_index: f32, scale: f32) {
+    pub fn render_char(&self, app: &App, x: i32, y: i32, draw_x: &mut u32, draw_y: &mut u32, character: &str, z_index: f32, scale: f32, bounds: Bounds) {
         const HEIGHT: u32 = CONST!(text height);
 
         if character == "\n" {
@@ -190,6 +190,9 @@ impl CharAtlas {
 
                 gl::DrawArrays(gl::TRIANGLES, 0, 6);
 
+                
+                
+                
             }
 
             *draw_x += ((HEIGHT as f32 / 2.0 * scale) + (4.0 * scale)) as u32;
@@ -203,7 +206,7 @@ impl CharAtlas {
         let mut draw_x: u32 = 0;
         let mut draw_y: u32 = 0;
 
-        let (min_width, min_height, max_width, max_height) = bounds;
+        let (bound_x, bound_y, bound_width, bound_height) = bounds;
         
         let shader_program = app.shaders.text_program;
 
@@ -219,40 +222,55 @@ impl CharAtlas {
 
             gl::UniformMatrix4fv(cam_loc, 1, gl::FALSE, mat4.as_ptr());
             gl::Uniform4f(view_loc,
-                viewport.0 as f32 / app.window_size.0 as f32 - 1.0,
-                1.0 - (viewport.1 as f32 / app.window_size.1 as f32) - (viewport.3 as f32 / app.window_size.1 as f32 * 2.0),
-                viewport.2 as f32 / app.window_size.0 as f32 * 2.0,
-                viewport.3 as f32 / app.window_size.1 as f32 * 2.0
+                          viewport.0 as f32 / app.window_size.0 as f32 - 1.0,
+                          1.0 - (viewport.1 as f32 / app.window_size.1 as f32) - (viewport.3 as f32 / app.window_size.1 as f32 * 2.0),
+                          viewport.2 as f32 / app.window_size.0 as f32 * 2.0,
+                          viewport.3 as f32 / app.window_size.1 as f32 * 2.0
             );
 
             let col_str = CString::new("color").unwrap();
             let col_loc = gl::GetUniformLocation(shader_program, col_str.as_ptr());
             gl::Uniform4f(col_loc,
-                color.0 as f32 / 255.0,
-                color.1 as f32 / 255.0,
-                color.2 as f32 / 255.0,
-                color.3 as f32 / 255.0,
+                          color.0 as f32 / 255.0,
+                          color.1 as f32 / 255.0,
+                          color.2 as f32 / 255.0,
+                          color.3 as f32 / 255.0,
             );
 
             let italic_str = CString::new("italic").unwrap();
             let italic_loc = gl::GetUniformLocation(shader_program, italic_str.as_ptr());
             gl::Uniform1f(italic_loc, (styles & style_flags::ITALIC) as f32);
 
+            let draw_str = CString::new("draw_clip").unwrap();
+            let draw_loc = gl::GetUniformLocation(app.shaders.text_program, draw_str.as_ptr());
+            // let (drawX, drawY) = app.map_coords(&(bound_x.unwrap_or(-5000) + x*2, bound_y.unwrap_or(-5000) + y*2));
+            // let (drawW, drawH) = app.map_size(&(bound_width.unwrap_or(10000), bound_height.unwrap_or(10000)));
+            // println!("Draw clip: {}, {}, {}, {}", drawX+1.0, drawY, drawW, drawH);
+            // gl::Uniform4f(draw_loc,
+            //               drawX + 1.0, drawY, drawW, drawH
+            // );
+            gl::Uniform4f(draw_loc,
+                          bound_x.unwrap_or(-5000) as f32 / app.window_size.0 as f32 - 1.0,
+                          1.0 - (bound_y.unwrap_or(-5000) as f32 / app.window_size.1 as f32) - (bound_height.unwrap_or(10000) as f32 / app.window_size.1 as f32 * 2.0),
+                          bound_width.unwrap_or(10000) as f32 / app.window_size.0 as f32 * 2.0,
+                          bound_height.unwrap_or(10000) as f32 / app.window_size.1 as f32 * 2.0
+            );
 
             gl::ActiveTexture(gl::TEXTURE0);
             gl::BindTexture(gl::TEXTURE_2D, self.atlas_id);
             gl::BindVertexArray(self.vao);
 
-            for character in text.split("") {
-                if character.is_empty() {continue}
-                if draw_x > max_width.unwrap_or(u32::MAX) || (draw_y as i32 + (scale * CONST!(text height f32)) as i32) < min_height.unwrap_or(0) || (draw_x as i32 + (scale * CONST!(text height f32)) as i32) < min_width.unwrap_or(0) {
-                    self.skip_char(&mut draw_x, &mut draw_y, character, scale);
-                } else {
-                    self.render_char(app, x, y, &mut draw_x, &mut draw_y, character, z_index, scale);
-                }
-                if draw_y as i64 > max_height.unwrap_or(u32::MAX) as i64 {
-                    return
-                }
+        }
+
+        for character in text.split("") {
+            if character.is_empty() {continue}
+            if draw_x > bound_width.unwrap_or(u32::MAX) || (draw_y as i32 + (scale * CONST!(text height f32)) as i32) < bound_y.unwrap_or(0) || (draw_x as i32 + (scale * CONST!(text height f32)) as i32) < bound_x.unwrap_or(0) {
+                self.skip_char(&mut draw_x, &mut draw_y, character, scale);
+            } else {
+                self.render_char(app, x, y, &mut draw_x, &mut draw_y, character, z_index, scale, bounds);
+            }
+            if draw_y as i64 > bound_height.unwrap_or(u32::MAX) as i64 {
+                return
             }
         }
     }

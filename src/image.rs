@@ -74,7 +74,7 @@ impl Image {
             ];
             gl::UniformMatrix4fv(transform_loc, 1, gl::FALSE, transform.as_ptr());
 
-            let (atlas_id, rect) = app.tex_atlas.get_atlas_and_rect(&self.src).unwrap();
+            let (atlas_id, rect) = app.tex_atlas.get_atlas_and_rect(&self.src).expect(format!("Could not load texture {:?}", self.src).as_str());
 
             let uv_str = CString::new("uv").unwrap();
             let uv_loc = gl::GetUniformLocation(shader_program, uv_str.as_ptr());

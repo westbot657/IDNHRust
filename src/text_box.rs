@@ -102,7 +102,7 @@ impl Component for Textbox {
     fn update(&mut self, app: &mut App) {
         self.hovered = collides!(app, self, app.mouse.position);
 
-        self.set_offset(app.mouse.position);
+        // self.set_offset(app.mouse.position);
         
         self.text.bounds = (Some(-self.offset.0), Some(-self.offset.1), Some((self.size.0 as i32 - self.offset.0).max(0) as u32), Some((self.size.1 as i32 - self.offset.1).max(0) as u32));
         
