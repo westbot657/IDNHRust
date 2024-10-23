@@ -29,7 +29,10 @@ pub struct Mouse {
     pub position: (i32, i32),
 
     pub cursors: HashMap<String, sdl2::mouse::Cursor>,
-    pub active_cursor_style: Option<String>
+    pub active_cursor_style: Option<String>,
+    pub held_object: Option<Box<dyn Component>>,
+    pub hold_offset: (i32, i32),
+    pub hold_scale: f32
 }
 
 impl Mouse {
@@ -67,6 +70,9 @@ impl Mouse {
 
             cursors,
             active_cursor_style: None,
+            held_object: None,
+            hold_offset: (0, 0),
+            hold_scale: 1.0
         }
     }
     
