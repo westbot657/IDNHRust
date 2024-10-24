@@ -32,6 +32,7 @@ mod toast_system;
 mod window_frame;
 mod platform;
 mod visibility_toggle;
+mod component_system;
 
 use std::{collections::VecDeque, env, time::Instant};
 
