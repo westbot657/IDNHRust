@@ -103,14 +103,6 @@ impl Component for ToastSystem {
         
     }
 
-    fn get_named_child(&self, path: VecDeque<&str>) -> Option<&mut dyn Component> {
-        None
-    }
-
-    fn get_element_name(&self) -> &str {
-        "toast_system"
-    }
-
     fn destroy(self) {
         
     }

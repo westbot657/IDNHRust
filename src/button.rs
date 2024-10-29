@@ -28,7 +28,6 @@ impl Button {
 
 impl Component for Button {
     fn update(&mut self, app: &mut crate::app::App) {
-        app.push_child_name(self.get_element_name());
         
         if app.collides((self.position.0, self.position.1, self.size.0, self.size.1), app.mouse.position) {
             if app.mouse.left_down && !app.last_mouse.left_down {
@@ -49,15 +48,6 @@ impl Component for Button {
         }
 
         app.camera.pop();
-        app.pop_child_name();
-    }
-
-    fn get_named_child(&self, path: VecDeque<&str>) -> Option<&mut dyn Component> {
-        None
-    }
-
-    fn get_element_name(&self) -> &str {
-        &self.uid
     }
 
     fn destroy(self) {

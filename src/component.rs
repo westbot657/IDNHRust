@@ -6,6 +6,7 @@ use crate::app::App;
 pub trait ComponentToAny: 'static {
     fn as_any(&self) -> &dyn Any;
     fn as_any_mut(&mut self) -> &mut dyn Any;
+    fn to_owned(self) -> Box<dyn Any>;
 }
 
 impl<T: 'static> ComponentToAny for T {
@@ -15,14 +16,13 @@ impl<T: 'static> ComponentToAny for T {
     fn as_any_mut(&mut self) -> &mut dyn Any {
         self
     }
+    fn to_owned(self) -> Box<dyn Any> {
+        Box::new(self)
+    }
 }
 
 pub trait Component: ComponentToAny {
     fn update(&mut self, app: &mut App);
-
-    fn get_named_child(&self, path: VecDeque<&str>) -> Option<&mut dyn Component>;
-
-    fn get_element_name(&self) -> &str;
 
     fn destroy(self);
 }

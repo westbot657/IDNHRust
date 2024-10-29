@@ -80,13 +80,6 @@ impl Component for EditorApp {
 
     }
 
-    fn get_named_child(&self, path: VecDeque<&str>) -> Option<&mut dyn Component> {
-        None
-    }
-
-    fn get_element_name(&self) -> &str {
-        "editor"
-    }
 
 
     fn destroy(self) {

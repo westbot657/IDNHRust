@@ -22,15 +22,6 @@ impl Component for StorageComponent {
     fn update(&mut self, _app: &mut crate::app::App) {
     }
 
-    fn get_named_child(&self, path: VecDeque<&str>) -> Option<&mut dyn Component> {
-        None
-    }
-
-    fn get_element_name(&self) -> &str {
-        &self.uid
-    }
-
-
     fn destroy(self) {
     }
 }

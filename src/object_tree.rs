@@ -23,14 +23,6 @@ impl Component for ObjectTree {
 
     }
 
-    fn get_named_child(&self, path: VecDeque<&str>) -> Option<&mut dyn Component> {
-        None
-    }
-
-    fn get_element_name(&self) -> &str {
-        "object_tree"
-    }
-
 
     fn destroy(self) {
     }

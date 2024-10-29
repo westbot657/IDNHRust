@@ -149,15 +149,6 @@ impl Component for AppSelector {
 
     }
 
-    /// App struct bypasses the methods in this struct
-    fn get_named_child(&self, path: VecDeque<&str>) -> Option<&mut dyn Component> {
-        None
-    }
-
-    fn get_element_name(&self) -> &str {
-        &self.uid
-    }
-
 
     fn destroy(self) {
     }

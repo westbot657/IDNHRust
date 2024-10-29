@@ -6,6 +6,9 @@ macro_rules! cast_component {
     };
     ( $component:expr => mut $new_type:tt) => {
         $component.as_any_mut().downcast_mut::<$new_type>().unwrap()
+    };
+    ( $component:expr => owned $new_type:tt) => {
+        $component.to_owned().downcast::<$new_type>().unwrap()
     }
 }
 

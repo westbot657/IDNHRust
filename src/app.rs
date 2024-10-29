@@ -5,6 +5,7 @@ use enigo::{Enigo, Mouse as eMouse, Settings};
 use sdl2::{event::Event, video::Window};
 
 use crate::{app_selector::AppSelector, camera::Camera, component::Component, image::Image, keybinds::Keybinds, macros::{cast_component, SETTINGS}, shaders::Shaders, text::Text, texture_atlas::{convert_tex_to_gl, TextureAtlas}, window_frame::WindowFrame};
+use crate::component_system::{ComponentSystem, SystematicComponent};
 use crate::history_manager::HistoryManager;
 use crate::macros::font_size;
 use crate::text::FontHandler;
@@ -166,7 +167,9 @@ pub struct App<'a> {
     path: Vec<String>,
 
     toasts: ToastSystem,
-    _toasts: Option<ToastSystem>
+    _toasts: Option<ToastSystem>,
+    
+    pub component_system: ComponentSystem
 
 }
 
@@ -213,6 +216,8 @@ impl<'a> App<'a> {
             path: Vec::new(),
             toasts: ToastSystem::blank(),
             _toasts: None,
+            
+            component_system: ComponentSystem::new()
         };
         let mut tsts = ToastSystem::new(&app, 300, 80);
         mem::swap(&mut tsts, &mut app.toasts);
@@ -231,7 +236,7 @@ impl<'a> App<'a> {
             Box::new(Text::new(0, 0, "FPS", (None, None, None, None), font_size!(15.0), 1.0, SETTINGS!(text color 4 u8))),
 
 
-            Box::new(app_selector)
+            Box::new(app_selector.systemize(&mut app.component_system))
 
         ];
 
@@ -239,50 +244,6 @@ impl<'a> App<'a> {
         app
     }
     
-    pub fn get_named_child(&mut self, name: impl ToString) -> Option<&mut dyn Component> {
-        let name = name.to_string();
-        let mut path = name.split('/').collect::<VecDeque<&str>>();
-
-        let p = path.pop_front();
-
-        if p.is_some() {
-            if p.unwrap() == "frame" {
-                let mut out = self.children.get_mut(0).unwrap();
-                if path.is_empty() {
-                    Some(out.as_mut())
-                } else {
-                    out.get_named_child(path)
-                }
-            }
-            else if p.unwrap() == "game" {
-                let sel = cast_component!(self.children.get_mut(2).unwrap() => mut AppSelector);
-                Some(&mut sel.game_app)
-            }
-            else if p.unwrap() == "editor" {
-                let sel = cast_component!(self.children.get_mut(2).unwrap() => mut AppSelector);
-                Some(&mut sel.editor_app)
-            }
-            else {
-                None
-            }
-        } else {
-            None
-        }
-
-    }
-
-    pub fn push_child_name(&mut self, name: &str) {
-        self.path.push(name.to_string());
-    }
-
-    pub fn pop_child_name(&mut self) -> Option<String> {
-        self.path.pop()
-    }
-
-    pub fn get_child_path(&self) -> String {
-        self.path.join("/")
-    }
-
     pub fn set_cursor(&mut self, cursor: String) {
         if self.mouse.cursors.contains_key(&cursor) {
             self.mouse.active_cursor_style = Some(cursor);

@@ -2,7 +2,8 @@ use std::collections::VecDeque;
 use std::mem;
 use std::time::Instant;
 use crate::app::App;
-use crate::component::Component;
+use crate::component::{Component, ComponentToAny};
+use crate::component_system::{CompRef, SystematicComponent};
 use crate::history_manager::HistoryEvent;
 use crate::macros::{cast_component, collides, font_size};
 use crate::rectangle::Rectangle;
@@ -10,14 +11,14 @@ use crate::text::Text;
 use crate::text_input_handler::{IdxSize, TextInputHandler};
 
 pub struct TextTypeHistory {
-    uid: String,
+    uuid: String,
     data: String,
 }
 
 impl TextTypeHistory {
     pub fn new(uid: impl ToString, data: impl ToString) -> Self {
         Self {
-            uid: uid.to_string(),
+            uuid: uid.to_string(),
             data: data.to_string()
         }
     }
@@ -25,9 +26,16 @@ impl TextTypeHistory {
 
 impl HistoryEvent for TextTypeHistory {
     fn redo(&mut self, app: &mut App) {
-        let text_box = cast_component!(app.get_named_child(&self.uid).unwrap() => mut Textbox);
         
-        mem::swap(&mut text_box.handler.content, &mut self.data);
+        let tb = app.component_system.take(&self.uuid);
+        
+        if let Some(text_box) = tb {
+            let mut text_box: Box<Textbox> = cast_component!(text_box => owned Textbox);
+            mem::swap(&mut text_box.handler.content, &mut self.data);
+            
+            app.component_system.add(&self.uuid, text_box);
+        }
+        
     }
 
     fn undo(&mut self, app: &mut App) {
@@ -53,9 +61,9 @@ pub struct Textbox {
 
 
 impl Textbox {
-    pub fn new(position: (i32, i32), size: (u32, u32), content: &str, allow_newlines: bool, max_length: Option<IdxSize>, allow_editing: bool, z_index: f32, color: (u8, u8, u8, u8)) -> Self {
+    pub fn new(app: &mut App, position: (i32, i32), size: (u32, u32), content: &str, allow_newlines: bool, max_length: Option<IdxSize>, allow_editing: bool, z_index: f32, color: (u8, u8, u8, u8)) -> CompRef {
 
-        Self {
+        let tb = Self {
             handler: TextInputHandler::new(content.to_string(), allow_newlines, max_length, allow_editing),
             position,
             size,
@@ -69,7 +77,15 @@ impl Textbox {
             cursor_rectangle: Rectangle::new(0, 0, 1, 16, (255, 255, 255, 255), (z_index + 0.01).min(1.0)),
             uid: "".to_string(),
             offset: (0, 0),
-        }
+        }.systemize(&mut app.component_system);
+        
+        let mut text_box: Box<Textbox> = cast_component!(tb.get(&mut app.component_system).unwrap() => owned Textbox);
+        
+        text_box.uid = tb.uuid.to_string();
+        
+        tb.restore(&mut app.component_system, text_box);
+
+        tb
     }
     
     pub fn set_bg_color(&mut self, color: (u8, u8, u8, u8)) {
@@ -139,9 +155,9 @@ impl Component for Textbox {
             }
             
             if self.handler.should_update_history() {
-                let hist = TextTypeHistory::new(app.get_child_path(), &self.handler.content);
-                
-                app.history.add_history(hist);
+                // let hist = TextTypeHistory::new(app.get_child_path(), &self.handler.content);
+                // 
+                // app.history.add_history(hist);
             }
             
         }
@@ -194,14 +210,6 @@ impl Component for Textbox {
         }
         app.camera.pop();
 
-    }
-
-    fn get_named_child(&self, path: VecDeque<&str>) -> Option<&mut dyn Component> {
-        None
-    }
-
-    fn get_element_name(&self) -> &str {
-        &self.uid
     }
 
 
