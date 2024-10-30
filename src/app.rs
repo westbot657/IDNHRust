@@ -223,7 +223,7 @@ impl<'a> App<'a> {
         mem::swap(&mut tsts, &mut app.toasts);
         app._toasts = Some(tsts);
 
-        let app_selector = AppSelector::new(&app);
+        let app_selector = AppSelector::new(&mut app);
 
         app.children = vec![
             Box::new(WindowFrame::new(

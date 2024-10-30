@@ -1,7 +1,9 @@
 use std::collections::{HashMap, VecDeque};
+use std::ops::Deref;
 use uuid::Uuid;
 use crate::app::App;
 use crate::component::Component;
+use crate::macros::cast_component;
 
 pub struct ComponentSystem {
     pub components: HashMap<String, Box<dyn Component>>
@@ -45,8 +47,12 @@ impl CompRef {
         }
     }
     
-    pub fn get(&self, sys: &mut ComponentSystem) -> Option<Box<dyn Component>> {
-        sys.take(&self.uuid)
+    pub fn get<T: 'static>(&self, sys: &mut ComponentSystem) -> Option<Box<T>> {
+        let out = sys.take(&self.uuid)?.to_owned();
+        
+        let out = out.downcast::<T>().unwrap();
+        
+        Some(out)
     }
     
     pub fn restore(&self, sys: &mut ComponentSystem, comp: Box<dyn Component>) {
@@ -69,6 +75,7 @@ impl Component for CompRef {
     fn destroy(self) {
     }
 }
+
 
 pub trait SystematicComponent {
     fn systemize(self, system: &mut ComponentSystem) -> CompRef;

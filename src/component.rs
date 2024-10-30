@@ -9,7 +9,7 @@ pub trait ComponentToAny: 'static {
     fn to_owned(self) -> Box<dyn Any>;
 }
 
-impl<T: 'static> ComponentToAny for T {
+impl<T: 'static + Component> ComponentToAny for T {
     fn as_any(&self) -> &dyn Any {
         self
     }

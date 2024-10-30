@@ -1,6 +1,7 @@
 use std::collections::VecDeque;
 use crate::{canvas::Canvas, component::Component, rectangle::Rectangle};
-use crate::macros::font_size;
+use crate::app::App;
+use crate::macros::{cast_component, font_size};
 use crate::text::Text;
 use crate::text_box::Textbox;
 use crate::visibility_toggle::VisibilityToggle;
@@ -13,7 +14,16 @@ pub struct EditorApp {
 
 
 impl EditorApp {
-    pub fn new() -> Self {
+    
+    pub fn blank() -> Self {
+        Self {
+            canvas: Canvas::new(0, 0, 0, 0, 0, 0.0, (0, 0, 0, 0)),
+            visibility_toggles: Vec::new(),
+            children: Vec::new(),
+        }
+    }
+    
+    pub fn new(app: &mut App) -> Self {
 
         let mut canvas = Canvas::new(0, 0, 500, 500, 50, 0.5, (255, 255, 255, 255));
 
@@ -33,13 +43,23 @@ impl EditorApp {
         
         
         let mut text_box = Textbox::new(
+            app,
             (50, 100), (500, 500),
             "",
             true, None, true,
             1.0, (255, 255, 255, 255)
         );
         
-        text_box.set_bg_color((10, 10, 10, 255));
+        if let Some(textb) = text_box.get::<Textbox>(&mut app.component_system) {
+            let mut tb = textb.to_owned();
+            
+        }
+        
+        // let mut tb = cast_component!(text_box.get(&mut app.component_system).unwrap() => owned Textbox);
+        // 
+        // tb.set_bg_color((10, 10, 10, 255));
+        // 
+        // text_box.restore(&mut app.component_system, tb);
 
         canvas.children.push(Box::new(text_box));
 

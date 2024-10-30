@@ -22,12 +22,12 @@ pub struct AppSelector {
 }
 
 impl AppSelector {
-    pub fn new(app: &App) -> Self {
+    pub fn new(app: &mut App) -> Self {
 
 
         Self {
             game_app: GameApp::new(),
-            editor_app: EditorApp::new(),
+            editor_app: EditorApp::new(app),
 
             selected_app: 0,
 
@@ -60,7 +60,6 @@ impl AppSelector {
 
             uid: "app_selector".to_string(),
         }
-
     }
 }
 
