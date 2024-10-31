@@ -6,7 +6,7 @@ use crate::app::App;
 pub trait ComponentToAny: 'static {
     fn as_any(&self) -> &dyn Any;
     fn as_any_mut(&mut self) -> &mut dyn Any;
-    fn to_owned(self) -> Box<dyn Any>;
+    fn to_any(self: Box<Self>) -> Box<dyn Any>;
 }
 
 impl<T: 'static + Component> ComponentToAny for T {
@@ -16,9 +16,10 @@ impl<T: 'static + Component> ComponentToAny for T {
     fn as_any_mut(&mut self) -> &mut dyn Any {
         self
     }
-    fn to_owned(self) -> Box<dyn Any> {
-        Box::new(self)
+    fn to_any(self: Box<Self>) -> Box<dyn Any> {
+        self
     }
+    
 }
 
 pub trait Component: ComponentToAny {

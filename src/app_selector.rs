@@ -1,11 +1,10 @@
 use std::collections::VecDeque;
 use crate::{app::App, component::Component, editor_app::EditorApp, game_app::GameApp, image::Image};
-
-
+use crate::component_system::{CompRef, SystematicComponent};
 
 pub struct AppSelector {
-    pub game_app: GameApp,
-    pub editor_app: EditorApp,
+    pub game_app: CompRef<GameApp>,
+    pub editor_app: CompRef<EditorApp>,
 
     pub selected_app: u8,
 
@@ -26,8 +25,8 @@ impl AppSelector {
 
 
         Self {
-            game_app: GameApp::new(),
-            editor_app: EditorApp::new(app),
+            game_app: GameApp::new().systemize(&mut app.component_system),
+            editor_app: EditorApp::new(app).systemize(&mut app.component_system),
 
             selected_app: 0,
 

@@ -1,4 +1,6 @@
+use std::any::{Any, TypeId};
 use std::collections::{HashMap, VecDeque};
+use std::marker::PhantomData;
 use std::ops::Deref;
 use uuid::Uuid;
 use crate::app::App;
@@ -26,7 +28,7 @@ impl ComponentSystem {
         self.components.insert(uuid.to_string(), component);
     }
     
-    pub fn wrap(&mut self, comp: Box<dyn Component>) -> CompRef {
+    pub fn wrap<T: 'static + Component>(&mut self, comp: Box<dyn Component>) -> CompRef<T> {
         let uuid = Uuid::new_v4().to_string();
         let comp_ref = CompRef::new(&uuid);
         comp_ref.restore(self, comp);
@@ -36,23 +38,23 @@ impl ComponentSystem {
 }
 
 
-pub struct CompRef {
+pub struct CompRef<T: 'static + Component> {
     pub uuid: String,
+    pub type_id: TypeId,
+    _marker: PhantomData<T>
 }
 
-impl CompRef {
+impl<T: 'static + Component> CompRef<T> {
     pub fn new(uuid: impl ToString) -> Self {
         Self {
             uuid: uuid.to_string(),
+            type_id: TypeId::of::<T>(),
+            _marker: PhantomData
         }
     }
     
-    pub fn get<T: 'static>(&self, sys: &mut ComponentSystem) -> Option<Box<T>> {
-        let out = sys.take(&self.uuid)?.to_owned();
-        
-        let out = out.downcast::<T>().unwrap();
-        
-        Some(out)
+    pub fn get(&self, sys: &mut ComponentSystem) -> Option<Box<T>> {
+        Some(cast_component!(sys.take(&self.uuid)? => owned T))
     }
     
     pub fn restore(&self, sys: &mut ComponentSystem, comp: Box<dyn Component>) {
@@ -61,9 +63,9 @@ impl CompRef {
     
 }
 
-impl Component for CompRef {
+impl<T: 'static + Component> Component for CompRef<T> {
     fn update(&mut self, app: &mut App) {
-        let comp = self.get(&mut app.component_system);
+        let comp = self.get::<>(&mut app.component_system);
         if let Some(mut child) = comp {
             child.update(app);
             
@@ -77,12 +79,12 @@ impl Component for CompRef {
 }
 
 
-pub trait SystematicComponent {
-    fn systemize(self, system: &mut ComponentSystem) -> CompRef;
+pub trait SystematicComponent<T: 'static + Component> {
+    fn systemize(self, system: &mut ComponentSystem) -> CompRef<T>;
 }
 
-impl<T: 'static + Component> SystematicComponent for T {
-    fn systemize(self, system: &mut ComponentSystem) -> CompRef {
+impl<T: 'static + Component> SystematicComponent<T> for T {
+    fn systemize(self, system: &mut ComponentSystem) -> CompRef<T> {
         system.wrap(Box::new(self))
     }
 }

@@ -42,7 +42,7 @@ impl EditorApp {
         children.push(Box::new(Text::new(50, 20, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz", (None, None, None, None), font_size!(16.0), 0.99, (255, 255, 255, 255))));
         
         
-        let mut text_box = Textbox::new(
+        let text_box = Textbox::new(
             app,
             (50, 100), (500, 500),
             "",
@@ -50,16 +50,12 @@ impl EditorApp {
             1.0, (255, 255, 255, 255)
         );
         
-        if let Some(textb) = text_box.get::<Textbox>(&mut app.component_system) {
-            let mut tb = textb.to_owned();
+        if let Some(mut textb) = text_box.get(&mut app.component_system) {
             
+            textb.set_bg_color((10, 10, 10, 255));
+            
+            text_box.restore(&mut app.component_system, textb);
         }
-        
-        // let mut tb = cast_component!(text_box.get(&mut app.component_system).unwrap() => owned Textbox);
-        // 
-        // tb.set_bg_color((10, 10, 10, 255));
-        // 
-        // text_box.restore(&mut app.component_system, tb);
 
         canvas.children.push(Box::new(text_box));
 

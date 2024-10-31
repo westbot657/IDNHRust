@@ -61,7 +61,7 @@ pub struct Textbox {
 
 
 impl Textbox {
-    pub fn new(app: &mut App, position: (i32, i32), size: (u32, u32), content: &str, allow_newlines: bool, max_length: Option<IdxSize>, allow_editing: bool, z_index: f32, color: (u8, u8, u8, u8)) -> CompRef {
+    pub fn new(app: &mut App, position: (i32, i32), size: (u32, u32), content: &str, allow_newlines: bool, max_length: Option<IdxSize>, allow_editing: bool, z_index: f32, color: (u8, u8, u8, u8)) -> CompRef<Textbox> {
 
         let tb = Self {
             handler: TextInputHandler::new(content.to_string(), allow_newlines, max_length, allow_editing),
@@ -79,7 +79,7 @@ impl Textbox {
             offset: (0, 0),
         }.systemize(&mut app.component_system);
         
-        let mut text_box: Box<Textbox> = cast_component!(tb.get(&mut app.component_system).unwrap() => owned Textbox);
+        let mut text_box: Box<Textbox> = tb.get(&mut app.component_system).unwrap();
         
         text_box.uid = tb.uuid.to_string();
         
