@@ -40,7 +40,6 @@ impl ComponentSystem {
 
 pub struct CompRef<T: 'static + Component> {
     pub uuid: String,
-    pub type_id: TypeId,
     _marker: PhantomData<T>
 }
 
@@ -48,7 +47,6 @@ impl<T: 'static + Component> CompRef<T> {
     pub fn new(uuid: impl ToString) -> Self {
         Self {
             uuid: uuid.to_string(),
-            type_id: TypeId::of::<T>(),
             _marker: PhantomData
         }
     }
