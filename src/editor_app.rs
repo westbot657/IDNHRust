@@ -1,14 +1,13 @@
-use std::collections::VecDeque;
 use crate::{canvas::Canvas, component::Component, rectangle::Rectangle};
 use crate::app::App;
-use crate::macros::{cast_component, font_size};
-use crate::text::Text;
+use crate::image::Image;
 use crate::text_box::Textbox;
 use crate::visibility_toggle::VisibilityToggle;
 
 pub struct EditorApp {
     canvas: Canvas,
     visibility_toggles: Vec<VisibilityToggle>,
+    vis_toggle_bg: Rectangle,
     children: Vec<Box<dyn Component>>,
 }
 
@@ -19,6 +18,7 @@ impl EditorApp {
         Self {
             canvas: Canvas::new(0, 0, 0, 0, 0, 0.0, (0, 0, 0, 0)),
             visibility_toggles: Vec::new(),
+            vis_toggle_bg: Rectangle::new(0, 0, 0, 0, (0, 0, 0, 0), 0.0),
             children: Vec::new(),
         }
     }
@@ -34,12 +34,24 @@ impl EditorApp {
         );
 
         let visibility_toggles = vec![
-            VisibilityToggle::new("weapons"),
+            VisibilityToggle::new(app, "weapons"),
+            VisibilityToggle::new(app, "ammo"),
+            VisibilityToggle::new(app, "armor"),
+            VisibilityToggle::new(app, "tools"),
+            VisibilityToggle::new(app, "items"),
+            VisibilityToggle::spacer(app),
+            VisibilityToggle::new(app, "rooms"),
+            VisibilityToggle::new(app, "roads"),
+            VisibilityToggle::spacer(app),
+            VisibilityToggle::new(app, "enemies"),
+            VisibilityToggle::new(app, "combats"),
+            VisibilityToggle::spacer(app),
+            VisibilityToggle::new(app, "scripts"),
         ];
 
         let mut children: Vec<Box<dyn Component>> = Vec::new();
 
-        children.push(Box::new(Text::new(50, 20, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz", (None, None, None, None), font_size!(16.0), 0.99, (255, 255, 255, 255))));
+        // children.push(Box::new(Text::new(50, 20, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz", (None, None, None, None), font_size!(16.0), 0.99, (255, 255, 255, 255))));
         
         
         let text_box = Textbox::new(
@@ -47,7 +59,7 @@ impl EditorApp {
             (50, 100), (500, 500),
             "",
             true, None, true,
-            1.0, (255, 255, 255, 255)
+            0.98, (255, 255, 255, 255)
         );
         
         if let Some(mut textb) = text_box.get(&mut app.component_system) {
@@ -59,22 +71,10 @@ impl EditorApp {
 
         canvas.children.push(Box::new(text_box));
 
-        // let mut txt = Text::new(50, 60, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz", None, font_size!(16.0), 1.0, (255, 255, 255, 255));
-        // txt.set_styles(style_flags::ITALIC);
-        // children.push(Box::new(txt));
-        //
-        // let mut txt = Text::new(50, 100, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz", None, font_size!(16.0), 1.0, (255, 255, 255, 255));
-        // txt.set_styles(style_flags::BOLD);
-        // children.push(Box::new(txt));
-        //
-        //
-        // let mut txt = Text::new(50, 140, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz", None, font_size!(16.0), 1.0, (255, 255, 255, 255));
-        // txt.set_styles(style_flags::BOLD | style_flags::ITALIC);
-        // children.push(Box::new(txt));
-
         Self {
             canvas,
             visibility_toggles,
+            vis_toggle_bg: Rectangle::new(0, 0, 1, 35, (24, 24, 24, 255), 0.99).with_shader(app.shaders.prox_fade),
             children,
         }
     }
@@ -82,7 +82,7 @@ impl EditorApp {
 
 
 impl Component for EditorApp {
-    fn update(&mut self, app: &mut crate::app::App) {
+    fn update(&mut self, app: &mut App) {
 
         self.canvas.size = (app.window_size.0 - 360, app.window_size.1 - 100);
 
@@ -94,6 +94,18 @@ impl Component for EditorApp {
             child.update(app);
         }
 
+        
+        let mut dx = 0;
+        let dy = app.window_size.1 as i32 - 130;
+        for toggle in &mut self.visibility_toggles {
+            toggle.position = (dx, dy);
+            toggle.update(app);
+            dx += toggle.width as i32;
+        }
+        self.vis_toggle_bg.size.0 = dx as u32;
+        self.vis_toggle_bg.position = (0, dy+50);
+        self.vis_toggle_bg.update(app);
+        
     }
 
 

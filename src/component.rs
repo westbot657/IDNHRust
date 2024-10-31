@@ -19,7 +19,7 @@ impl<T: 'static + Component> ComponentToAny for T {
     fn to_any(self: Box<Self>) -> Box<dyn Any> {
         self
     }
-    
+
 }
 
 pub trait Component: ComponentToAny {

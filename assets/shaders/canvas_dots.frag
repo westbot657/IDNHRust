@@ -78,7 +78,7 @@ void main() {
     float final_dist = ease(
         ease((0.75 + (abs(cell_local.x - 0.5) * abs(cell_local.y - 0.5)))
 
-    )) * (1-dist(mouse, ScreenPos)*4);
+    ));// * (1-dist(mouse, ScreenPos)*4);
 
     FragColor = vec4(color.rgb, color.a * final_dist);// * ((0.25-dv)/0.25));
 }

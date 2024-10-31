@@ -173,6 +173,7 @@ impl Component for Canvas {
             }
         }
 
+        app.camera.push();
         app.camera.viewport = (self.position.0, self.position.1, self.size.0, self.size.1);
         
         self.render(app);
@@ -204,6 +205,7 @@ impl Component for Canvas {
             child.update(app);
         }
 
+        app.camera.pop();
         app.camera.pop();
 
     }
