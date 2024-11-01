@@ -1,6 +1,5 @@
 use crate::{canvas::Canvas, component::Component, rectangle::Rectangle};
 use crate::app::App;
-use crate::image::Image;
 use crate::text_box::Textbox;
 use crate::visibility_toggle::VisibilityToggle;
 

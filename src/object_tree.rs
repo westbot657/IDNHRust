@@ -1,4 +1,3 @@
-use std::collections::VecDeque;
 use crate::app::App;
 use crate::component::Component;
 use crate::shelf_tile::ShelfTile;

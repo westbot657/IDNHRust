@@ -1,5 +1,4 @@
 use std::{collections::HashMap, mem, time};
-use std::collections::VecDeque;
 use cgmath::{Matrix4, SquareMatrix, Vector4};
 use enigo::{Enigo, Mouse as eMouse, Settings};
 use sdl2::{event::Event, video::Window};

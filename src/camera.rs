@@ -1,5 +1,4 @@
-use cgmath::{ortho, Matrix4, Rad, SquareMatrix, Vector3, Vector4};
-use crate::app::App;
+use cgmath::{ortho, Matrix4, Rad, SquareMatrix, Vector3};
 
 pub struct Camera {
     pub matrix: Matrix4<f32>,
