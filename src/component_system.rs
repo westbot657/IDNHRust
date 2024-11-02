@@ -1,7 +1,5 @@
-use std::any::{Any, TypeId};
-use std::collections::{HashMap, VecDeque};
+use std::collections::HashMap;
 use std::marker::PhantomData;
-use std::ops::Deref;
 use uuid::Uuid;
 use crate::app::App;
 use crate::component::Component;

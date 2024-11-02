@@ -1,4 +1,3 @@
-use std::collections::VecDeque;
 use std::time::Instant;
 use crate::app::App;
 use crate::component::Component;

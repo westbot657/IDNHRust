@@ -1,5 +1,4 @@
 use std::{collections::HashMap, ffi::CString, panic};
-use std::collections::VecDeque;
 use cgmath::Matrix;
 use rect_packer::{Config, Packer};
 use rusttype::{point, Font, GlyphId, Scale};

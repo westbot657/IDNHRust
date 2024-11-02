@@ -1,4 +1,3 @@
-use std::collections::VecDeque;
 use std::ffi::CString;
 
 use cgmath::{Matrix, Rad};
