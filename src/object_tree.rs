@@ -1,6 +1,6 @@
 use crate::app::App;
 use crate::component::Component;
-use crate::shelf_tile::ShelfTile;
+use crate::editor_tile::ShelfTile;
 
 pub struct ObjectTree {
     pub shelf_tiles: Vec<(String, ShelfTile)>

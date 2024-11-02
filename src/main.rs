@@ -22,7 +22,7 @@ mod object_tree;
 mod rectangle;
 mod settings;
 mod shaders;
-mod shelf_tile;
+mod editor_tile;
 mod storage_component;
 mod text;
 mod texture_atlas;

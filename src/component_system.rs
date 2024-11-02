@@ -57,6 +57,13 @@ impl<T: 'static + Component> CompRef<T> {
         sys.add(&self.uuid, comp);
     }
     
+    pub fn copy(&self) -> CompRef<T> {
+        Self {
+            uuid: self.uuid.to_string(),
+            _marker: PhantomData
+        }
+    }
+    
 }
 
 impl<T: 'static + Component> Component for CompRef<T> {
