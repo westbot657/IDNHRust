@@ -52,5 +52,4 @@ impl Component for VisibilityToggle {
         }
     }
 
-    fn destroy(self) {}
 }

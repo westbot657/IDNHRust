@@ -25,7 +25,7 @@ macro_rules! data_reader {
             if let Some(table) = $map.as_object() {
                 if let Some(val) = table.get($key) {
                     match val {
-                        ($branch) => {
+                        $branch => {
                             $block;
                             return Ok(())
                         },
@@ -164,9 +164,7 @@ impl ObjectTile {
 
 impl Component for ObjectTile {
     fn update(&mut self, app: &mut App) {
-        todo!()
+        
     }
 
-    fn destroy(self) {
-    }
 }

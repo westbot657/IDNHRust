@@ -19,8 +19,5 @@ impl Component for GameApp {
     fn update(&mut self, app: &mut crate::app::App) {
     }
 
-
-    fn destroy(self) {
-    }
 }
 

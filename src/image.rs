@@ -129,7 +129,4 @@ impl Component for Image {
         self.render(app);
     }
 
-
-    fn destroy(self) {
-    }
 }

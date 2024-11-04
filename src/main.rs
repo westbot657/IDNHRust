@@ -33,6 +33,7 @@ mod window_frame;
 mod platform;
 mod visibility_toggle;
 mod component_system;
+mod nine_slice;
 
 use std::{collections::VecDeque, env, time::Instant};
 

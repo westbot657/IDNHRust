@@ -19,8 +19,6 @@ impl Collider {
 impl Component for Collider {
     fn update(&mut self, _app: &mut crate::app::App) {}
     
-
-    fn destroy(self) {}
 }
 
 

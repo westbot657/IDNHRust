@@ -7,6 +7,7 @@ use crate::{app_selector::AppSelector, camera::Camera, component::Component, ima
 use crate::component_system::{ComponentSystem, SystematicComponent};
 use crate::history_manager::HistoryManager;
 use crate::macros::font_size;
+use crate::nine_slice::NineSliceBase;
 use crate::text::FontHandler;
 use crate::toast_system::ToastSystem;
 
@@ -168,7 +169,9 @@ pub struct App<'a> {
     toasts: ToastSystem,
     _toasts: Option<ToastSystem>,
     
-    pub component_system: ComponentSystem
+    pub component_system: ComponentSystem,
+    
+    pub nine_slices: HashMap<String, NineSliceBase>
 
 }
 

@@ -21,9 +21,6 @@ impl Component for ObjectTree {
     fn update(&mut self, app: &mut App) {
 
     }
-
-
-    fn destroy(self) {
-    }
+    
 }
 

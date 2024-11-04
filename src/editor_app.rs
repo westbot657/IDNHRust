@@ -107,8 +107,4 @@ impl Component for EditorApp {
         
     }
 
-
-
-    fn destroy(self) {
-    }
 }

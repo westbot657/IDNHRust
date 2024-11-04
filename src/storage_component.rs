@@ -21,6 +21,4 @@ impl Component for StorageComponent {
     fn update(&mut self, _app: &mut crate::app::App) {
     }
 
-    fn destroy(self) {
-    }
 }

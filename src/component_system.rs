@@ -75,10 +75,6 @@ impl<T: 'static + Component> Component for CompRef<T> {
             self.restore(&mut app.component_system, child);
         }
     }
-
-
-    fn destroy(self) {
-    }
 }
 
 

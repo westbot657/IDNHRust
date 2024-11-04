@@ -15,8 +15,5 @@ impl Component for ES3TextEditor {
     fn update(&mut self, app: &mut App) {
         todo!()
     }
-
-
-    fn destroy(self) {
-    }
+    
 }
