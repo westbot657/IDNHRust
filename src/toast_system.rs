@@ -102,8 +102,5 @@ impl Component for ToastSystem {
         
     }
 
-    fn destroy(self) {
-        
-    }
 }
 

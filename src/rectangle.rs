@@ -119,8 +119,5 @@ impl Component for Rectangle {
         self.render(app);
     }
 
-
-    fn destroy(self) {
-    }
 }
 

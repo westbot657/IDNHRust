@@ -50,6 +50,4 @@ impl Component for Button {
         app.camera.pop();
     }
 
-    fn destroy(self) {
-    }
 }

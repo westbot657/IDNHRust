@@ -146,7 +146,4 @@ impl Component for AppSelector {
 
     }
 
-
-    fn destroy(self) {
-    }
 }

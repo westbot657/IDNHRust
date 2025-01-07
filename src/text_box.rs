@@ -211,9 +211,6 @@ impl Component for Textbox {
 
     }
 
-
-    fn destroy(self) {
-    }
 }
 
 

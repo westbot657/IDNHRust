@@ -445,8 +445,6 @@ impl Component for WindowFrame {
 
     }
 
-    fn destroy(self) {
-    }
 }
 
 

@@ -22,7 +22,7 @@ mod object_tree;
 mod rectangle;
 mod settings;
 mod shaders;
-mod shelf_tile;
+mod editor_tile;
 mod storage_component;
 mod text;
 mod texture_atlas;
@@ -33,6 +33,7 @@ mod window_frame;
 mod platform;
 mod visibility_toggle;
 mod component_system;
+mod nine_slice;
 
 use std::{collections::VecDeque, env, time::Instant};
 

@@ -24,7 +24,6 @@ impl<T: 'static + Component> ComponentToAny for T {
 pub trait Component: ComponentToAny {
     fn update(&mut self, app: &mut App);
 
-    fn destroy(self);
 }
 
 pub fn setup_gl_pos_tex(vertices: [f32; 30]) -> GLuint {

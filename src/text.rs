@@ -381,7 +381,4 @@ impl Component for Text {
         app.font_handler.style_flagged(self.styles).draw_text(app, self.position.0, self.position.1, &self.content, self.scale, self.bounds, self.z_index, self.color, self.styles)
     }
 
-
-    fn destroy(self) {
-    }
 }

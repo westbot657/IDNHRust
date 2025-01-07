@@ -208,9 +208,6 @@ impl Component for Canvas {
         app.camera.pop();
 
     }
-
-
-    fn destroy(self) {
-    }
+    
 }
 
