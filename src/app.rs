@@ -196,7 +196,7 @@ impl<'a> App<'a> {
             font_handler,
             window_pos: (0, 0),
             window_size: (0, 0),
-            camera: Camera::new(window_width, window_height),
+            camera: Camera::new(),
             children: Vec::new(),
             mouse: Mouse::new(),
             last_mouse: Mouse::new(),
@@ -259,16 +259,16 @@ impl<'a> App<'a> {
         let dt = time::Instant::now();
         self.mouse.active_cursor_style = None;
 
-        let mut children = std::mem::take(&mut self.children);
+        let mut children = mem::take(&mut self.children);
 
         children[0].update(self);
 
         self.camera.push();
 
-        self.camera.set_ipos(5, 25);
-        self.camera.translate(5.0, 25.0, self.window_size);
+        // self.camera.set_ipos(5, 25);
+        self.camera.translate(5.0, 25.0, 0f64);
         // self.camera.set_position(5.0 / self.window_size.0 as f32, 25.0 / self.window_size.1 as f32);
-        self.camera.viewport = (5, 25, self.window_size.0-5, self.window_size.1-25);
+        self.camera.set_viewport((5, 25, self.window_size.0-5, self.window_size.1-25));
 
         for child in &mut children[2..] {
             child.update(self);
@@ -367,11 +367,11 @@ impl<'a> App<'a> {
             Vector4::new(pos.0 + (sz.0), pos.1 - (sz.1), 0.0, 1.0),
         );
     
-        let (camera_matrix, viewport, ipos) = self.camera.peek();
-        let combined_matrix = camera_matrix * transform_matrix;
+        let (translation_matrix, normal_matrix, _, viewport) = self.camera.peek();
+        let combined_matrix = translation_matrix * transform_matrix;
 
-        if !(viewport.0 - ipos.0 <= point.0 && point.0 <= viewport.0 + viewport.2 as i32 &&
-            viewport.1 - ipos.1 <= point.1 && point.1 <= viewport.1 + viewport.3 as i32) {
+        if !(viewport.0 <= point.0 && point.0 <= viewport.0 + viewport.2 as i32 &&
+            viewport.1 <= point.1 && point.1 <= viewport.1 + viewport.3 as i32) {
                 return false
             }
         
@@ -403,8 +403,8 @@ impl<'a> App<'a> {
             Vector4::new(pos.0 + sz.0, pos.1 - sz.1, 0.0, 1.0),
         );
 
-        let (camera_matrix, viewport, _) = self.camera.peek();
-        let combined_matrix = camera_matrix * transform_matrix;
+        let (translation_matrix, normal_matrix, _, viewport) = self.camera.peek();
+        let combined_matrix = translation_matrix * transform_matrix.into();
 
         let mut transformed_corners = Vec::new();
 

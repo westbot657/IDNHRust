@@ -81,8 +81,8 @@ impl Component for ToastSystem {
                 
                 // self.toast_background.position = (app.window_size.0 as i32 - dx, app.window_size.1 as i32 - (self.toast_height as i32 + 10) * (i as i32));
                 app.camera.push();
-                app.camera.set_ipos(app.window_size.0 as i32 - dx, app.window_size.1 as i32 - 110 - (self.toast_height as i32 + 10) * (i as i32));
-                app.camera.translate((app.window_size.0 as i32 - dx) as f32, (app.window_size.1 as i32 - 110 - (self.toast_height as i32 + 10) * (i as i32)) as f32, app.window_size);
+                // app.camera.set_ipos(app.window_size.0 as i32 - dx, app.window_size.1 as i32 - 110 - (self.toast_height as i32 + 10) * (i as i32));
+                app.camera.translate((app.window_size.0 as i32 - dx) as f64, (app.window_size.1 as i32 - 110 - (self.toast_height as i32 + 10) * (i as i32)) as f64, 0f64);
                 self.toast_background.update(app);
                 self.toast_text.content = toast.title.clone();
                 self.toast_text.update(app);
