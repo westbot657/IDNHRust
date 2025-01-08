@@ -1,6 +1,6 @@
 use std::ffi::CString;
 
-use cgmath::Matrix;
+use cgmath::{Matrix, Matrix4};
 use enigo::Mouse;
 
 use crate::{app::App, component::Component, macros::CONST};
@@ -92,7 +92,7 @@ impl Image {
             let view_loc = gl::GetUniformLocation(shader_program, view_str.as_ptr());
             let (translation_matrix, normal_matrix, _, viewport) = app.camera.peek();
 
-            gl::UniformMatrix4fv(cam_loc, 1, gl::FALSE, translation_matrix.into().as_ptr());
+            gl::UniformMatrix4fv(cam_loc, 1, gl::FALSE, translation_matrix.as_ptr());
             gl::Uniform4f(view_loc, 
                 viewport.0 as f32 / app.window_size.0 as f32 - 1.0,
                 1.0 - (viewport.1 as f32 / app.window_size.1 as f32) - (viewport.3 as f32 / app.window_size.1 as f32 * 2.0),

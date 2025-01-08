@@ -184,7 +184,7 @@ impl Component for Textbox {
         
         app.camera.push();
         // app.camera.set_ipos(self.offset.0, self.offset.1);
-        app.camera.translate(self.offset.0 as f64, self.offset.1 as f64, 0f64);
+        app.camera.translate(self.offset.0 as f32, self.offset.1 as f32, 0f32);
         
         // app.camera.viewport = (self.position.0 - self.offset.0 + i_pos.0, self.position.1 - self.offset.1 + i_pos.1, self.size.0, self.size.1);
         // println!("Calculated viewport: {:?}", vp);

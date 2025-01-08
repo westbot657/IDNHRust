@@ -1,6 +1,6 @@
 use std::ffi::CString;
 
-use cgmath::{Matrix, Rad};
+use cgmath::{Matrix, Matrix4, Rad};
 use enigo::Mouse;
 
 use crate::{app::App, component::Component};
@@ -89,7 +89,7 @@ impl Canvas {
             let view_loc = gl::GetUniformLocation(shader_program, view_str.as_ptr());
             let (translation_matrix, normal_matrix, _, viewport) = app.camera.peek();
 
-            gl::UniformMatrix4fv(cam_loc, 1, gl::FALSE, translation_matrix.into().as_ptr());
+            gl::UniformMatrix4fv(cam_loc, 1, gl::FALSE, translation_matrix.as_ptr());
             gl::Uniform4f(view_loc, 
                 viewport.0 as f32 / app.window_size.0 as f32 - 1.0,
                 1.0 - (viewport.1 as f32 / app.window_size.1 as f32) - (viewport.3 as f32 / app.window_size.1 as f32 * 2.0),
@@ -135,7 +135,7 @@ impl Canvas {
             let canvas_origin_str = CString::new("canvas_origin").unwrap();
             let canvas_origin_loc = gl::GetUniformLocation(shader_program, canvas_origin_str.as_ptr());
 
-            let orig = app.map_coords(&(app.camera.position.x + self.position.0, app.camera.position.y + self.position.1));
+            let orig = app.map_coords(&((app.camera.position.x + self.position.0 as f32) as i32, (app.camera.position.y + self.position.1 as f32) as i32));
 
             gl::Uniform2f(canvas_origin_loc,
                 orig.0, orig.1
@@ -191,13 +191,13 @@ impl Component for Canvas {
         let ox = self.scroll_offset.0 as f32 / 2.0; // (app.window_size.0 as f32 / app.window_size.1 as f32);
         let oy = -(self.scroll_offset.1 as f32 / 2.0);
         
-        app.camera.translate((dx + ox) as f64, (dy + oy) as f64, 0f64);
+        app.camera.translate((dx + ox) as f32, (dy + oy) as f32, 0f32);
         // app.camera.set_ipos(self.position.0, self.position.1);
 
-        app.camera.scale(self.zoom as f64, self.zoom as f64, self.zoom as f64);
+        app.camera.scale(self.zoom as f32, self.zoom as f32, self.zoom as f32);
 
         // TODO: add another translation to compensate for rotation
-        app.camera.rotate(Rad(0f64), Rad(-self.rotation as f64), Rad(0f64));
+        app.camera.rotate(Rad(0f32), Rad(-self.rotation as f32), Rad(0f32));
         
 
         for child in &mut self.children {

@@ -219,7 +219,8 @@ impl<'a> App<'a> {
             toasts: ToastSystem::blank(),
             _toasts: None,
             
-            component_system: ComponentSystem::new()
+            component_system: ComponentSystem::new(),
+            nine_slices: HashMap::new(),
         };
         let mut tsts = ToastSystem::new(&app, 300, 80);
         mem::swap(&mut tsts, &mut app.toasts);
@@ -269,7 +270,7 @@ impl<'a> App<'a> {
         self.camera.push();
 
         // self.camera.set_ipos(5, 25);
-        self.camera.translate(5.0, 25.0, 0f64);
+        self.camera.translate(5.0, 25.0, 0f32);
         // self.camera.set_position(5.0 / self.window_size.0 as f32, 25.0 / self.window_size.1 as f32);
         self.camera.set_viewport((5, 25, self.window_size.0-5, self.window_size.1-25));
 
@@ -407,7 +408,7 @@ impl<'a> App<'a> {
         );
 
         let (translation_matrix, normal_matrix, _, viewport) = self.camera.peek();
-        let combined_matrix = translation_matrix * transform_matrix.into();
+        let combined_matrix: Matrix4<f32> = translation_matrix * transform_matrix;
 
         let mut transformed_corners = Vec::new();
 
@@ -419,7 +420,7 @@ impl<'a> App<'a> {
         ];
 
         for corner in corners.iter() {
-            let transformed_corner = combined_matrix * *corner;
+            let transformed_corner: Vector4<f32> = combined_matrix * *corner;
             let (mx, my) = self.unmap_coords(&(transformed_corner.x, transformed_corner.y));
             transformed_corners.push((
                 mx, my
