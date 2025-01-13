@@ -14,7 +14,7 @@ type Entry = (Matrix4<f32>, Matrix3<f32>, bool, Viewport);
 pub struct Camera {
     stack: VecDeque<Entry>,
     pub position: Vector3<f32>,
-    pub rotation: Quaternion<f32>
+    pub rotation: Quaternion<f32>,
 }
 
 impl Camera {
@@ -24,8 +24,8 @@ impl Camera {
             Matrix4::identity(),
             Matrix3::identity(),
             true,
-            (i32::MIN, i32::MIN, u32::MAX, u32::MAX)
-            ) as Entry
+            (0, 0, 10000, 10000)
+            )
         );
         Self {
             stack,
@@ -51,7 +51,7 @@ impl Camera {
             self.stack.push_back(back_entry);
             parent_entry.3
         } else {
-            (i32::MIN, i32::MIN, u32::MAX, u32::MAX)
+            (0, 0, 10000, 10000)
         }
     }
 
@@ -129,7 +129,7 @@ impl Camera {
         entry.2 = true;
     }
 
-    pub fn toMatrix3(matrix: &Matrix4<f32>) -> Matrix3<f32> {
+    pub fn matrix3(matrix: &Matrix4<f32>) -> Matrix3<f32> {
         Matrix3::new(
             matrix[0][0], matrix[0][1], matrix[0][2],
             matrix[1][0], matrix[1][1], matrix[1][2],
@@ -138,109 +138,7 @@ impl Camera {
     }
 
     fn compute_entry_normal(entry: &mut Entry) {
-        (*entry).1 = Self::toMatrix3(&((*entry).0.invert().unwrap().transpose()));
+        (*entry).1 = Self::matrix3(&((*entry).0.invert().unwrap().transpose()));
     }
 
 }
-
-
-// impl Camera {
-//     pub fn new(screen_width: u32, screen_height:u32) -> Self {
-//
-//         Self {
-//             matrix: Matrix4::identity(),
-//             viewport: (0, 0, screen_width, screen_height),
-//             position: (0, 0),
-//             stack: VecDeque::new(),
-//         }
-//     }
-//
-//     pub fn project(&mut self, screen_width: u32, screen_height: u32) {
-//         let aspect_ratio = screen_width as f32 / screen_height as f32;
-//
-//         // Set up an orthographic projection matrix with aspect ratio correction
-//         let left = -1.0 * aspect_ratio;
-//         let right = 1.0 * aspect_ratio;
-//         let bottom = -1.0;
-//         let top = 1.0;
-//
-//         // Adjust the orthographic projection to account for aspect ratio
-//         let projection = ortho(left, right, bottom, top, -1.0, 1.0);
-//         if self.stack.is_empty() {
-//             self.matrix = projection;
-//             self.viewport = (0, 0, screen_width, screen_height);
-//         }
-//         else {
-//             self.stack[0].0 = projection;
-//             self.stack[0].1 = (0, 0, screen_width, screen_height);
-//         }
-//     }
-//
-//     pub fn push(&mut self) {
-//         self.stack.push((self.matrix, self.viewport, self.position));
-//         self.matrix = Matrix4::identity();
-//         self.viewport = (0, 0, self.viewport.2, self.viewport.3);
-//         self.position = (0, 0);
-//     }
-//
-//     pub fn pop(&mut self) {
-//         if let Some(previous_matrix) = self.stack.pop() {
-//             self.matrix = previous_matrix.0;
-//             self.viewport = previous_matrix.1;
-//             self.position = previous_matrix.2;
-//         }
-//     }
-//
-//     pub fn peek(&self) -> (Matrix4<f32>, (i32, i32, u32, u32), (i32, i32)) {
-//         let mut mat_out: Matrix4<f32> = Matrix4::identity();
-//
-//         let mut dx = 0;
-//         let mut dy = 0;
-//         let mut x = 0;
-//         let mut y = 0;
-//         let mut vmx = u32::MAX;
-//         let mut vmy = u32::MAX;
-//
-//         for mat in &self.stack {
-//             mat_out = mat_out * mat.0;
-//             dx += mat.1.0;
-//             dy += mat.1.1;
-//             vmx = vmx.min(mat.1.2);
-//             vmy = vmy.min(mat.1.3);
-//             x += mat.2.0;
-//             y += mat.2.1;
-//         }
-//         mat_out = mat_out * self.matrix;
-//         (mat_out, (self.viewport.0 + dx + x, self.viewport.1 + dy + y, self.viewport.2.min(vmx), self.viewport.3.min(vmy)), (x + self.position.0, y + self.position.1))
-//     }
-//
-//     pub fn apply_transform(&mut self, transform: Matrix4<f32>) {
-//         self.matrix = self.matrix * transform;
-//     }
-//
-//     pub fn set_ipos(&mut self, x: i32, y: i32) {
-//         self.position = (x, y);
-//     }
-//
-//     pub fn set_position(&mut self, x: f32, y: f32) {
-//         let translation = Matrix4::from_translation(Vector3::new(x*2.0, -y*2.0, 0.0));
-//         self.apply_transform(translation);
-//     }
-//
-//     pub fn set_scale(&mut self, scale_x: f32, scale_y: f32) {
-//         let scale = Matrix4::from_nonuniform_scale(scale_x, scale_y, 1.0);
-//         self.apply_transform(scale);
-//     }
-//
-//     pub fn set_rotation(&mut self, angle: Rad<f32>) {
-//         let rotation = Matrix4::from_angle_z(angle);
-//         self.apply_transform(rotation);
-//     }
-//
-//     /// dx and dy should be in pixel space
-//     pub fn translate(&mut self, dx: f32, dy: f32, window_size: (u32, u32)) {
-//         let translation = Matrix4::from_translation(Vector3::new(dx / window_size.1 as f32 * 2.0, -dy / window_size.1 as f32 * 2.0, 0.0));
-//         self.apply_transform(translation);
-//     }
-//
-// }

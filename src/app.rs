@@ -269,6 +269,7 @@ impl<'a> App<'a> {
 
         self.camera.push();
 
+        // self.camera.aspect_ratio = self.window_size.1 as f32 / self.window_size.0 as f32;
         // self.camera.set_ipos(5, 25);
         self.camera.translate(5.0, 25.0, 0f32);
         // self.camera.set_position(5.0 / self.window_size.0 as f32, 25.0 / self.window_size.1 as f32);
@@ -329,7 +330,7 @@ impl<'a> App<'a> {
     }
 
 
-    pub fn map_coordsi64(&self, pos: &(i64, i64)) -> (f32, f32) {
+    pub fn map_coords_i64(&self, pos: &(i64, i64)) -> (f32, f32) {
         ((pos.0 as f32 * 2.0 / self.window_size.1 as f32) - (self.window_size.0 as f32 / self.window_size.1 as f32), 1.0 - (pos.1 as f32 * 2.0 / self.window_size.1 as f32))
     }
 
