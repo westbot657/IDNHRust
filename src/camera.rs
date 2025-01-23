@@ -57,7 +57,8 @@ impl Camera {
 
     pub fn translate(&mut self, x: f32, y: f32, z: f32) {
         let &mut mut entry = self.stack.back_mut().unwrap();
-        entry.0 = entry.0 + Matrix4::from_translation(Vector3::new(x, y, z));
+        entry.0 = entry.0 * Matrix4::from_translation(Vector3::new(x, y, z));
+
     }
 
     pub fn scale(&mut self, x: f32, y: f32, z: f32) {

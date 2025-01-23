@@ -62,8 +62,8 @@ impl Image {
         unsafe {
             gl::UseProgram(shader_program);
 
-            let col = CString::new("transform").unwrap();
-            let transform_loc = gl::GetUniformLocation(shader_program, col.as_ptr());
+            let transform_str = CString::new("transform").unwrap();
+            let transform_loc = gl::GetUniformLocation(shader_program, transform_str.as_ptr());
             
             let transform: [f32; 16] = [
                 sz.0*2.0,     0.0,          0.0, 0.0,

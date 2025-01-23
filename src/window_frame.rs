@@ -38,10 +38,10 @@ impl WindowFrame {
 
         Self {
             children: vec![
-                Box::new(Rectangle::new(0, 0, window_size.0, 25, FRAME_COLOR, 0.9).with_shader(app.shaders.prox_fade)),
-                Box::new(Rectangle::new(0, 25, 5, window_size.1-45, FRAME_COLOR, 0.9).with_shader(app.shaders.prox_fade)),
-                Box::new(Rectangle::new(window_size.0 as i32 - 5, 25, 5, window_size.1-45, FRAME_COLOR, 0.9).with_shader(app.shaders.prox_fade)),
-                Box::new(Rectangle::new(0, window_size.1 as i32 - 20, window_size.0, 20, FRAME_COLOR, 0.9).with_shader(app.shaders.prox_fade)),
+                Box::new(Rectangle::new(0, 0, window_size.0, 25, FRAME_COLOR, 0.92).with_shader(app.shaders.prox_fade)),
+                Box::new(Rectangle::new(0, 25, 5, window_size.1-45, FRAME_COLOR, 0.92).with_shader(app.shaders.prox_fade)),
+                Box::new(Rectangle::new(window_size.0 as i32 - 5, 25, 5, window_size.1-45, FRAME_COLOR, 0.92).with_shader(app.shaders.prox_fade)),
+                Box::new(Rectangle::new(0, window_size.1 as i32 - 20, window_size.0, 20, FRAME_COLOR, 0.92).with_shader(app.shaders.prox_fade)),
 
                 Box::new(Button::new(
                     window_size.0 as i32-40, 0, 40, 25,

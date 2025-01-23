@@ -116,7 +116,7 @@ impl Canvas {
             let offset_loc = gl::GetUniformLocation(shader_program, offset_str.as_ptr());
             // let offset = app.map_coordsi64(&self.scroll_offset);
             gl::Uniform2f(offset_loc,
-                self.scroll_offset.0 as f32 / app.window_size.1 as f32,
+                self.scroll_offset.0 as f32 / app.window_size.0 as f32,
                 self.scroll_offset.1 as f32 / app.window_size.1 as f32
             );
 
