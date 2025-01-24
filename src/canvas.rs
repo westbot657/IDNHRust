@@ -1,6 +1,6 @@
 use std::ffi::CString;
 
-use cgmath::{Matrix, Matrix4, Rad, Transform, Vector3};
+use cgmath::{InnerSpace, Matrix, Matrix4, Quaternion, Rad, Rotation3, Transform, Vector3};
 use enigo::Mouse;
 
 use crate::{app::App, component::Component};
@@ -137,7 +137,6 @@ impl Canvas {
             let canvas_origin_str = CString::new("canvas_origin").unwrap();
             let canvas_origin_loc = gl::GetUniformLocation(shader_program, canvas_origin_str.as_ptr());
 
-            // TODO: re-add camera position to the xy coordinates
             let orig = app.map_coords(&((self.position.0 as f32) as i32, (self.position.1 as f32) as i32));
 
             gl::Uniform2f(canvas_origin_loc,
@@ -162,10 +161,9 @@ impl Component for Canvas {
     fn update(&mut self, app: &mut App) {
 
         if collides!(app, self, app.mouse.position) {
-            // if app.keyboard.held_keys.contains(&"Left Ctrl".to_string()) {
-            //     self.rotation += app.mouse.scroll_y as f32 / 100.0;
-            // } else
-            if app.keyboard.held_keys.contains(&"Left Alt".to_string()) {
+            if app.keyboard.held_keys.contains(&"Left Ctrl".to_string()) {
+                self.rotation += app.mouse.scroll_y as f32 / 100.0;
+            } else if app.keyboard.held_keys.contains(&"Left Alt".to_string()) {
                 self.scroll_offset = (
                     self.scroll_offset.0 - app.mouse.scroll_x as i64,
                     self.scroll_offset.1 + app.mouse.scroll_y as i64
@@ -193,13 +191,16 @@ impl Component for Canvas {
         let ox = self.scroll_offset.0 as f32 / app.window_size.0 as f32; // (app.window_size.0 as f32 / app.window_size.1 as f32);
         let oy = self.scroll_offset.1 as f32 / app.window_size.1 as f32;
 
+        
+        app.camera.scale(self.zoom, self.zoom, 1.0);
+        
         app.camera.translate(dx + ox, dy + oy, 0f32);
         // app.camera.set_ipos(self.position.0, self.position.1);
 
-        app.camera.scale(self.zoom, self.zoom, 1.0);
-
-        // TODO: add another translation to compensate for rotation
-        app.camera.rotate(Rad(0f32), Rad(-self.rotation), Rad(0f32));
+        app.camera.rotate_around(Quaternion::from_angle_z(Rad(-self.rotation)), Vector3::new(dx, dy, 0.0));
+        
+        
+        // app.camera.rotate(Rad(0f32), Rad(-self.rotation), Rad(0f32));
         
 
         for child in &mut self.children {
