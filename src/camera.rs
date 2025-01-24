@@ -13,7 +13,9 @@ type Entry = (Matrix4<f32>, Matrix3<f32>, bool, Viewport);
 // }
 
 pub struct Camera {
-    stack: VecDeque<Entry>
+    stack: VecDeque<Entry>,
+    pub aspect_ratio: f32,
+    pub window_height: u32,
 }
 
 impl Camera {
@@ -27,7 +29,9 @@ impl Camera {
             )
         );
         Self {
-            stack
+            stack,
+            aspect_ratio: 0.0,
+            window_height: 0
         }
     }
 

@@ -192,7 +192,7 @@ impl Component for Canvas {
         let oy = self.scroll_offset.1 as f32 / app.window_size.1 as f32;
 
         
-        app.camera.scale(self.zoom, self.zoom, 1.0);
+        // app.camera.scale(self.zoom, self.zoom, 1.0);
         
         app.camera.translate(dx + ox, dy + oy, 0f32);
         // app.camera.set_ipos(self.position.0, self.position.1);

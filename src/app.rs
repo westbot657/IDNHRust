@@ -265,14 +265,17 @@ impl<'a> App<'a> {
 
         let mut children = mem::take(&mut self.children);
         self.camera.push();
+        self.camera.aspect_ratio = self.window_size.1 as f32 / self.window_size.0 as f32;
+        self.camera.window_height = self.window_size.1;
+        // self.camera.set_ipos(5, 25);
+        self.camera.scale(self.camera.aspect_ratio, 1.0, 1.0);
 
         children[0].update(self);
 
 
-        // self.camera.aspect_ratio = self.window_size.1 as f32 / self.window_size.0 as f32;
-        // self.camera.set_ipos(5, 25);
         let pos = self.map_coords(&(5, -25));
-        self.camera.translate(pos.0 + 1.0, 1.0 - pos.1, 0f32);
+        self.camera.translate(pos.0 - self.camera.aspect_ratio, 1.0 - pos.1, 0f32);
+
         // self.camera.set_position(5.0 / self.window_size.0 as f32, 25.0 / self.window_size.1 as f32);
         self.camera.set_viewport((5, 25, self.window_size.0-5, self.window_size.1-25));
 
@@ -318,35 +321,28 @@ impl<'a> App<'a> {
 
     pub fn map_coords(&self, pos: &(i32, i32)) -> (f32, f32) {
         (
-            (pos.0 as f32 * 2.0 / self.window_size.0 as f32) - 1.0,
+            (pos.0 as f32 * 2.0 / self.window_size.1 as f32) - 1.0,
             1.0 - (pos.1 as f32 * 2.0 / self.window_size.1 as f32)
         )
     }
 
     pub fn unmap_coords(&self, pos: &(f32, f32)) -> (i32, i32) {
         (
-            (((pos.0 + 1.0) * self.window_size.0 as f32) / 2.0).round() as i32,
+            (((pos.0 + 1.0) * self.window_size.1 as f32) / 2.0).round() as i32,
             (((1.0 - pos.1) * self.window_size.1 as f32) / 2.0).round() as i32
         )
     }
 
-
-    pub fn map_coords_i64(&self, pos: &(i64, i64)) -> (f32, f32) {
-        ((pos.0 as f32 * 2.0 / self.window_size.0 as f32) - 1.0, 1.0 - (pos.1 as f32 * 2.0 / self.window_size.1 as f32))
-    }
-
-
-
     pub fn map_size(&self, size: &(u32, u32)) -> (f32, f32) {
         (
-            size.0 as f32 / self.window_size.0 as f32,
+            size.0 as f32 / self.window_size.1 as f32,
             size.1 as f32 / self.window_size.1 as f32
         )
     }
     
     pub fn unmap_size(&self, size: &(f32, f32)) -> (u32, u32) {
         (
-            (size.0 * self.window_size.0 as f32) as u32,
+            (size.0 * self.window_size.1 as f32) as u32,
             (size.1 * self.window_size.1 as f32) as u32
         )
     }
