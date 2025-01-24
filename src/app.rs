@@ -271,7 +271,8 @@ impl<'a> App<'a> {
 
         // self.camera.aspect_ratio = self.window_size.1 as f32 / self.window_size.0 as f32;
         // self.camera.set_ipos(5, 25);
-        self.camera.translate(5.0, 25.0, 0f32);
+        let pos = self.map_coords(&(5, -25));
+        self.camera.translate(pos.0 + 1.0, 1.0 - pos.1, 0f32);
         // self.camera.set_position(5.0 / self.window_size.0 as f32, 25.0 / self.window_size.1 as f32);
         self.camera.set_viewport((5, 25, self.window_size.0-5, self.window_size.1-25));
 

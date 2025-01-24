@@ -1,5 +1,6 @@
 use std::collections::VecDeque;
-use cgmath::{Matrix, Matrix3, Matrix4, Quaternion, Rad, SquareMatrix, Vector3};
+use std::fmt::{Debug, Display, Formatter};
+use cgmath::{Matrix, Matrix3, Matrix4, Quaternion, Rad, SquareMatrix, Vector3, Vector4};
 
 type Viewport = (i32, i32, u32, u32);
 type Entry = (Matrix4<f32>, Matrix3<f32>, bool, Viewport);
@@ -12,9 +13,7 @@ type Entry = (Matrix4<f32>, Matrix3<f32>, bool, Viewport);
 // }
 
 pub struct Camera {
-    stack: VecDeque<Entry>,
-    pub position: Vector3<f32>,
-    pub rotation: Quaternion<f32>,
+    stack: VecDeque<Entry>
 }
 
 impl Camera {
@@ -28,15 +27,19 @@ impl Camera {
             )
         );
         Self {
-            stack,
-            position: Vector3::new(0f32, 0f32, 0f32),
-            rotation: Quaternion::new(0f32, 0f32, 0f32, 0f32)
+            stack
         }
     }
 
     pub fn set_viewport(&mut self, viewport: Viewport) {
-        let &mut mut entry = self.stack.back_mut().unwrap();
-        entry.3 = viewport;
+        let pvp = self.get_parent_viewport();
+        let entry = self.stack.back_mut().unwrap();
+        entry.3 = (
+            pvp.0 + viewport.0,
+            pvp.1 + viewport.1,
+            viewport.2,
+            viewport.3,
+        );
     }
 
     pub fn get_viewport(&self) -> Viewport {
@@ -56,13 +59,12 @@ impl Camera {
     }
 
     pub fn translate(&mut self, x: f32, y: f32, z: f32) {
-        let &mut mut entry = self.stack.back_mut().unwrap();
+        let entry = self.stack.back_mut().unwrap();
         entry.0 = entry.0 * Matrix4::from_translation(Vector3::new(x, y, z));
-
     }
 
     pub fn scale(&mut self, x: f32, y: f32, z: f32) {
-        let &mut mut entry = self.stack.back_mut().unwrap();
+        let entry = self.stack.back_mut().unwrap();
         let scale = Matrix4::from_nonuniform_scale(x, y, z);
         entry.0 = entry.0 * scale;
         if x.abs() == y.abs() && y.abs() == z.abs() {
@@ -78,7 +80,7 @@ impl Camera {
     }
 
     pub fn multiply(&mut self, quaternion: Quaternion<f32>) {
-        let &mut mut entry = self.stack.back_mut().unwrap();
+        let entry = self.stack.back_mut().unwrap();
         entry.0 = entry.0 * Matrix4::from(quaternion);
 
         entry.1 = entry.1 * Matrix3::from(quaternion);
@@ -124,7 +126,7 @@ impl Camera {
     }
 
     pub fn load_identity(&mut self) {
-        let &mut mut entry = self.stack.back_mut().unwrap();
+        let entry = self.stack.back_mut().unwrap();
         entry.0 = Matrix4::identity();
         entry.1 = Matrix3::identity();
         entry.2 = true;

@@ -28,7 +28,7 @@ impl EditorApp {
 
         canvas.children.push(
             Box::new(
-                Rectangle::new(0, 0, 25, 50, (255, 0, 0, 127), 1.0)
+                Rectangle::new(0, 0, 25, 50, (255, 0, 0, 127), -1.0)
             )
         );
 

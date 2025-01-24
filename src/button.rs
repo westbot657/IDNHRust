@@ -41,9 +41,10 @@ impl Component for Button {
         app.camera.push();
 
         // app.camera.set_position(self.position.0 as f32 / app.window_size.1 as f32, self.position.1 as f32 / app.window_size.1 as f32);
-        println!("translate: {}, {}", self.position.0, self.position.1);
-        app.camera.translate(self.position.0 as f32, self.position.1 as f32, 0f32);
 
+        let pos = app.map_coords(&self.position);
+        app.camera.translate(pos.0 + 1.0, 1.0 - pos.1, 0f32);
+        
         for child in &mut self.children {
             child.update(app);
         }

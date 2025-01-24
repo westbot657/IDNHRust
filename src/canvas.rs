@@ -1,6 +1,6 @@
 use std::ffi::CString;
 
-use cgmath::{Matrix, Matrix4, Rad};
+use cgmath::{Matrix, Matrix4, Rad, Transform, Vector3};
 use enigo::Mouse;
 
 use crate::{app::App, component::Component};
@@ -89,6 +89,8 @@ impl Canvas {
             let view_loc = gl::GetUniformLocation(shader_program, view_str.as_ptr());
             let (translation_matrix, normal_matrix, _, viewport) = app.camera.peek();
 
+            let world_pos = translation_matrix.transform_vector(Vector3::new(0f32, 0f32, 0f32));
+            
             gl::UniformMatrix4fv(cam_loc, 1, gl::FALSE, translation_matrix.as_ptr());
             gl::Uniform4f(view_loc, 
                 viewport.0 as f32 / app.window_size.0 as f32 - 1.0,
@@ -116,7 +118,7 @@ impl Canvas {
             let offset_loc = gl::GetUniformLocation(shader_program, offset_str.as_ptr());
             // let offset = app.map_coordsi64(&self.scroll_offset);
             gl::Uniform2f(offset_loc,
-                self.scroll_offset.0 as f32 / app.window_size.0 as f32,
+                self.scroll_offset.0 as f32 / app.window_size.1 as f32,
                 self.scroll_offset.1 as f32 / app.window_size.1 as f32
             );
 
@@ -135,10 +137,12 @@ impl Canvas {
             let canvas_origin_str = CString::new("canvas_origin").unwrap();
             let canvas_origin_loc = gl::GetUniformLocation(shader_program, canvas_origin_str.as_ptr());
 
-            let orig = app.map_coords(&((app.camera.position.x + self.position.0 as f32) as i32, (app.camera.position.y + self.position.1 as f32) as i32));
+            // TODO: re-add camera position to the xy coordinates
+            let orig = app.map_coords(&((self.position.0 as f32) as i32, (self.position.1 as f32) as i32));
 
             gl::Uniform2f(canvas_origin_loc,
-                orig.0, orig.1
+                orig.0 + 1.0 - (sz.0 * (app.window_size.0 as f32 / app.window_size.1 as f32)),
+                1.0 - (orig.1 - sz.1)
             );
 
 
@@ -176,28 +180,26 @@ impl Component for Canvas {
         app.camera.set_viewport((self.position.0, self.position.1, self.size.0, self.size.1));
         
         self.render(app);
-
-
-        // let (_, _, cam_pos) = app.camera.peek();
+        
 
         app.camera.push();
 
         // println!("zoom: {} set-pos: {}, {}", self.zoom, dx, dy);
         // app.camera.set_position(dx, -dy);
         
-        let dx = ((app.window_size.0 as f32 * self.zoom) - app.window_size.0 as f32) / 2.0;
-        let dy = ((app.window_size.1 as f32 * self.zoom) - app.window_size.1 as f32) / 2.0;
+        let dx = ((app.window_size.0 as f32 / self.zoom) - app.window_size.0 as f32) / 2.0;
+        let dy = ((app.window_size.1 as f32 / self.zoom) - app.window_size.1 as f32) / 2.0;
 
-        let ox = self.scroll_offset.0 as f32 / 2.0; // (app.window_size.0 as f32 / app.window_size.1 as f32);
-        let oy = -(self.scroll_offset.1 as f32 / 2.0);
-        
-        app.camera.translate((dx + ox) as f32, (dy + oy) as f32, 0f32);
+        let ox = self.scroll_offset.0 as f32 / app.window_size.0 as f32; // (app.window_size.0 as f32 / app.window_size.1 as f32);
+        let oy = self.scroll_offset.1 as f32 / app.window_size.1 as f32;
+
+        app.camera.translate(dx + ox, dy + oy, 0f32);
         // app.camera.set_ipos(self.position.0, self.position.1);
 
-        app.camera.scale(self.zoom as f32, self.zoom as f32, self.zoom as f32);
+        app.camera.scale(self.zoom, self.zoom, 1.0);
 
         // TODO: add another translation to compensate for rotation
-        app.camera.rotate(Rad(0f32), Rad(-self.rotation as f32), Rad(0f32));
+        app.camera.rotate(Rad(0f32), Rad(-self.rotation), Rad(0f32));
         
 
         for child in &mut self.children {

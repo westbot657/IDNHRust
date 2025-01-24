@@ -64,7 +64,7 @@ impl Image {
 
             let transform_str = CString::new("transform").unwrap();
             let transform_loc = gl::GetUniformLocation(shader_program, transform_str.as_ptr());
-            
+
             let transform: [f32; 16] = [
                 sz.0*2.0,     0.0,          0.0, 0.0,
                 0.0,          sz.1*2.0,     0.0, 0.0,

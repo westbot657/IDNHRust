@@ -19,8 +19,8 @@ impl VisibilityToggle {
             visible: true,
             group: group.to_string(),
             width: 50,
-            visible_texture: Image::new(0, 0, 50, 50, "assets/textures/button/visibility_selector/".to_string() + group + "_shown.png", (0, 0, 50, 50), 0.99).with_shader(app.shaders.prox_fade_texture_white),
-            hidden_texture: Image::new(0, 0, 50, 50, "assets/textures/button/visibility_selector/".to_string() + group + "_hidden.png", (0, 0, 50, 50), 0.99).with_shader(app.shaders.prox_fade_texture_white),
+            visible_texture: Image::new(0, 0, 50, 50, "assets/textures/button/visibility_selector/".to_string() + group + "_shown.png", (0, 0, 50, 50), -0.99).with_shader(app.shaders.prox_fade_texture_white),
+            hidden_texture: Image::new(0, 0, 50, 50, "assets/textures/button/visibility_selector/".to_string() + group + "_hidden.png", (0, 0, 50, 50), -0.99).with_shader(app.shaders.prox_fade_texture_white),
         }
     }
     pub fn spacer(app: &App) -> Self {
@@ -29,8 +29,8 @@ impl VisibilityToggle {
             visible: false,
             group: "".to_string(),
             width: 10,
-            visible_texture: Image::new(0, 0, 10, 50, "assets/textures/visibility_selector_spacer.png", (0, 0, 10, 50), 0.99).with_shader(app.shaders.prox_fade_texture_white),
-            hidden_texture: Image::new(0, 0, 10, 50, "assets/textures/visibility_selector_spacer.png", (0, 0, 10, 50), 0.99).with_shader(app.shaders.prox_fade_texture_white),
+            visible_texture: Image::new(0, 0, 10, 50, "assets/textures/visibility_selector_spacer.png", (0, 0, 10, 50), -0.99).with_shader(app.shaders.prox_fade_texture_white),
+            hidden_texture: Image::new(0, 0, 10, 50, "assets/textures/visibility_selector_spacer.png", (0, 0, 10, 50), -0.99).with_shader(app.shaders.prox_fade_texture_white),
         }
     }
     
